@@ -130,6 +130,12 @@
                         </a>
                     </li>
 
+                    <li class="nav-header">CLIENTES</li>
+                    <li class="nav-item">
+                        <a href="{{ route('clientes.index') }}" class="nav-link {{ request()->routeIs('clientes.*') ? 'active' : '' }}">
+                            <i class="nav-icon fas fa-users"></i><p>Clientes</p>
+                        </a>
+                    </li>
                     <li class="nav-header">ADMINISTRACIÓN</li>
                     <li class="nav-item">
                         <a href="{{ route('usuarios.index') }}" class="nav-link {{ request()->routeIs('usuarios.*') ? 'active' : '' }}">

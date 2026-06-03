@@ -8,6 +8,7 @@ use App\Http\Controllers\MateriaPrimaController;
 use App\Http\Controllers\ProveedoresController;
 use App\Http\Controllers\ComprasController;
 use App\Http\Controllers\VentasController;
+use App\Http\Controllers\ClientesController;
 use App\Http\Controllers\UsuariosController;
 use App\Http\Controllers\MovimientosController;
 use App\Http\Controllers\ProduccionController;
@@ -37,6 +38,9 @@ Route::middleware(['auth'])->group(function () {
     // Ventas
     Route::resource('ventas', VentasController::class)->only(['index','create','store','show']);
     Route::put('ventas/{venta}/anular', [VentasController::class, 'anular'])->name('ventas.anular');
+
+    // Clientes y distribución
+    Route::resource('clientes', ClientesController::class);
 
     // Usuarios (solo admin)
     Route::resource('usuarios', UsuariosController::class);
