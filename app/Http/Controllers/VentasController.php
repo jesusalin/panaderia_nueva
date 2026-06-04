@@ -6,6 +6,7 @@ use App\Models\Venta;
 use App\Models\VentaDetalle;
 use App\Models\Producto;
 use App\Models\Cliente;
+use App\Models\KardexProducto;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
@@ -81,9 +82,25 @@ class VentasController extends Controller
             foreach ($detalles as $detalle) {
                 $detalle['id_venta'] = $venta->id;
                 VentaDetalle::create($detalle);
-                // Descontar stock
-                Producto::where('id', $detalle['id_producto'])
-                    ->decrement('stock_actual', $detalle['cantidad']);
+
+                // Descontar stock y registrar en Kardex
+                $producto     = Producto::find($detalle['id_producto']);
+                $stockAntes   = $producto->stock_actual;
+                $stockDespues = $stockAntes - $detalle['cantidad'];
+
+                $producto->update(['stock_actual' => $stockDespues]);
+
+                KardexProducto::create([
+                    'id_producto'   => $detalle['id_producto'],
+                    'id_usuario'    => auth()->id(),
+                    'tipo'          => 'salida',
+                    'motivo'        => 'venta',
+                    'referencia_id' => $venta->id,
+                    'cantidad'      => $detalle['cantidad'],
+                    'stock_antes'   => $stockAntes,
+                    'stock_despues' => $stockDespues,
+                    'observacion'   => "Venta {$numeroVenta}",
+                ]);
             }
 
             DB::commit();
@@ -110,8 +127,23 @@ class VentasController extends Controller
         DB::beginTransaction();
         try {
             foreach ($venta->detalles as $detalle) {
-                Producto::where('id', $detalle->id_producto)
-                    ->increment('stock_actual', $detalle->cantidad);
+                $producto     = Producto::find($detalle->id_producto);
+                $stockAntes   = $producto->stock_actual;
+                $stockDespues = $stockAntes + $detalle->cantidad;
+
+                $producto->update(['stock_actual' => $stockDespues]);
+
+                KardexProducto::create([
+                    'id_producto'   => $detalle->id_producto,
+                    'id_usuario'    => auth()->id(),
+                    'tipo'          => 'entrada',
+                    'motivo'        => 'devolucion',
+                    'referencia_id' => $venta->id,
+                    'cantidad'      => $detalle->cantidad,
+                    'stock_antes'   => $stockAntes,
+                    'stock_despues' => $stockDespues,
+                    'observacion'   => "Anulación venta {$venta->numero_venta}",
+                ]);
             }
             $venta->update(['estado' => 'anulada']);
             DB::commit();

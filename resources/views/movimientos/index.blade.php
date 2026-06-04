@@ -1,11 +1,11 @@
 @extends('layouts.app')
-@section('title', 'Movimientos de Inventario')
+@section('title', 'Movimientos de Materia Prima')
 @section('breadcrumb') <li class="breadcrumb-item active">Movimientos</li> @endsection
 
 @section('content')
 <div class="card">
     <div class="card-header bg-white">
-        <h5 class="mb-0"><i class="fas fa-exchange-alt mr-2 text-info"></i>Movimientos de Inventario</h5>
+        <h5 class="mb-0"><i class="fas fa-exchange-alt mr-2 text-info"></i>Movimientos de Materia Prima</h5>
     </div>
     {{-- Filtros --}}
     <div class="card-body border-bottom bg-light py-2">

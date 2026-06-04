@@ -8,6 +8,7 @@ use App\Models\Receta;
 use App\Models\RecetaDetalle;
 use App\Models\MateriaPrima;
 use App\Models\MovimientoInventario;
+use App\Models\KardexProducto;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -105,8 +106,20 @@ class ProduccionController extends Controller
                 ]);
             }
 
-            // Sumar al stock del producto
+            // Sumar al stock del producto y registrar en kardex
+            $stockAntesProd = $producto->stock_actual;
             $producto->increment('stock_actual', $request->cantidad);
+            KardexProducto::create([
+                'id_producto'   => $producto->id,
+                'id_usuario'    => auth()->id(),
+                'tipo'          => 'entrada',
+                'motivo'        => 'produccion',
+                'referencia_id' => $produccion->id,
+                'cantidad'      => $request->cantidad,
+                'stock_antes'   => $stockAntesProd,
+                'stock_despues' => $stockAntesProd + $request->cantidad,
+                'observacion'   => "Producción #{->id}",
+            ]);
 
             DB::commit();
             return redirect()->route('produccion.index')

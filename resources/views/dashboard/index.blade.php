@@ -7,7 +7,7 @@
 
 @section('content')
 
-{{-- Tarjetas de resumen --}}
+{{-- Fila 1: KPIs principales --}}
 <div class="row">
     <div class="col-lg-3 col-6">
         <div class="small-box bg-success">
@@ -40,6 +40,20 @@
         </div>
     </div>
     <div class="col-lg-3 col-6">
+        <div class="small-box {{ $gananciaMes >= 0 ? 'bg-success' : 'bg-danger' }}">
+            <div class="inner">
+                <h3>S/ {{ number_format($gananciaMes, 2) }}</h3>
+                <p>Ganancia Bruta del Mes</p>
+            </div>
+            <div class="icon"><i class="fas fa-coins"></i></div>
+            <a href="{{ route('kardex.rotacion') }}" class="small-box-footer">Ver rotación <i class="fas fa-arrow-circle-right"></i></a>
+        </div>
+    </div>
+</div>
+
+{{-- Fila 2: KPIs de tesis --}}
+<div class="row">
+    <div class="col-lg-3 col-6">
         <div class="small-box {{ ($productosStockBajo + $materiaStockBaja) > 0 ? 'bg-danger' : 'bg-secondary' }}">
             <div class="inner">
                 <h3>{{ $productosStockBajo + $materiaStockBaja }}</h3>
@@ -47,6 +61,36 @@
             </div>
             <div class="icon"><i class="fas fa-exclamation-triangle"></i></div>
             <a href="{{ route('materia-prima.index') }}" class="small-box-footer">Revisar <i class="fas fa-arrow-circle-right"></i></a>
+        </div>
+    </div>
+    <div class="col-lg-3 col-6">
+        <div class="small-box {{ $exactitudInventario >= 90 ? 'bg-success' : ($exactitudInventario >= 70 ? 'bg-warning' : 'bg-danger') }}">
+            <div class="inner">
+                <h3>{{ $exactitudInventario }}%</h3>
+                <p>Exactitud del Inventario</p>
+            </div>
+            <div class="icon"><i class="fas fa-bullseye"></i></div>
+            <a href="{{ route('kardex.index') }}" class="small-box-footer">Detalle de Inventario <i class="fas fa-arrow-circle-right"></i></a>
+        </div>
+    </div>
+    <div class="col-lg-3 col-6">
+        <div class="small-box bg-primary">
+            <div class="inner">
+                <h3>{{ $registrosHoy }}</h3>
+                <p>Registros Procesados Hoy</p>
+            </div>
+            <div class="icon"><i class="fas fa-database"></i></div>
+            <a href="{{ route('movimientos.index') }}" class="small-box-footer">Ver movimientos <i class="fas fa-arrow-circle-right"></i></a>
+        </div>
+    </div>
+    <div class="col-lg-3 col-6">
+        <div class="small-box bg-teal" style="background-color:#20c997!important">
+            <div class="inner">
+                <h3>{{ $rotacionStock->count() }}</h3>
+                <p>Productos en Rotación</p>
+            </div>
+            <div class="icon"><i class="fas fa-sync-alt"></i></div>
+            <a href="{{ route('kardex.rotacion') }}" class="small-box-footer">Ver reporte <i class="fas fa-arrow-circle-right"></i></a>
         </div>
     </div>
 </div>
@@ -89,9 +133,42 @@
     </div>
 </div>
 
-{{-- Últimas ventas --}}
+{{-- Rotación de stock y últimas ventas --}}
 <div class="row">
-    <div class="col-12">
+    {{-- Rotación rápida --}}
+    <div class="col-md-5">
+        <div class="card">
+            <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0"><i class="fas fa-sync-alt mr-2 text-success"></i>Rotación de Stock (mes)</h5>
+                <a href="{{ route('kardex.rotacion') }}" class="btn btn-sm btn-outline-success">Ver completo</a>
+            </div>
+            <div class="card-body p-0">
+                <table class="table table-hover mb-0 table-sm">
+                    <thead class="bg-light">
+                        <tr>
+                            <th>Producto</th>
+                            <th class="text-center">Vendido</th>
+                            <th class="text-center">Stock</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse($rotacionStock as $p)
+                        <tr>
+                            <td>{{ $p->nombre }}</td>
+                            <td class="text-center font-weight-bold text-success">{{ $p->total_vendido }}</td>
+                            <td class="text-center">{{ $p->stock_actual }}</td>
+                        </tr>
+                        @empty
+                        <tr><td colspan="3" class="text-center text-muted py-3">Sin ventas este mes</td></tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    {{-- Últimas ventas --}}
+    <div class="col-md-7">
         <div class="card">
             <div class="card-header bg-white d-flex justify-content-between align-items-center">
                 <h5 class="card-title mb-0"><i class="fas fa-history mr-2 text-success"></i>Últimas ventas</h5>
@@ -103,16 +180,14 @@
                 <table class="table table-hover mb-0">
                     <thead class="bg-light">
                         <tr>
-                            <th>Nro.</th><th>Fecha</th><th>Cliente</th><th>Vendedor</th><th>Pago</th><th>Total</th><th>Estado</th>
+                            <th>Nro.</th><th>Cliente</th><th>Pago</th><th>Total</th><th>Estado</th>
                         </tr>
                     </thead>
                     <tbody>
                         @forelse($ultimasVentas as $v)
                         <tr>
                             <td><a href="{{ route('ventas.show', $v) }}">{{ $v->numero_venta }}</a></td>
-                            <td>{{ $v->fecha_venta->format('d/m/Y H:i') }}</td>
                             <td>{{ $v->cliente->nombre ?? 'General' }}</td>
-                            <td>{{ $v->usuario->nombre }}</td>
                             <td><span class="badge badge-light">{{ ucfirst($v->tipo_pago) }}</span></td>
                             <td class="font-weight-bold">S/ {{ number_format($v->total, 2) }}</td>
                             <td>
@@ -122,7 +197,7 @@
                             </td>
                         </tr>
                         @empty
-                        <tr><td colspan="7" class="text-center text-muted py-4">No hay ventas aún</td></tr>
+                        <tr><td colspan="5" class="text-center text-muted py-4">No hay ventas aún</td></tr>
                         @endforelse
                     </tbody>
                 </table>

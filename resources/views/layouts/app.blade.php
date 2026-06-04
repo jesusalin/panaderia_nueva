@@ -95,7 +95,12 @@
                     </li>
                     <li class="nav-item">
                         <a href="{{ route('movimientos.index') }}" class="nav-link {{ request()->routeIs('movimientos.*') ? 'active' : '' }}">
-                            <i class="nav-icon fas fa-exchange-alt"></i><p>Movimientos</p>
+                            <i class="nav-icon fas fa-exchange-alt"></i><p>Movimientos de Materia Prima</p>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="{{ route('kardex.index') }}" class="nav-link {{ request()->routeIs('kardex.*') ? 'active' : '' }}">
+                            <i class="nav-icon fas fa-book-open"></i><p>Movimientos de Productos</p>
                         </a>
                     </li>
 
@@ -123,6 +128,13 @@
                         </a>
                     </li>
 
+                    <li class="nav-header">CLIENTES</li>
+                    <li class="nav-item">
+                        <a href="{{ route('clientes.index') }}" class="nav-link {{ request()->routeIs('clientes.*') ? 'active' : '' }}">
+                            <i class="nav-icon fas fa-users"></i><p>Clientes</p>
+                        </a>
+                    </li>
+
                     <li class="nav-header">VENTAS</li>
                     <li class="nav-item">
                         <a href="{{ route('ventas.index') }}" class="nav-link {{ request()->routeIs('ventas.*') ? 'active' : '' }}">
@@ -130,12 +142,6 @@
                         </a>
                     </li>
 
-                    <li class="nav-header">CLIENTES</li>
-                    <li class="nav-item">
-                        <a href="{{ route('clientes.index') }}" class="nav-link {{ request()->routeIs('clientes.*') ? 'active' : '' }}">
-                            <i class="nav-icon fas fa-users"></i><p>Clientes</p>
-                        </a>
-                    </li>
                     <li class="nav-header">ADMINISTRACIÓN</li>
                     <li class="nav-item">
                         <a href="{{ route('usuarios.index') }}" class="nav-link {{ request()->routeIs('usuarios.*') ? 'active' : '' }}">

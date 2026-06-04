@@ -12,6 +12,7 @@ use App\Http\Controllers\ClientesController;
 use App\Http\Controllers\UsuariosController;
 use App\Http\Controllers\MovimientosController;
 use App\Http\Controllers\ProduccionController;
+use App\Http\Controllers\KardexController;
 
 // Redirigir raíz al dashboard
 Route::get('/', fn() => redirect()->route('dashboard'));
@@ -45,6 +46,10 @@ Route::middleware(['auth'])->group(function () {
     // Usuarios (solo admin)
     Route::resource('usuarios', UsuariosController::class);
     
+    // Kardex Productos
+    Route::get('kardex',           [KardexController::class, 'index'])->name('kardex.index');
+    Route::get('kardex/rotacion', [KardexController::class, 'rotacion'])->name('kardex.rotacion');
+
     // Producción
     Route::get('produccion',                  [ProduccionController::class, 'index'])->name('produccion.index');
     Route::get('produccion/crear',            [ProduccionController::class, 'create'])->name('produccion.create');

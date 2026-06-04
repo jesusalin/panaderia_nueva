@@ -1,118 +1,159 @@
-# 🍞 Sistema de Gestión - Panadería Muruwasi
+# 🍞 Sistema de Gestión — Panadería Muruwasi
 
-## ¿Cómo entrar al sistema?
-- URL local: `http://127.0.0.1:8000/login`
-- **Usuario:** admin
-- **Contraseña:** admin123
+## ¿Cómo instalar?
+```bash
+git clone https://github.com/jesusalin/panaderia_nueva.git
+cd panaderia_nueva
+composer install
+cp .env.example .env
+php artisan key:generate
+```
+Configura tu `.env`:
+```
+DB_DATABASE=panaderia_nueva
+DB_USERNAME=root
+DB_PASSWORD=
+```
+```bash
+php artisan migrate:fresh --seed
+php artisan serve
+```
+
+## ¿Cómo entrar?
+URL: `http://127.0.0.1:8000/login`
+
+| Usuario | Contraseña | Rol |
+|---------|-----------|-----|
+| admin | admin123 | Administrador |
+| mquispe | vendedor123 | Vendedora |
+| cmamani | almacen123 | Almacenero |
 
 ---
 
 ## 📋 Módulos del Sistema
 
 ### 🏠 Dashboard
-Pantalla principal con un resumen general del negocio:
-- Ventas del día y del mes
-- Productos con stock bajo (necesitan reposición)
-- Los productos más vendidos
-- Últimas ventas realizadas
+Pantalla principal con resumen del negocio. Muestra 8 indicadores:
+- **Ventas de Hoy** — total vendido en el día
+- **Ventas del Mes** — total vendido en el mes actual
+- **Compras del Mes** — total gastado en insumos
+- **Ganancia Bruta** — diferencia entre ventas y compras del mes
+- **Alertas de Stock** — productos e insumos por debajo del mínimo
+- **Exactitud del Inventario** — % de productos con stock disponible (KPI de tesis)
+- **Registros Procesados Hoy** — cuántas operaciones se registraron hoy (KPI de tesis)
+- **Productos en Rotación** — cuántos productos se vendieron este mes
+
+También muestra gráfico de ventas de los últimos 7 días, top 5 más vendidos y rotación rápida de stock.
 
 ---
 
 ### 📦 Productos
-Aquí se registran todos los productos que la panadería **fabrica y vende**:
+Registra todos los productos que la panadería fabrica y vende:
 - Pan frances, tortas, galletas, empanadas, bebidas, etc.
 - Cada producto tiene precio de venta, costo de producción y stock
-- Cuando el stock baja del mínimo, aparece una alerta en el dashboard
-- Se puede activar o desactivar productos sin eliminarlos
+- Alerta en dashboard cuando el stock baja del mínimo
 
 ---
 
 ### 🏷️ Categorías
-Agrupa los productos por tipo para encontrarlos más fácil:
-- Panes, Pasteles, Galletas, Empanadas, Bebidas, etc.
-- Cada producto pertenece a una categoría
+Agrupa los productos por tipo:
+- Panes, Pasteles, Galletas, Empanadas, Bebidas
 
 ---
 
-### 🌾 Materia Prima (Insumos)
-Registra todos los ingredientes que se usan para producir:
+### 🌾 Materia Prima
+Registra todos los ingredientes para producir:
 - Harina, azúcar, mantequilla, huevos, leche, levadura, etc.
-- Tiene stock actual y stock mínimo (alerta cuando se acaba)
-- El stock se descuenta automáticamente cuando se produce
+- Stock mínimo con alerta automática
+- El stock se descuenta al registrar producción
 
 ---
 
 ### 🏭 Producción
 Registra cuándo se fabrican los productos:
-- Se indica qué producto se fabricó y cuántas unidades
-- Al registrar una producción, el stock del producto **aumenta**
-- Los ingredientes de la receta se **descuentan** del stock de materia prima
-- Requiere que el producto tenga una receta configurada
+- Al registrar, el stock del producto **sube**
+- Los ingredientes de la receta se **descuentan** de materia prima
+- Se registra automáticamente en el **Kardex de Productos**
+- Requiere que el producto tenga receta configurada
 
 ---
 
 ### 📝 Recetas
-Define los ingredientes necesarios para fabricar cada producto:
-- Ej: Para hacer 50 panes franceses se necesita 1kg de harina, 10g de levadura, 20g de sal
-- El rendimiento indica cuántas unidades produce la receta
-- Sin receta, no se puede registrar la producción
+Define ingredientes para fabricar cada producto:
+- Rendimiento: cuántas unidades produce la receta
+- Ejemplo: 1kg harina + 10g levadura + 20g sal = 50 panes franceses
 
 ---
 
 ### 🚚 Proveedores
-Empresas o personas que **venden insumos a la panadería**:
-- Molino que vende harina
-- Distribuidora de huevos
-- Proveedor de lácteos
-- Se puede ver el historial de compras por proveedor
+Empresas que venden insumos a la panadería:
+- Molinos, distribuidoras de lácteos, proveedores de huevos, etc.
+- Historial de compras por proveedor
 
 ---
 
 ### 🛒 Compras
-Registra cuando la panadería **compra insumos a sus proveedores**:
-- Se indica qué insumos se compraron, cantidad y precio
-- Tiene estado: Pendiente → Recibida → Anulada
-- Al marcar como "Recibida", el stock de materia prima **aumenta automáticamente**
+Registra compras de insumos a proveedores:
+- Estado: Pendiente → Recibida → Anulada
+- Al marcar "Recibida", el stock de materia prima **sube automáticamente**
 - Incluye cálculo de IGV (18%)
 
 ---
 
 ### 👥 Clientes y Distribución
-Registra a quienes la panadería **vende y distribuye sus productos**:
-- Bodegas del barrio
-- Supermercados (Plaza Vea, Tottus, etc.)
-- Colegios
-- Restaurantes
-- Otras panaderías
-- Clientes particulares
-- Se puede ver el historial de compras de cada cliente y cuánto ha gastado en total
+Registra a quienes la panadería vende y distribuye:
+- **Tipos:** bodega, supermercado, colegio, restaurante, otra panadería, particular
+- Campos: RUC, dirección, distrito, referencia
+- Vista de detalle con historial de ventas y total comprado por cliente
 
 ---
 
 ### 💰 Ventas
-Registra cada venta que realiza la panadería:
-- Se selecciona el cliente y los productos que compró
-- Acepta distintos métodos de pago: efectivo, Yape, Plin, tarjeta
-- Incluye cálculo de IGV (18%)
-- Al registrar la venta, el stock del producto **disminuye automáticamente**
-- Se puede anular una venta si fue un error
+Registra cada venta:
+- Selección de cliente y productos
+- Métodos de pago: efectivo, Yape, Plin, tarjeta
+- IGV (18%) calculado automáticamente
+- Al registrar, el stock del producto **baja** y se registra en el **Kardex**
+- Se puede anular una venta (restaura el stock)
+
+---
+
+### 📖 Kardex de Productos *(NUEVO)*
+Registro detallado de entradas y salidas de productos terminados:
+- **Entradas:** cuando se registra una producción
+- **Salidas:** cuando se registra una venta
+- **Devoluciones:** cuando se anula una venta
+- Muestra stock antes y después de cada movimiento
+- Filtros por producto, tipo y rango de fechas
+- Permite auditar el inventario de productos
+
+---
+
+### 📊 Rotación de Stock *(NUEVO)*
+Reporte mensual de rendimiento de productos:
+- Unidades vendidas por producto
+- Ingresos generados
+- Utilidad bruta por producto
+- Margen de ganancia en %
+- Alerta de stock bajo
+- Filtrable por mes y año
+- Totales generales al pie
 
 ---
 
 ### 📊 Movimientos de Inventario
-Registro automático de todos los cambios de stock de materia prima:
-- Cada entrada (compra) y salida (producción) queda registrada
-- Muestra el stock antes y después de cada movimiento
-- Útil para auditorías y control del inventario
+Kardex de materia prima (insumos):
+- Entradas: cuando se recibe una compra
+- Salidas: cuando se usa en producción
+- Filtros por insumo y tipo de movimiento
 
 ---
 
 ### 👤 Usuarios
-Gestión de las personas que usan el sistema:
-- **Admin:** acceso total al sistema
-- **Vendedor:** solo puede registrar ventas
-- **Almacenero:** gestiona inventario y compras
-- Se puede activar o desactivar usuarios
+Gestión de accesos al sistema:
+- **Admin:** acceso total
+- **Vendedor:** solo ventas
+- **Almacenero:** inventario y compras
 
 ---
 
@@ -121,24 +162,17 @@ Gestión de las personas que usan el sistema:
 ```
 PROVEEDORES → COMPRAS → MATERIA PRIMA
                               ↓
-                         PRODUCCIÓN (usa recetas)
+                    PRODUCCIÓN (usa recetas)
                               ↓
-                           STOCK DE PRODUCTOS
+                    STOCK DE PRODUCTOS ←→ KARDEX PRODUCTOS
                               ↓
-CLIENTES ←————————————————— VENTAS
+CLIENTES ←──────────────── VENTAS
+              ↓
+          DASHBOARD (KPIs + Rotación de Stock)
 ```
 
-1. El proveedor te vende insumos → se registra en **Compras**
-2. Con los insumos fabricas productos → se registra en **Producción**
-3. Los productos se acumulan en stock → visible en **Productos**
-4. Los clientes te compran productos → se registra en **Ventas**
-5. Todo queda en el historial → visible en **Dashboard** y **Movimientos**
-
----
-
-## 👥 Usuarios de Prueba
-| Usuario | Contraseña | Rol |
-|---------|-----------|-----|
-| admin | admin123 | Administrador |
-| mquispe | vendedor123 | Vendedora |
-| cmamani | almacen123 | Almacenero |
+1. Proveedor vende insumos → **Compras** → stock materia prima sube
+2. Con insumos fabricas → **Producción** → stock producto sube + kardex entrada
+3. Cliente compra → **Ventas** → stock producto baja + kardex salida
+4. Todo visible en → **Dashboard** con KPIs en tiempo real
+5. Análisis de rentabilidad → **Rotación de Stock**
