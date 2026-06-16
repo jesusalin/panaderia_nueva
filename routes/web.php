@@ -29,7 +29,7 @@ Route::middleware(['auth'])->group(function () {
 
     // Inventario
     Route::resource('materia-prima', MateriaPrimaController::class);
-    Route::get('movimientos',       [MovimientosController::class, 'index'])->name('movimientos.index');
+    Route::get('movimientos_materia_prima',       [MovimientosController::class, 'index'])->name('movimientos.index');
 
     // Proveedores y Compras
     Route::resource('proveedores',  ProveedoresController::class)
@@ -48,8 +48,8 @@ Route::middleware(['auth'])->group(function () {
     Route::resource('usuarios', UsuariosController::class);
     
     // Kardex Productos
-    Route::get('kardex',           [KardexController::class, 'index'])->name('kardex.index');
-    Route::get('kardex/rotacion', [KardexController::class, 'rotacion'])->name('kardex.rotacion');
+    Route::get('movimientos_productos',           [KardexController::class, 'index'])->name('kardex.index');
+    Route::get('movimientos_productos/rotacion', [KardexController::class, 'rotacion'])->name('kardex.rotacion');
 
     // Producción
     Route::get('produccion',                  [ProduccionController::class, 'index'])->name('produccion.index');
