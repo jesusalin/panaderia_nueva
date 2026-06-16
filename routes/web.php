@@ -32,7 +32,8 @@ Route::middleware(['auth'])->group(function () {
     Route::get('movimientos',       [MovimientosController::class, 'index'])->name('movimientos.index');
 
     // Proveedores y Compras
-    Route::resource('proveedores',  ProveedoresController::class);
+    Route::resource('proveedores',  ProveedoresController::class)
+    ->parameters(['proveedores' => 'proveedor']);
     Route::resource('compras',      ComprasController::class)->only(['index','create','store','show']);
     Route::put('compras/{compra}/recibir', [ComprasController::class, 'recibir'])->name('compras.recibir');
 

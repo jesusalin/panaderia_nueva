@@ -53,6 +53,13 @@
                             <label class="form-label">Referencia</label>
                             <input type="text" name="referencia" class="form-control" value="{{ old('referencia', $cliente->referencia) }}">
                         </div>
+                        <div class="form-group">
+                <label>Estado</label>
+                <select name="estado" class="form-control">
+                    <option value="activo"   {{ old('estado', $cliente->estado) === 'activo'   ? 'selected' : '' }}>Activo</option>
+                    <option value="inactivo" {{ old('estado', $cliente->estado) === 'inactivo' ? 'selected' : '' }}>Inactivo</option>
+                </select>
+                        </div>
                     </div>
                     <div class="d-flex gap-2">
                         <button type="submit" class="btn btn-primary">Actualizar</button>
