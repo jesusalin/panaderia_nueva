@@ -50,6 +50,26 @@
                     </div>
                 </div>
             </div>
+            <div class="row">
+                <div class="col-md-6 form-group">
+                    <label>Proveedor Principal</label>
+                    <select name="id_proveedor" class="form-control">
+                        <option value="">-- Sin asignar --</option>
+                        @foreach($proveedores as $prov)
+                            <option value="{{ $prov->id }}" {{ old('id_proveedor') == $prov->id ? 'selected' : '' }}>
+                                {{ $prov->nombre }}
+                            </option>
+                        @endforeach
+                    </select>
+                    <small class="form-text text-muted">Necesario para generar órdenes automáticas de reposición</small>
+                </div>
+                <div class="col-md-6 form-group">
+                    <label>Cantidad de Reposición</label>
+                    <input type="number" name="cantidad_reposicion" step="0.001" min="0" class="form-control"
+                        value="{{ old('cantidad_reposicion') }}" placeholder="Cantidad sugerida a comprar">
+                    <small class="form-text text-muted">Si se deja vacío, se sugiere el doble del stock mínimo</small>
+                </div>
+            </div>
             <div class="form-group">
                 <label>Estado</label>
                 <select name="estado" class="form-control">

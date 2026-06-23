@@ -13,6 +13,7 @@ use App\Http\Controllers\UsuariosController;
 use App\Http\Controllers\MovimientosController;
 use App\Http\Controllers\ProduccionController;
 use App\Http\Controllers\KardexController;
+use App\Http\Controllers\OrdenesAutomaticasController;
 
 // Redirigir raíz al dashboard
 Route::get('/', fn() => redirect()->route('dashboard'));
@@ -29,6 +30,8 @@ Route::middleware(['auth'])->group(function () {
 
     // Inventario
     Route::resource('materia-prima', MateriaPrimaController::class);
+    Route::get('materia-prima/{materiaPrima}/ajuste',  [MateriaPrimaController::class, 'ajusteForm'])->name('materia-prima.ajuste');
+    Route::post('materia-prima/{materiaPrima}/ajuste', [MateriaPrimaController::class, 'ajusteStore'])->name('materia-prima.ajuste.store');
     Route::get('movimientos_materia_prima',       [MovimientosController::class, 'index'])->name('movimientos.index');
 
     // Proveedores y Compras
@@ -36,6 +39,12 @@ Route::middleware(['auth'])->group(function () {
     ->parameters(['proveedores' => 'proveedor']);
     Route::resource('compras',      ComprasController::class)->only(['index','create','store','show']);
     Route::put('compras/{compra}/recibir', [ComprasController::class, 'recibir'])->name('compras.recibir');
+
+    // Ordenes automaticas de reposicion
+    Route::get('ordenes-automaticas',  [OrdenesAutomaticasController::class, 'index'])->name('ordenes-automaticas.index');
+    Route::post('ordenes-automaticas/generar', [OrdenesAutomaticasController::class, 'generar'])->name('ordenes-automaticas.generar');
+    Route::post('ordenes-automaticas/{ordenAutomatica}/convertir', [OrdenesAutomaticasController::class, 'convertir'])->name('ordenes-automaticas.convertir');
+    Route::post('ordenes-automaticas/{ordenAutomatica}/descartar', [OrdenesAutomaticasController::class, 'descartar'])->name('ordenes-automaticas.descartar');
 
     // Ventas
     Route::resource('ventas', VentasController::class)->only(['index','create','store','show']);

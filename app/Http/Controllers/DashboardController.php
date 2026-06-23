@@ -39,13 +39,17 @@ class DashboardController extends Controller
         $materiaStockBaja = MateriaPrima::where('estado', 'activo')
             ->whereColumn('stock_actual', '<=', 'stock_minimo')->count();
 
-        // ── Exactitud del inventario ─────────────────────────
-        // % de productos con stock > 0 vs total activos
-        $totalProductos     = Producto::where('estado', 'activo')->count();
-        $productosConStock  = Producto::where('estado', 'activo')->where('stock_actual', '>', 0)->count();
-        $exactitudInventario = $totalProductos > 0
-            ? round(($productosConStock / $totalProductos) * 100, 1)
-            : 0;
+        // ── Exactitud del inventario (OE2 de tesis) ──────────
+        // % de insumos cuyo stock no necesitó corrección este mes
+        $totalMateriasActivas = MateriaPrima::where('estado', 'activo')->count();
+        $materiasConAjusteMes = MovimientoInventario::where('tipo', 'ajuste')
+            ->whereYear('created_at', $hoy->year)
+            ->whereMonth('created_at', $hoy->month)
+            ->distinct('id_materia')->count('id_materia');
+
+        $exactitudInventario = $totalMateriasActivas > 0
+            ? round((($totalMateriasActivas - $materiasConAjusteMes) / $totalMateriasActivas) * 100, 1)
+            : 100;
 
         // ── Registros procesados hoy (KPI tesis) ─────────────
         $registrosHoy = KardexProducto::whereDate('created_at', $hoy)->count()

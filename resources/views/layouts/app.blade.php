@@ -127,6 +127,11 @@
                             <i class="nav-icon fas fa-shopping-cart"></i><p>Compras</p>
                         </a>
                     </li>
+                    <li class="nav-item">
+                        <a href="{{ route('ordenes-automaticas.index') }}" class="nav-link {{ request()->routeIs('ordenes-automaticas.*') ? 'active' : '' }}">
+                            <i class="nav-icon fas fa-robot"></i><p>Órdenes Automáticas</p>
+                        </a>
+                    </li>
 
                     <li class="nav-header">CLIENTES</li>
                     <li class="nav-item">

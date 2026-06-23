@@ -46,6 +46,9 @@
                         </span>
                     </td>
                     <td class="text-center">
+                        <a href="{{ route('materia-prima.ajuste', $m) }}" class="btn btn-sm btn-info" title="Ajustar inventario">
+                            <i class="fas fa-balance-scale"></i>
+                        </a>
                         <a href="{{ route('materia-prima.edit', $m) }}" class="btn btn-sm btn-warning">
                             <i class="fas fa-edit"></i>
                         </a>
