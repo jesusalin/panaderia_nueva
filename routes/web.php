@@ -14,6 +14,7 @@ use App\Http\Controllers\MovimientosController;
 use App\Http\Controllers\ProduccionController;
 use App\Http\Controllers\KardexController;
 use App\Http\Controllers\OrdenesAutomaticasController;
+use App\Http\Controllers\TiemposOperacionController;
 
 // Redirigir raíz al dashboard
 Route::get('/', fn() => redirect()->route('dashboard'));
@@ -59,6 +60,11 @@ Route::middleware(['auth'])->group(function () {
     // Kardex Productos
     Route::get('movimientos_productos',           [KardexController::class, 'index'])->name('kardex.index');
     Route::get('movimientos_productos/rotacion', [KardexController::class, 'rotacion'])->name('kardex.rotacion');
+
+    // Tiempos por operación (OE3 - reducción de tiempos muertos)
+    Route::get('tiempos-operacion',           [TiemposOperacionController::class, 'index'])->name('tiempos-operacion.index');
+    Route::post('tiempos-operacion/registrar',[TiemposOperacionController::class, 'store'])->name('tiempos-operacion.store');
+    Route::post('tiempos-operacion/baseline', [TiemposOperacionController::class, 'actualizarBaseline'])->name('tiempos-operacion.baseline');
 
     // Producción
     Route::get('produccion',                  [ProduccionController::class, 'index'])->name('produccion.index');

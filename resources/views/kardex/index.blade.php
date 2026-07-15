@@ -13,7 +13,7 @@
 
     {{-- Filtros --}}
     <div class="card-body border-bottom">
-        <form method="GET" class="form-inline flex-wrap gap-2">
+        <form method="GET" class="form-inline flex-wrap gap-2" onsubmit="TiempoOperacion.marcarInicio('verificacion_stock')">
             <select name="id_producto" class="form-control mr-2 mb-2">
                 <option value="">Todos los productos</option>
                 @foreach($productos as $p)
@@ -79,3 +79,10 @@
     <div class="card-footer">{{ $movimientos->links() }}</div>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+// Si venimos de aplicar un filtro (búsqueda de stock), registrar el tiempo que tomó
+TiempoOperacion.registrarFin('verificacion_stock');
+</script>
+@endpush

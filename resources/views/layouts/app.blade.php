@@ -83,14 +83,24 @@
                     </li>
                     <li class="nav-item">
                         <a href="{{ route('productos.index') }}" class="nav-link {{ request()->routeIs('productos.*') ? 'active' : '' }}">
-                            <i class="nav-icon fas fa-bread-slice"></i><p>Productos</p>
+                            <i class="nav-icon fas fa-bread-slice"></i><p>
+                                Productos
+                                @if($stockBajoProductosCount > 0)
+                                    <span class="badge badge-danger right">{{ $stockBajoProductosCount }}</span>
+                                @endif
+                            </p>
                         </a>
                     </li>
 
                     <li class="nav-header">INVENTARIO</li>
                     <li class="nav-item">
                         <a href="{{ route('materia-prima.index') }}" class="nav-link {{ request()->routeIs('materia-prima.*') ? 'active' : '' }}">
-                            <i class="nav-icon fas fa-boxes"></i><p>Materia Prima</p>
+                            <i class="nav-icon fas fa-boxes"></i><p>
+                                Materia Prima
+                                @if($stockBajoMateriaPrimaCount > 0)
+                                    <span class="badge badge-danger right">{{ $stockBajoMateriaPrimaCount }}</span>
+                                @endif
+                            </p>
                         </a>
                     </li>
                     <li class="nav-item">
@@ -144,6 +154,13 @@
                     <li class="nav-item">
                         <a href="{{ route('ventas.index') }}" class="nav-link {{ request()->routeIs('ventas.*') ? 'active' : '' }}">
                             <i class="nav-icon fas fa-cash-register"></i><p>Ventas</p>
+                        </a>
+                    </li>
+
+                    <li class="nav-header">REPORTES</li>
+                    <li class="nav-item">
+                        <a href="{{ route('tiempos-operacion.index') }}" class="nav-link {{ request()->routeIs('tiempos-operacion.*') ? 'active' : '' }}">
+                            <i class="nav-icon fas fa-stopwatch"></i><p>Tiempos por Operación</p>
                         </a>
                     </li>
 
@@ -208,6 +225,7 @@
 <script src="https://cdn.jsdelivr.net/npm/jquery@3.6/dist/jquery.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/js/adminlte.min.js"></script>
+<script src="{{ asset('js/tiempos-operacion.js') }}"></script>
 @stack('scripts')
 </body>
 </html>
