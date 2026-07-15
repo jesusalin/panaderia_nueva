@@ -75,6 +75,7 @@
                         </a>
                     </li>
 
+                    @if(auth()->user()->hasRole('admin'))
                     <li class="nav-header">CATÁLOGO</li>
                     <li class="nav-item">
                         <a href="{{ route('categorias.index') }}" class="nav-link {{ request()->routeIs('categorias.*') ? 'active' : '' }}">
@@ -91,7 +92,9 @@
                             </p>
                         </a>
                     </li>
+                    @endif
 
+                    @if(auth()->user()->hasRole(['admin', 'almacenero']))
                     <li class="nav-header">INVENTARIO</li>
                     <li class="nav-item">
                         <a href="{{ route('materia-prima.index') }}" class="nav-link {{ request()->routeIs('materia-prima.*') ? 'active' : '' }}">
@@ -143,6 +146,15 @@
                         </a>
                     </li>
 
+                    <li class="nav-header">REPORTES</li>
+                    <li class="nav-item">
+                        <a href="{{ route('tiempos-operacion.index') }}" class="nav-link {{ request()->routeIs('tiempos-operacion.*') ? 'active' : '' }}">
+                            <i class="nav-icon fas fa-stopwatch"></i><p>Tiempos por Operación</p>
+                        </a>
+                    </li>
+                    @endif
+
+                    @if(auth()->user()->hasRole(['admin', 'vendedor']))
                     <li class="nav-header">CLIENTES</li>
                     <li class="nav-item">
                         <a href="{{ route('clientes.index') }}" class="nav-link {{ request()->routeIs('clientes.*') ? 'active' : '' }}">
@@ -156,20 +168,16 @@
                             <i class="nav-icon fas fa-cash-register"></i><p>Ventas</p>
                         </a>
                     </li>
+                    @endif
 
-                    <li class="nav-header">REPORTES</li>
-                    <li class="nav-item">
-                        <a href="{{ route('tiempos-operacion.index') }}" class="nav-link {{ request()->routeIs('tiempos-operacion.*') ? 'active' : '' }}">
-                            <i class="nav-icon fas fa-stopwatch"></i><p>Tiempos por Operación</p>
-                        </a>
-                    </li>
-
+                    @if(auth()->user()->hasRole('admin'))
                     <li class="nav-header">ADMINISTRACIÓN</li>
                     <li class="nav-item">
                         <a href="{{ route('usuarios.index') }}" class="nav-link {{ request()->routeIs('usuarios.*') ? 'active' : '' }}">
                             <i class="nav-icon fas fa-users"></i><p>Usuarios</p>
                         </a>
                     </li>
+                    @endif
 
                 </ul>
             </nav>

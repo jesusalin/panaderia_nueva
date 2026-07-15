@@ -15,4 +15,17 @@ class Usuario extends Authenticatable {
     public function ventas()      { return $this->hasMany(Venta::class, 'id_usuario'); }
     public function compras()     { return $this->hasMany(Compra::class, 'id_usuario'); }
     public function movimientos() { return $this->hasMany(MovimientoInventario::class, 'id_usuario'); }
+
+    /**
+     * Verifica si el usuario tiene uno de los roles indicados.
+     * Uso: $user->hasRole('admin') o $user->hasRole(['admin', 'almacenero'])
+     */
+    public function hasRole($roles): bool
+    {
+        $nombreRol = $this->rol?->nombre;
+        if (!$nombreRol) return false;
+
+        $roles = is_array($roles) ? $roles : [$roles];
+        return in_array($nombreRol, $roles);
+    }
 }
