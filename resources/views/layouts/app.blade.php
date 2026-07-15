@@ -12,14 +12,56 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap">
 
     <style>
+        :root { --main-sidebar-width: 270px; }
         body { font-family: 'Nunito', sans-serif; }
-        .brand-link { background: #b5451b; }
+        .brand-link { background: #b5451b; display: flex; align-items: center; justify-content: center; gap: .5rem; }
+
+        /* Sidebar */
         .main-sidebar { background: #1a1a2e; }
-        .nav-sidebar .nav-link { color: #c8c8d4; }
-        .nav-sidebar .nav-link:hover,
-        .nav-sidebar .nav-link.active { background: #b5451b !important; color: #fff !important; }
-        .nav-sidebar .nav-header { color: #7a7a9d; font-size: 0.7rem; letter-spacing: 1px; }
-        .sidebar-dark-primary .nav-sidebar>.nav-item>.nav-link.active { background: #b5451b; }
+        .nav-sidebar { padding: 0 .5rem; }
+        .nav-sidebar .nav-item { margin-bottom: 2px; }
+        .nav-sidebar .nav-link {
+            color: #c8c8d4; border-radius: 8px; padding: .65rem .8rem;
+            display: flex; align-items: flex-start; gap: .3rem;
+            transition: background .12s ease, color .12s ease;
+        }
+        .nav-sidebar .nav-link .nav-icon {
+            width: 22px; text-align: center; margin-right: .5rem; flex-shrink: 0; margin-top: .1rem;
+        }
+        .nav-sidebar .nav-link p { margin: 0; line-height: 1.3; font-size: .92rem; white-space: normal; }
+
+        /* Hover: sutil, distinto del estado activo */
+        .nav-sidebar .nav-link:hover {
+            background: rgba(255,255,255,.07) !important; color: #fff !important;
+        }
+        /* Activo: color de marca sólido + barra indicadora */
+        .nav-sidebar .nav-link.active,
+        .sidebar-dark-primary .nav-sidebar>.nav-item>.nav-link.active {
+            background: #b5451b !important; color: #fff !important;
+            box-shadow: inset 3px 0 0 #ffd8c2;
+        }
+
+        .nav-sidebar .nav-header {
+            color: #7a7a9d; font-size: .68rem; letter-spacing: 1.2px; font-weight: 700;
+            margin: 1.1rem .5rem .35rem; padding: 0;
+        }
+        .nav-sidebar .nav-item:first-child .nav-header,
+        .nav-sidebar > .nav-header:first-child { margin-top: .4rem; }
+
+        /* Secciones colapsables del sidebar */
+        .nav-sidebar .nav-section { margin-top: .35rem; }
+        .nav-header-toggle {
+            display: flex; align-items: center; justify-content: space-between;
+            color: #7a7a9d; font-size: .68rem; letter-spacing: 1.2px; font-weight: 700;
+            padding: .6rem .8rem; border-radius: 8px; cursor: pointer;
+            text-decoration: none; transition: background .12s ease, color .12s ease;
+        }
+        .nav-header-toggle:hover { background: rgba(255,255,255,.06); color: #c8c8d4; text-decoration: none; }
+        .nav-header-toggle .chevron { font-size: .65rem; transition: transform .2s ease; }
+        .nav-section.open .nav-header-toggle .chevron { transform: rotate(90deg); }
+        .nav-section.open .nav-header-toggle { color: #c8c8d4; }
+        .nav-section-body { list-style: none; margin: .15rem 0 0; padding: 0; }
+
         .card { border: none; box-shadow: 0 2px 10px rgba(0,0,0,.08); border-radius: 12px; }
         .card-header { border-radius: 12px 12px 0 0 !important; font-weight: 700; }
         .btn { border-radius: 8px; font-weight: 600; }
@@ -27,6 +69,111 @@
         .small-box { border-radius: 12px; overflow: hidden; }
         .table thead th { border-top: none; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.5px; color: #6c757d; }
         .content-header h1 { font-weight: 700; }
+
+        /* ===== Interruptor Modo oscuro ===== */
+        .dark-switch { position: relative; display: inline-block; width: 40px; height: 22px; }
+        .dark-switch input { opacity: 0; width: 0; height: 0; }
+        .dark-switch-slider { position: absolute; cursor: pointer; inset: 0; background: #ccc; border-radius: 22px; transition: background .2s ease; }
+        .dark-switch-slider::before { content: ""; position: absolute; height: 16px; width: 16px; left: 3px; top: 3px; background: #fff; border-radius: 50%; transition: transform .2s ease; box-shadow: 0 1px 3px rgba(0,0,0,.3); }
+        .dark-switch input:checked + .dark-switch-slider { background: #b5451b; }
+        .dark-switch input:checked + .dark-switch-slider::before { transform: translateX(18px); }
+        #darkModeItem:hover { background: #f4f4f4; }
+
+        /* ===== Modo oscuro ===== */
+        body.dark-mode { color: #d5d5e2; }
+        body.dark-mode .content-wrapper { background: #14141f; }
+        body.dark-mode .card { background: #1f1f33; color: #e4e4ef; }
+        body.dark-mode .card-header { background: #24243b; border-bottom: 1px solid #33334d; color: #e4e4ef; }
+        body.dark-mode .card-body { color: #d5d5e2; }
+        body.dark-mode .card-footer { background: #24243b; border-top: 1px solid #33334d; color: #d5d5e2; }
+        body.dark-mode .table { color: #d5d5e2; background: transparent; }
+        body.dark-mode .table thead th { color: #9a9ac0; border-bottom-color: #33334d; }
+        body.dark-mode .table td, body.dark-mode .table th { border-color: #33334d; color: #d5d5e2; }
+        body.dark-mode .table-hover tbody tr:hover { background: #24243b; color: #fff; }
+        body.dark-mode .table-striped tbody tr:nth-of-type(odd) { background: #202032; }
+        body.dark-mode .navbar-white { background: #1a1a2e !important; border-bottom: 1px solid #33334d; }
+        body.dark-mode .navbar-light .nav-link { color: #e4e4ef !important; }
+        body.dark-mode .content-header { background: transparent; }
+        body.dark-mode .content-header h1,
+        body.dark-mode h1, body.dark-mode h2, body.dark-mode h3,
+        body.dark-mode h4, body.dark-mode h5, body.dark-mode h6 { color: #f0f0f7; }
+        body.dark-mode p, body.dark-mode span, body.dark-mode label,
+        body.dark-mode li, body.dark-mode td, body.dark-mode th,
+        body.dark-mode strong, body.dark-mode small { color: #d5d5e2; }
+        body.dark-mode .text-dark { color: #e4e4ef !important; }
+        body.dark-mode .text-muted { color: #9a9ac0 !important; }
+        body.dark-mode .text-secondary { color: #b0b0cc !important; }
+        body.dark-mode a { color: #ff8f5e; }
+        body.dark-mode a:hover { color: #ffab84; }
+        body.dark-mode .breadcrumb-item a { color: #c8c8d4; }
+        body.dark-mode .breadcrumb-item.active { color: #9a9ac0; }
+        body.dark-mode .main-footer { background: #1a1a2e; color: #9a9ac0; border-top: 1px solid #33334d; }
+        body.dark-mode .form-control { background: #24243b; border-color: #33334d; color: #e4e4ef; }
+        body.dark-mode .form-control:focus { background: #24243b; color: #e4e4ef; }
+        body.dark-mode .form-control::placeholder { color: #7a7a9d; }
+        body.dark-mode select.form-control option { background: #24243b; color: #e4e4ef; }
+        body.dark-mode .input-group-text { background: #24243b; border-color: #33334d; color: #d5d5e2; }
+        body.dark-mode .modal-content { background: #1f1f33; color: #e4e4ef; }
+        body.dark-mode .modal-header, body.dark-mode .modal-footer { border-color: #33334d; }
+        body.dark-mode .close { color: #e4e4ef; text-shadow: none; }
+        body.dark-mode .dropdown-menu { background: #1f1f33; border-color: #33334d; }
+        body.dark-mode .dropdown-item { color: #e4e4ef; }
+        body.dark-mode .dropdown-item:hover { background: #24243b; color: #fff; }
+        body.dark-mode .dropdown-divider { border-color: #33334d; }
+        body.dark-mode #darkModeItem:hover { background: #24243b; }
+        body.dark-mode .small-box { background: #1f1f33; color: #e4e4ef; }
+        body.dark-mode .small-box .small-box-footer { background: rgba(0,0,0,.2); color: #d5d5e2; }
+        body.dark-mode .info-box { background: #1f1f33; color: #e4e4ef; box-shadow: 0 2px 10px rgba(0,0,0,.3); }
+        body.dark-mode .info-box-text, body.dark-mode .info-box-number { color: #e4e4ef; }
+        body.dark-mode .description-block .description-header { color: #f0f0f7; }
+        body.dark-mode .description-block .description-text { color: #9a9ac0; }
+        body.dark-mode hr { border-color: #33334d; }
+        body.dark-mode .badge-light { background: #33334d; color: #e4e4ef; }
+        body.dark-mode .pagination .page-link { background: #1f1f33; border-color: #33334d; color: #d5d5e2; }
+        body.dark-mode .pagination .page-item.disabled .page-link { background: #191926; color: #6c6c8d; }
+        body.dark-mode .pagination .page-item.active .page-link { background: #b5451b; border-color: #b5451b; color: #fff; }
+        body.dark-mode .alert { color: #1a1a2e; }
+        body.dark-mode .nav-tabs { border-color: #33334d; }
+        body.dark-mode .nav-tabs .nav-link { color: #d5d5e2; }
+        body.dark-mode .nav-tabs .nav-link.active { background: #1f1f33; border-color: #33334d #33334d #1f1f33; color: #fff; }
+
+        /* Utilidades de Bootstrap que usan !important y ganaban al modo oscuro */
+        body.dark-mode .bg-white { background-color: #1f1f33 !important; }
+        body.dark-mode .bg-light { background-color: #24243b !important; color: #d5d5e2; }
+        body.dark-mode .text-dark { color: #e4e4ef !important; }
+        body.dark-mode .list-group-item { background: #1f1f33; border-color: #33334d; color: #d5d5e2; }
+
+        /* Componentes personalizados reutilizados en varias vistas (dashboard, catálogo, etc.) */
+        body.dark-mode .dash-greeting h2,
+        body.dark-mode .cat-toolbar h2,
+        body.dark-mode .section-heading,
+        body.dark-mode .cat-name,
+        body.dark-mode .cat-count strong,
+        body.dark-mode .stat-card .value,
+        body.dark-mode .kpi-card .kpi-title { color: #f0f0f7; }
+
+        body.dark-mode .dash-greeting p,
+        body.dark-mode .cat-toolbar p,
+        body.dark-mode .cat-desc,
+        body.dark-mode .cat-count,
+        body.dark-mode .stat-card .label,
+        body.dark-mode .kpi-card .kpi-desc,
+        body.dark-mode .section-heading small,
+        body.dark-mode .empty-state { color: #9a9ac0; }
+
+        body.dark-mode .stat-card,
+        body.dark-mode .kpi-card,
+        body.dark-mode .cat-card { background: #1f1f33; box-shadow: 0 2px 12px rgba(0,0,0,.3); }
+        body.dark-mode .cat-card:hover { border-color: #b5451b; box-shadow: 0 6px 20px rgba(0,0,0,.4); }
+        body.dark-mode .cat-meta { border-top-color: #33334d; }
+        body.dark-mode .estado-switch .txt { color: #9a9ac0; }
+        body.dark-mode .estado-switch.activa .txt { color: #6ee7a5; }
+        body.dark-mode .kpi-card .kpi-ring { border-color: #33334d; }
+        body.dark-mode .kpi-card .kpi-ring.neutral { color: #9a9ac0; }
+
+        body.dark-mode .alert-banner.ok { background: rgba(46,204,113,.12); border-color: rgba(46,204,113,.3); color: #6ee7a5; }
+        body.dark-mode .alert-banner.warn { background: rgba(243,156,18,.12); border-color: rgba(243,156,18,.3); color: #ffc673; }
+        body.dark-mode .alert-banner .ab-text strong { color: inherit; }
     </style>
     @stack('styles')
 </head>
@@ -44,13 +191,23 @@
                     <i class="fas fa-user-circle mr-1"></i>
                     {{ auth()->user()->nombre ?? 'Usuario' }}
                 </a>
-                <div class="dropdown-menu dropdown-menu-right">
-                    <a class="dropdown-item" href="#"><i class="fas fa-cog mr-2"></i>Mi perfil</a>
-                    <div class="dropdown-divider"></div>
-                    <form method="POST" action="{{ route('logout') }}">
+                <div class="dropdown-menu dropdown-menu-right p-0" style="min-width: 230px; overflow: hidden;">
+                    <div class="dropdown-item d-flex align-items-center justify-content-between py-2" id="darkModeItem" style="cursor: pointer;">
+                        <span>
+                            <i class="fas fa-moon mr-2" style="width: 16px;"></i>Modo oscuro
+                        </span>
+                        <label class="dark-switch mb-0">
+                            <input type="checkbox" id="darkModeSwitch">
+                            <span class="dark-switch-slider"></span>
+                        </label>
+                    </div>
+
+                    <div class="dropdown-divider m-0"></div>
+
+                    <form method="POST" action="{{ route('logout') }}" class="m-0">
                         @csrf
-                        <button type="submit" class="dropdown-item text-danger">
-                            <i class="fas fa-sign-out-alt mr-2"></i>Cerrar sesión
+                        <button type="submit" class="dropdown-item text-danger py-2">
+                            <i class="fas fa-sign-out-alt mr-2" style="width: 16px;"></i>Cerrar sesión
                         </button>
                     </form>
                 </div>
@@ -66,7 +223,7 @@
         </a>
         <div class="sidebar">
             <nav class="mt-2">
-                <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu">
+                <ul class="nav nav-pills nav-sidebar flex-column" role="menu">
 
                     <li class="nav-item">
                         <a href="{{ route('dashboard') }}" class="nav-link {{ request()->routeIs('dashboard') ? 'active' : '' }}">
@@ -76,114 +233,182 @@
                     </li>
 
                     @if(auth()->user()->hasModulo('catalogo'))
-                    <li class="nav-header">CATÁLOGO</li>
-                    <li class="nav-item">
-                        <a href="{{ route('categorias.index') }}" class="nav-link {{ request()->routeIs('categorias.*') ? 'active' : '' }}">
-                            <i class="nav-icon fas fa-tags"></i><p>Categorías</p>
+                    @php $abierta = request()->routeIs('categorias.*') || request()->routeIs('productos.*'); @endphp
+                    <li class="nav-section {{ $abierta ? 'open' : '' }}">
+                        <a href="#" class="nav-header-toggle">
+                            <span>CATÁLOGO</span>
+                            <i class="fas fa-chevron-right chevron"></i>
                         </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="{{ route('productos.index') }}" class="nav-link {{ request()->routeIs('productos.*') ? 'active' : '' }}">
-                            <i class="nav-icon fas fa-bread-slice"></i><p>
-                                Productos
-                                @if($stockBajoProductosCount > 0)
-                                    <span class="badge badge-danger right">{{ $stockBajoProductosCount }}</span>
-                                @endif
-                            </p>
-                        </a>
+                        <ul class="nav-section-body" style="{{ $abierta ? '' : 'display:none;' }}">
+                            <li class="nav-item">
+                                <a href="{{ route('categorias.index') }}" class="nav-link {{ request()->routeIs('categorias.*') ? 'active' : '' }}">
+                                    <i class="nav-icon fas fa-tags"></i><p>Categorías</p>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="{{ route('productos.index') }}" class="nav-link {{ request()->routeIs('productos.*') ? 'active' : '' }}">
+                                    <i class="nav-icon fas fa-bread-slice"></i><p>
+                                        Productos
+                                        @if($stockBajoProductosCount > 0)
+                                            <span class="badge badge-danger right">{{ $stockBajoProductosCount }}</span>
+                                        @endif
+                                    </p>
+                                </a>
+                            </li>
+                        </ul>
                     </li>
                     @endif
 
                     @if(auth()->user()->hasModulo('inventario'))
-                    <li class="nav-header">INVENTARIO</li>
-                    <li class="nav-item">
-                        <a href="{{ route('materia-prima.index') }}" class="nav-link {{ request()->routeIs('materia-prima.*') ? 'active' : '' }}">
-                            <i class="nav-icon fas fa-boxes"></i><p>
-                                Materia Prima
-                                @if($stockBajoMateriaPrimaCount > 0)
-                                    <span class="badge badge-danger right">{{ $stockBajoMateriaPrimaCount }}</span>
-                                @endif
-                            </p>
+                    @php $abierta = request()->routeIs('materia-prima.*') || request()->routeIs('movimientos.*') || request()->routeIs('kardex.*'); @endphp
+                    <li class="nav-section {{ $abierta ? 'open' : '' }}">
+                        <a href="#" class="nav-header-toggle">
+                            <span>INVENTARIO</span>
+                            <i class="fas fa-chevron-right chevron"></i>
                         </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="{{ route('movimientos.index') }}" class="nav-link {{ request()->routeIs('movimientos.*') ? 'active' : '' }}">
-                            <i class="nav-icon fas fa-exchange-alt"></i><p>Movimientos de Materia Prima</p>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="{{ route('kardex.index') }}" class="nav-link {{ request()->routeIs('kardex.*') ? 'active' : '' }}">
-                            <i class="nav-icon fas fa-book-open"></i><p>Movimientos de Productos</p>
-                        </a>
+                        <ul class="nav-section-body" style="{{ $abierta ? '' : 'display:none;' }}">
+                            <li class="nav-item">
+                                <a href="{{ route('materia-prima.index') }}" class="nav-link {{ request()->routeIs('materia-prima.*') ? 'active' : '' }}">
+                                    <i class="nav-icon fas fa-boxes"></i><p>
+                                        Materia Prima
+                                        @if($stockBajoMateriaPrimaCount > 0)
+                                            <span class="badge badge-danger right">{{ $stockBajoMateriaPrimaCount }}</span>
+                                        @endif
+                                    </p>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="{{ route('movimientos.index') }}" class="nav-link {{ request()->routeIs('movimientos.*') ? 'active' : '' }}">
+                                    <i class="nav-icon fas fa-exchange-alt"></i><p>Movimientos de Materia Prima</p>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="{{ route('kardex.index') }}" class="nav-link {{ request()->routeIs('kardex.*') ? 'active' : '' }}">
+                                    <i class="nav-icon fas fa-book-open"></i><p>Movimientos de Productos</p>
+                                </a>
+                            </li>
+                        </ul>
                     </li>
                     @endif
 
                     @if(auth()->user()->hasModulo('produccion'))
-                    <li class="nav-header">PRODUCCIÓN</li>
-                    <li class="nav-item">
-                        <a href="{{ route('produccion.index') }}" class="nav-link {{ request()->routeIs('produccion.*') ? 'active' : '' }}">
-                            <i class="nav-icon fas fa-industry"></i><p>Producción</p>
+                    @php
+                        $enProduccion = request()->routeIs('produccion.index', 'produccion.create', 'produccion.store', 'produccion.show', 'produccion.ingredientes');
+                        $enRecetas    = request()->routeIs('produccion.recetas', 'produccion.guardar-receta');
+                        $abierta      = $enProduccion || $enRecetas;
+                    @endphp
+                    <li class="nav-section {{ $abierta ? 'open' : '' }}">
+                        <a href="#" class="nav-header-toggle">
+                            <span>PRODUCCIÓN</span>
+                            <i class="fas fa-chevron-right chevron"></i>
                         </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="{{ route('produccion.recetas') }}" class="nav-link {{ request()->is('produccion/recetas*') ? 'active' : '' }}">
-                            <i class="nav-icon fas fa-book"></i><p>Recetas</p>
-                        </a>
+                        <ul class="nav-section-body" style="{{ $abierta ? '' : 'display:none;' }}">
+                            <li class="nav-item">
+                                <a href="{{ route('produccion.index') }}" class="nav-link {{ $enProduccion ? 'active' : '' }}">
+                                    <i class="nav-icon fas fa-industry"></i><p>Producción</p>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="{{ route('produccion.recetas') }}" class="nav-link {{ $enRecetas ? 'active' : '' }}">
+                                    <i class="nav-icon fas fa-book"></i><p>Recetas</p>
+                                </a>
+                            </li>
+                        </ul>
                     </li>
                     @endif
 
                     @if(auth()->user()->hasModulo('compras'))
-                    <li class="nav-header">COMPRAS</li>
-                    <li class="nav-item">
-                        <a href="{{ route('proveedores.index') }}" class="nav-link {{ request()->routeIs('proveedores.*') ? 'active' : '' }}">
-                            <i class="nav-icon fas fa-truck"></i><p>Proveedores</p>
+                    @php $abierta = request()->routeIs('proveedores.*') || request()->routeIs('compras.*') || request()->routeIs('ordenes-automaticas.*'); @endphp
+                    <li class="nav-section {{ $abierta ? 'open' : '' }}">
+                        <a href="#" class="nav-header-toggle">
+                            <span>COMPRAS</span>
+                            <i class="fas fa-chevron-right chevron"></i>
                         </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="{{ route('compras.index') }}" class="nav-link {{ request()->routeIs('compras.*') ? 'active' : '' }}">
-                            <i class="nav-icon fas fa-shopping-cart"></i><p>Compras</p>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="{{ route('ordenes-automaticas.index') }}" class="nav-link {{ request()->routeIs('ordenes-automaticas.*') ? 'active' : '' }}">
-                            <i class="nav-icon fas fa-robot"></i><p>Órdenes Automáticas</p>
-                        </a>
+                        <ul class="nav-section-body" style="{{ $abierta ? '' : 'display:none;' }}">
+                            <li class="nav-item">
+                                <a href="{{ route('proveedores.index') }}" class="nav-link {{ request()->routeIs('proveedores.*') ? 'active' : '' }}">
+                                    <i class="nav-icon fas fa-truck"></i><p>Proveedores</p>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="{{ route('compras.index') }}" class="nav-link {{ request()->routeIs('compras.*') ? 'active' : '' }}">
+                                    <i class="nav-icon fas fa-shopping-cart"></i><p>Compras</p>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="{{ route('ordenes-automaticas.index') }}" class="nav-link {{ request()->routeIs('ordenes-automaticas.*') ? 'active' : '' }}">
+                                    <i class="nav-icon fas fa-robot"></i><p>Órdenes Automáticas</p>
+                                </a>
+                            </li>
+                        </ul>
                     </li>
                     @endif
 
                     @if(auth()->user()->hasModulo('reportes'))
-                    <li class="nav-header">REPORTES</li>
-                    <li class="nav-item">
-                        <a href="{{ route('tiempos-operacion.index') }}" class="nav-link {{ request()->routeIs('tiempos-operacion.*') ? 'active' : '' }}">
-                            <i class="nav-icon fas fa-stopwatch"></i><p>Tiempos por Operación</p>
+                    @php $abierta = request()->routeIs('tiempos-operacion.*'); @endphp
+                    <li class="nav-section {{ $abierta ? 'open' : '' }}">
+                        <a href="#" class="nav-header-toggle">
+                            <span>REPORTES</span>
+                            <i class="fas fa-chevron-right chevron"></i>
                         </a>
+                        <ul class="nav-section-body" style="{{ $abierta ? '' : 'display:none;' }}">
+                            <li class="nav-item">
+                                <a href="{{ route('tiempos-operacion.index') }}" class="nav-link {{ request()->routeIs('tiempos-operacion.*') ? 'active' : '' }}">
+                                    <i class="nav-icon fas fa-stopwatch"></i><p>Tiempos por Operación</p>
+                                </a>
+                            </li>
+                        </ul>
                     </li>
                     @endif
 
                     @if(auth()->user()->hasModulo('clientes'))
-                    <li class="nav-header">CLIENTES</li>
-                    <li class="nav-item">
-                        <a href="{{ route('clientes.index') }}" class="nav-link {{ request()->routeIs('clientes.*') ? 'active' : '' }}">
-                            <i class="nav-icon fas fa-users"></i><p>Clientes</p>
+                    @php $abierta = request()->routeIs('clientes.*'); @endphp
+                    <li class="nav-section {{ $abierta ? 'open' : '' }}">
+                        <a href="#" class="nav-header-toggle">
+                            <span>CLIENTES</span>
+                            <i class="fas fa-chevron-right chevron"></i>
                         </a>
+                        <ul class="nav-section-body" style="{{ $abierta ? '' : 'display:none;' }}">
+                            <li class="nav-item">
+                                <a href="{{ route('clientes.index') }}" class="nav-link {{ request()->routeIs('clientes.*') ? 'active' : '' }}">
+                                    <i class="nav-icon fas fa-users"></i><p>Clientes</p>
+                                </a>
+                            </li>
+                        </ul>
                     </li>
                     @endif
 
                     @if(auth()->user()->hasModulo('ventas'))
-                    <li class="nav-header">VENTAS</li>
-                    <li class="nav-item">
-                        <a href="{{ route('ventas.index') }}" class="nav-link {{ request()->routeIs('ventas.*') ? 'active' : '' }}">
-                            <i class="nav-icon fas fa-cash-register"></i><p>Ventas</p>
+                    @php $abierta = request()->routeIs('ventas.*'); @endphp
+                    <li class="nav-section {{ $abierta ? 'open' : '' }}">
+                        <a href="#" class="nav-header-toggle">
+                            <span>VENTAS</span>
+                            <i class="fas fa-chevron-right chevron"></i>
                         </a>
+                        <ul class="nav-section-body" style="{{ $abierta ? '' : 'display:none;' }}">
+                            <li class="nav-item">
+                                <a href="{{ route('ventas.index') }}" class="nav-link {{ request()->routeIs('ventas.*') ? 'active' : '' }}">
+                                    <i class="nav-icon fas fa-cash-register"></i><p>Ventas</p>
+                                </a>
+                            </li>
+                        </ul>
                     </li>
                     @endif
 
                     @if(auth()->user()->isAdmin())
-                    <li class="nav-header">ADMINISTRACIÓN</li>
-                    <li class="nav-item">
-                        <a href="{{ route('usuarios.index') }}" class="nav-link {{ request()->routeIs('usuarios.*') ? 'active' : '' }}">
-                            <i class="nav-icon fas fa-users"></i><p>Usuarios</p>
+                    @php $abierta = request()->routeIs('usuarios.*'); @endphp
+                    <li class="nav-section {{ $abierta ? 'open' : '' }}">
+                        <a href="#" class="nav-header-toggle">
+                            <span>ADMINISTRACIÓN</span>
+                            <i class="fas fa-chevron-right chevron"></i>
                         </a>
+                        <ul class="nav-section-body" style="{{ $abierta ? '' : 'display:none;' }}">
+                            <li class="nav-item">
+                                <a href="{{ route('usuarios.index') }}" class="nav-link {{ request()->routeIs('usuarios.*') ? 'active' : '' }}">
+                                    <i class="nav-icon fas fa-users"></i><p>Usuarios</p>
+                                </a>
+                            </li>
+                        </ul>
                     </li>
                     @endif
 
@@ -248,6 +473,65 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/js/adminlte.min.js"></script>
 <script src="{{ asset('js/tiempos-operacion.js') }}"></script>
+
+<script>
+    (function () {
+        document.querySelectorAll('.nav-header-toggle').forEach(function (toggle) {
+            toggle.addEventListener('click', function (e) {
+                e.preventDefault();
+                const section = this.closest('.nav-section');
+                const body = section.querySelector('.nav-section-body');
+                const abrir = !section.classList.contains('open');
+                section.classList.toggle('open', abrir);
+                body.style.display = abrir ? 'block' : 'none';
+            });
+        });
+    })();
+</script>
+
+<script>
+    (function () {
+        const STORAGE_KEY = 'panaderia_dark_mode';
+        const body = document.body;
+        const switchInput = document.getElementById('darkModeSwitch');
+        const darkItem = document.getElementById('darkModeItem');
+
+        // Aplicar preferencia guardada al cargar la página
+        if (localStorage.getItem(STORAGE_KEY) === '1') {
+            body.classList.add('dark-mode');
+            if (switchInput) switchInput.checked = true;
+        }
+
+        function toggleDarkMode() {
+            const activo = body.classList.toggle('dark-mode');
+            localStorage.setItem(STORAGE_KEY, activo ? '1' : '0');
+            if (switchInput) switchInput.checked = activo;
+        }
+
+        if (switchInput) {
+            switchInput.addEventListener('click', function (e) {
+                e.stopPropagation();
+            });
+            switchInput.addEventListener('change', function (e) {
+                const activo = this.checked;
+                body.classList.toggle('dark-mode', activo);
+                localStorage.setItem(STORAGE_KEY, activo ? '1' : '0');
+            });
+        }
+
+        // Permitir hacer clic en toda la fila (no solo en el switch) sin cerrar el menú
+        if (darkItem) {
+            darkItem.addEventListener('click', function (e) {
+                if (e.target !== switchInput) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    toggleDarkMode();
+                }
+            });
+        }
+    })();
+</script>
+
 @stack('scripts')
 </body>
 </html>
