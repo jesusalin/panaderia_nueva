@@ -11,11 +11,15 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         // ─── ROLES ───────────────────────────────────────────
-        DB::table('roles')->insert([
-            ['nombre' => 'admin',      'descripcion' => 'Acceso total al sistema'],
-            ['nombre' => 'vendedor',   'descripcion' => 'Puede registrar ventas y ver reportes básicos'],
-            ['nombre' => 'almacenero', 'descripcion' => 'Gestiona inventario y compras'],
-        ]);
+        // El rol "admin" y el usuario admin/admin123 ya se crean automáticamente
+        // en la migración 2025_01_01_000014_create_default_admin_user, así que
+        // aquí solo garantizamos que exista el rol "usuario".
+        if (!DB::table('roles')->where('nombre', 'usuario')->exists()) {
+            DB::table('roles')->insert([
+                'nombre'      => 'usuario',
+                'descripcion' => 'Acceso según los módulos que le asigne el administrador',
+            ]);
+        }
 
         // ─── UNIDADES DE MEDIDA ──────────────────────────────
         DB::table('unidades_medida')->insert([
@@ -28,11 +32,26 @@ class DatabaseSeeder extends Seeder
             ['nombre' => 'caja',      'abreviatura' => 'cja'],
         ]);
 
-        // ─── USUARIOS ────────────────────────────────────────
+        // ─── USUARIOS DE PRUEBA ───────────────────────────────
+        // El admin ya existe (creado por la migración). Aquí solo agregamos
+        // usuarios de ejemplo para poder probar los permisos por módulo.
+        $idRolUsuario = DB::table('roles')->where('nombre', 'usuario')->value('id');
+
         DB::table('usuarios')->insert([
-            ['nombre'=>'Administrador','usuario'=>'admin',   'email'=>'admin@panaderia.com',  'password'=>Hash::make('admin123'),    'id_rol'=>1,'estado'=>'activo','created_at'=>now(),'updated_at'=>now()],
-            ['nombre'=>'Maria Quispe', 'usuario'=>'mquispe', 'email'=>'maria@panaderia.com',  'password'=>Hash::make('vendedor123'), 'id_rol'=>2,'estado'=>'activo','created_at'=>now(),'updated_at'=>now()],
-            ['nombre'=>'Carlos Mamani','usuario'=>'cmamani', 'email'=>'carlos@panaderia.com', 'password'=>Hash::make('almacen123'),  'id_rol'=>3,'estado'=>'activo','created_at'=>now(),'updated_at'=>now()],
+            ['nombre'=>'Maria Quispe', 'apodo'=>'Ventas',    'usuario'=>'mquispe', 'email'=>'maria@panaderia.com',  'password'=>Hash::make('ventas123'), 'id_rol'=>$idRolUsuario,'estado'=>'activo','created_at'=>now(),'updated_at'=>now()],
+            ['nombre'=>'Carlos Mamani','apodo'=>'Almacén',   'usuario'=>'cmamani', 'email'=>'carlos@panaderia.com', 'password'=>Hash::make('almacen123'),  'id_rol'=>$idRolUsuario,'estado'=>'activo','created_at'=>now(),'updated_at'=>now()],
+        ]);
+
+        // ─── PERMISOS POR MÓDULO ─────────────────────────────
+        // Maria (Ventas): módulos de venta y clientes
+        // Carlos (Almacén): módulos de inventario, compras, producción y reportes
+        DB::table('permisos_usuario')->insert([
+            ['id_usuario' => 2, 'modulo' => 'ventas',     'created_at' => now()],
+            ['id_usuario' => 2, 'modulo' => 'clientes',   'created_at' => now()],
+            ['id_usuario' => 3, 'modulo' => 'inventario', 'created_at' => now()],
+            ['id_usuario' => 3, 'modulo' => 'compras',    'created_at' => now()],
+            ['id_usuario' => 3, 'modulo' => 'produccion', 'created_at' => now()],
+            ['id_usuario' => 3, 'modulo' => 'reportes',   'created_at' => now()],
         ]);
 
         // ─── CATEGORÍAS ──────────────────────────────────────

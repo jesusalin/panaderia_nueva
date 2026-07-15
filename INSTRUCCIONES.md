@@ -22,11 +22,19 @@ php artisan serve
 ## ¿Cómo entrar?
 URL: `http://127.0.0.1:8000/login`
 
-| Usuario | Contraseña | Rol |
-|---------|-----------|-----|
-| admin | admin123 | Administrador |
-| mquispe | vendedor123 | Vendedora |
-| cmamani | almacen123 | Almacenero |
+El usuario **admin / admin123** se crea automáticamente al correr las migraciones
+(no depende del seeder). Con `migrate:fresh --seed` además se agregan 2 usuarios
+de ejemplo para probar los permisos:
+
+| Usuario | Contraseña | Rol | Apodo | Módulos asignados |
+|---------|-----------|-----|-------|--------------------|
+| admin | admin123 | Admin | — | Todos (acceso total) |
+| mquispe | ventas123 | Usuario | Ventas | Ventas, Clientes |
+| cmamani | almacen123 | Usuario | Almacén | Inventario, Compras, Producción, Reportes |
+
+Ya no existe registro público (`/register`): solo el admin puede crear usuarios,
+desde **Usuarios → Nuevo Usuario**, donde además le pone un **apodo** (ej. "Almacén",
+"Caja 1") y marca con checkboxes a qué módulos tiene acceso.
 
 ---
 

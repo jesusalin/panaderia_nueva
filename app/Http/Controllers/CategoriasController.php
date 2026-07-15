@@ -6,7 +6,7 @@ use Illuminate\Http\Request;
 class CategoriasController extends Controller
 {
     public function index() {
-        $categorias = Categoria::withCount('productos')->orderBy('nombre')->paginate(15);
+        $categorias = Categoria::withCount('productos')->orderBy('nombre')->paginate(12);
         return view('categorias.index', compact('categorias'));
     }
     public function create() { return view('categorias.create'); }
@@ -21,8 +21,33 @@ class CategoriasController extends Controller
         $categoria->update($request->all());
         return redirect()->route('categorias.index')->with('success','Categoría actualizada.');
     }
+
+    /**
+     * Elimina la categoría de verdad, solo si no tiene productos asociados
+     * (si los tiene, borrarla rompería esos productos). En ese caso se
+     * sugiere desactivarla en su lugar.
+     */
     public function destroy(Categoria $categoria) {
-        $categoria->update(['estado'=>'inactivo']);
-        return redirect()->route('categorias.index')->with('success','Categoría desactivada.');
+        $totalProductos = $categoria->productos()->count();
+
+        if ($totalProductos > 0) {
+            return redirect()->route('categorias.index')
+                ->with('error', "No se puede eliminar \"{$categoria->nombre}\": tiene {$totalProductos} producto(s) asociado(s). Desactívala si ya no la usas.");
+        }
+
+        $categoria->delete();
+        return redirect()->route('categorias.index')->with('success', 'Categoría eliminada.');
+    }
+
+    /**
+     * Activa/desactiva la categoría sin borrarla (para cuando tiene productos
+     * y por lo tanto no se puede eliminar).
+     */
+    public function toggleEstado(Categoria $categoria) {
+        $nuevoEstado = $categoria->estado === 'activo' ? 'inactivo' : 'activo';
+        $categoria->update(['estado' => $nuevoEstado]);
+
+        return redirect()->route('categorias.index')
+            ->with('success', 'Categoría ' . ($nuevoEstado === 'activo' ? 'activada' : 'desactivada') . '.');
     }
 }

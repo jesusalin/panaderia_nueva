@@ -75,7 +75,7 @@
                         </a>
                     </li>
 
-                    @if(auth()->user()->hasRole('admin'))
+                    @if(auth()->user()->hasModulo('catalogo'))
                     <li class="nav-header">CATÁLOGO</li>
                     <li class="nav-item">
                         <a href="{{ route('categorias.index') }}" class="nav-link {{ request()->routeIs('categorias.*') ? 'active' : '' }}">
@@ -94,7 +94,7 @@
                     </li>
                     @endif
 
-                    @if(auth()->user()->hasRole(['admin', 'almacenero']))
+                    @if(auth()->user()->hasModulo('inventario'))
                     <li class="nav-header">INVENTARIO</li>
                     <li class="nav-item">
                         <a href="{{ route('materia-prima.index') }}" class="nav-link {{ request()->routeIs('materia-prima.*') ? 'active' : '' }}">
@@ -116,7 +116,9 @@
                             <i class="nav-icon fas fa-book-open"></i><p>Movimientos de Productos</p>
                         </a>
                     </li>
+                    @endif
 
+                    @if(auth()->user()->hasModulo('produccion'))
                     <li class="nav-header">PRODUCCIÓN</li>
                     <li class="nav-item">
                         <a href="{{ route('produccion.index') }}" class="nav-link {{ request()->routeIs('produccion.*') ? 'active' : '' }}">
@@ -128,7 +130,9 @@
                             <i class="nav-icon fas fa-book"></i><p>Recetas</p>
                         </a>
                     </li>
+                    @endif
 
+                    @if(auth()->user()->hasModulo('compras'))
                     <li class="nav-header">COMPRAS</li>
                     <li class="nav-item">
                         <a href="{{ route('proveedores.index') }}" class="nav-link {{ request()->routeIs('proveedores.*') ? 'active' : '' }}">
@@ -145,7 +149,9 @@
                             <i class="nav-icon fas fa-robot"></i><p>Órdenes Automáticas</p>
                         </a>
                     </li>
+                    @endif
 
+                    @if(auth()->user()->hasModulo('reportes'))
                     <li class="nav-header">REPORTES</li>
                     <li class="nav-item">
                         <a href="{{ route('tiempos-operacion.index') }}" class="nav-link {{ request()->routeIs('tiempos-operacion.*') ? 'active' : '' }}">
@@ -154,14 +160,16 @@
                     </li>
                     @endif
 
-                    @if(auth()->user()->hasRole(['admin', 'vendedor']))
+                    @if(auth()->user()->hasModulo('clientes'))
                     <li class="nav-header">CLIENTES</li>
                     <li class="nav-item">
                         <a href="{{ route('clientes.index') }}" class="nav-link {{ request()->routeIs('clientes.*') ? 'active' : '' }}">
                             <i class="nav-icon fas fa-users"></i><p>Clientes</p>
                         </a>
                     </li>
+                    @endif
 
+                    @if(auth()->user()->hasModulo('ventas'))
                     <li class="nav-header">VENTAS</li>
                     <li class="nav-item">
                         <a href="{{ route('ventas.index') }}" class="nav-link {{ request()->routeIs('ventas.*') ? 'active' : '' }}">
@@ -170,7 +178,7 @@
                     </li>
                     @endif
 
-                    @if(auth()->user()->hasRole('admin'))
+                    @if(auth()->user()->isAdmin())
                     <li class="nav-header">ADMINISTRACIÓN</li>
                     <li class="nav-item">
                         <a href="{{ route('usuarios.index') }}" class="nav-link {{ request()->routeIs('usuarios.*') ? 'active' : '' }}">
@@ -209,6 +217,12 @@
                 @if(session('success'))
                     <div class="alert alert-success alert-dismissible fade show">
                         <i class="fas fa-check-circle mr-2"></i>{{ session('success') }}
+                        <button type="button" class="close" data-dismiss="alert"><span>&times;</span></button>
+                    </div>
+                @endif
+                @if(session('error'))
+                    <div class="alert alert-danger alert-dismissible fade show">
+                        <i class="fas fa-exclamation-triangle mr-2"></i>{{ session('error') }}
                         <button type="button" class="close" data-dismiss="alert"><span>&times;</span></button>
                     </div>
                 @endif

@@ -7,6 +7,8 @@ use App\Models\Venta;
 use App\Models\Compra;
 use App\Models\KardexProducto;
 use App\Models\MovimientoInventario;
+use App\Models\TiempoOperacion;
+use App\Models\TiempoBaseline;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 
@@ -15,10 +17,18 @@ class DashboardController extends Controller
     public function index()
     {
         $hoy = Carbon::today();
+        $ayer = Carbon::yesterday();
 
         // ── Ventas ──────────────────────────────────────────
         $ventasHoy = Venta::whereDate('fecha_venta', $hoy)
             ->where('estado', 'completada')->sum('total');
+
+        $ventasAyer = Venta::whereDate('fecha_venta', $ayer)
+            ->where('estado', 'completada')->sum('total');
+
+        $variacionVentas = $ventasAyer > 0
+            ? round((($ventasHoy - $ventasAyer) / $ventasAyer) * 100, 1)
+            : null;
 
         $ventasMes = Venta::whereYear('fecha_venta', $hoy->year)
             ->whereMonth('fecha_venta', $hoy->month)
@@ -56,6 +66,22 @@ class DashboardController extends Controller
             + MovimientoInventario::whereDate('created_at', $hoy)->count()
             + Venta::whereDate('created_at', $hoy)->count()
             + Compra::whereDate('created_at', $hoy)->count();
+
+        // ── Reducción de tiempos muertos (OE3 de tesis) ──────
+        // Promedio de reducción % entre las 3 operaciones cronometradas
+        $promediosTiempo = TiempoOperacion::select('tipo_operacion', DB::raw('AVG(duracion_ms) as promedio_ms'))
+            ->groupBy('tipo_operacion')->get()->keyBy('tipo_operacion');
+        $baselinesTiempo = TiempoBaseline::all()->keyBy('tipo_operacion');
+
+        $reducciones = [];
+        foreach (TiempoOperacion::TIPOS as $tipo => $etiqueta) {
+            $finalSeg   = isset($promediosTiempo[$tipo]) ? $promediosTiempo[$tipo]->promedio_ms / 1000 : null;
+            $inicialSeg = isset($baselinesTiempo[$tipo]) ? (float) $baselinesTiempo[$tipo]->segundos_manual : 0;
+            if ($finalSeg && $finalSeg > 0 && $inicialSeg > 0) {
+                $reducciones[] = (($inicialSeg - $finalSeg) / $finalSeg) * 100;
+            }
+        }
+        $reduccionTiemposMuertos = count($reducciones) > 0 ? round(array_sum($reducciones) / count($reducciones), 1) : null;
 
         // ── Últimas 5 ventas ────────────────────────────────
         $ultimasVentas = Venta::with(['usuario', 'cliente'])
@@ -96,9 +122,9 @@ class DashboardController extends Controller
             ->take(5)->get();
 
         return view('dashboard.index', compact(
-            'ventasHoy', 'ventasMes', 'comprasMes', 'gananciaMes',
+            'ventasHoy', 'ventasAyer', 'variacionVentas', 'ventasMes', 'comprasMes', 'gananciaMes',
             'productosStockBajo', 'materiaStockBaja',
-            'exactitudInventario', 'registrosHoy',
+            'exactitudInventario', 'registrosHoy', 'reduccionTiemposMuertos',
             'ultimasVentas', 'topProductos', 'ventasSemana', 'rotacionStock'
         ));
     }

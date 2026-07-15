@@ -253,12 +253,6 @@
                     <i class="fas fa-sign-in-alt mr-2"></i>Ingresar al sistema
                 </button>
             </form>
-
-            <div class="divider">o</div>
-
-            <div class="register-link">
-                ¿No tienes cuenta? <a href="{{ route('register') }}">Regístrate aquí</a>
-            </div>
         </div>
     </div>
 

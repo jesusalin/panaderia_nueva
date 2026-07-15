@@ -18,6 +18,7 @@
                     <th>Usuario</th>
                     <th>Email</th>
                     <th class="text-center">Rol</th>
+                    <th>Módulos asignados</th>
                     <th class="text-center">Estado</th>
                     <th class="text-center">Acciones</th>
                 </tr>
@@ -31,17 +32,29 @@
                                 style="width:35px;height:35px;font-size:.9rem;flex-shrink:0">
                                 {{ strtoupper(substr($u->nombre,0,1)) }}
                             </div>
-                            <strong>{{ $u->nombre }}</strong>
+                            <div>
+                                <strong>{{ $u->nombre }}</strong>
+                                @if($u->apodo)
+                                    <br><span class="badge badge-light border">{{ $u->apodo }}</span>
+                                @endif
+                            </div>
                         </div>
                     </td>
                     <td><code>{{ $u->usuario }}</code></td>
                     <td>{{ $u->email }}</td>
                     <td class="text-center">
-                        @php
-                            $colores = ['admin'=>'danger','vendedor'=>'primary','almacenero'=>'info'];
-                            $color = $colores[$u->rol->nombre] ?? 'secondary';
-                        @endphp
-                        <span class="badge badge-{{ $color }}">{{ ucfirst($u->rol->nombre) }}</span>
+                        <span class="badge badge-{{ $u->rol->nombre === 'admin' ? 'danger' : 'secondary' }}">{{ ucfirst($u->rol->nombre) }}</span>
+                    </td>
+                    <td>
+                        @if($u->rol->nombre === 'admin')
+                            <span class="text-muted small"><i class="fas fa-infinity mr-1"></i>Acceso total</span>
+                        @elseif($u->permisos->isEmpty())
+                            <span class="text-muted small">Sin módulos asignados</span>
+                        @else
+                            @foreach($u->permisos as $p)
+                                <span class="badge badge-info mb-1">{{ \App\Models\Usuario::MODULOS[$p->modulo] ?? $p->modulo }}</span>
+                            @endforeach
+                        @endif
                     </td>
                     <td class="text-center">
                         <span class="badge badge-{{ $u->estado === 'activo' ? 'success' : 'secondary' }}">
@@ -62,7 +75,7 @@
                     </td>
                 </tr>
                 @empty
-                <tr><td colspan="6" class="text-center text-muted py-4">No hay usuarios registrados</td></tr>
+                <tr><td colspan="7" class="text-center text-muted py-4">No hay usuarios registrados</td></tr>
                 @endforelse
             </tbody>
         </table>
