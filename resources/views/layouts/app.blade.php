@@ -259,6 +259,79 @@
         .search-box { position: relative; }
         .search-box i { position: absolute; left: .8rem; top: 50%; transform: translateY(-50%); color: #adb5bd; font-size: .85rem; }
         .search-box input { padding-left: 2.1rem; border-radius: 8px; }
+
+        /* ══════════════════════════════════════════════════════
+           GRID DE TARJETAS — alternativa a table-modern para
+           pantallas de catálogo (productos, insumos, etc.)
+           ══════════════════════════════════════════════════════ */
+        .card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(255px, 1fr)); gap: 1.1rem; }
+
+        .item-card {
+            background: #fff; border-radius: 14px; overflow: hidden; box-shadow: 0 2px 12px rgba(0,0,0,.05);
+            border: 1.5px solid transparent; transition: all .15s ease; display: flex; flex-direction: column;
+        }
+        .item-card:hover { box-shadow: 0 10px 26px rgba(0,0,0,.09); border-color: #f0dccd; transform: translateY(-2px); }
+        .item-card.is-inactive { opacity: .55; }
+        body.dark-mode .item-card { background: #1f1f33; box-shadow: 0 2px 12px rgba(0,0,0,.3); }
+        body.dark-mode .item-card:hover { border-color: #45304f; }
+
+        .item-card-media {
+            height: 108px; background: linear-gradient(135deg, #1a1a2e, #b5451b); position: relative;
+            display: flex; align-items: center; justify-content: center; color: rgba(255,255,255,.9); font-size: 2.1rem; overflow: hidden;
+        }
+        .item-card-media img { width: 100%; height: 100%; object-fit: cover; }
+        .item-card-media .ic-badge { position: absolute; top: .55rem; right: .55rem; }
+
+        .item-card-body { padding: 1rem 1.1rem .2rem; flex: 1; }
+        .item-card-cat { font-size: .72rem; font-weight: 700; color: #b5451b; text-transform: uppercase; letter-spacing: .03em; }
+        body.dark-mode .item-card-cat { color: #ff9d6e; }
+        .item-card-title { font-weight: 800; color: #1a1a2e; font-size: 1rem; margin: .15rem 0 .5rem; line-height: 1.25; }
+        body.dark-mode .item-card-title { color: #f0f0f7; }
+        .item-card-price { font-size: 1.35rem; font-weight: 800; color: #1e8e5a; }
+        body.dark-mode .item-card-price { color: #6ee7a5; }
+        .item-card-price .ic-cost { font-size: .72rem; font-weight: 600; color: #adb5bd; margin-left: .4rem; }
+
+        .item-card-stockrow { display: flex; align-items: center; justify-content: space-between; margin: .6rem 0 .9rem; font-size: .78rem; color: #6c757d; }
+        body.dark-mode .item-card-stockrow { color: #9a9ac0; }
+
+        .item-card-footer {
+            padding: .7rem 1.1rem; border-top: 1px solid #f2f2f2; display: flex; align-items: center; justify-content: space-between;
+        }
+        body.dark-mode .item-card-footer { border-top-color: #33334d; }
+
+        /* ══════════════════════════════════════════════════════
+           PAGINACIÓN — reemplaza la vista Tailwind por defecto
+           ══════════════════════════════════════════════════════ */
+        .pg-nav { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: .8rem; margin-top: 1rem; }
+        .pg-list { display: flex; align-items: center; gap: .3rem; list-style: none; margin: 0; padding: 0; }
+        .pg-item .pg-link {
+            display: flex; align-items: center; justify-content: center; min-width: 34px; height: 34px; padding: 0 .5rem;
+            border-radius: 9px; font-size: .82rem; font-weight: 700; color: #495057; background: #fff;
+            border: 1.5px solid #e9ecef; text-decoration: none; transition: all .12s ease;
+        }
+        .pg-item a.pg-link:hover { border-color: #b5451b; color: #b5451b; background: #fff7f3; }
+        .pg-item.active .pg-link { background: #b5451b; border-color: #b5451b; color: #fff; }
+        .pg-item.disabled .pg-link { color: #cfd4da; cursor: not-allowed; background: #f8f9fa; }
+        .pg-item .pg-dots { border: none; background: transparent; }
+        .pg-summary { font-size: .78rem; color: #8a8a9d; }
+        body.dark-mode .pg-item .pg-link { background: #1f1f33; border-color: #33334d; color: #d5d5e2; }
+        body.dark-mode .pg-item a.pg-link:hover { border-color: #ff9d6e; color: #ff9d6e; background: #24243b; }
+        body.dark-mode .pg-item.active .pg-link { background: #b5451b; border-color: #b5451b; color: #fff; }
+        body.dark-mode .pg-item.disabled .pg-link { background: #191927; color: #4a4a63; }
+        body.dark-mode .pg-summary { color: #9a9ac0; }
+        @media (max-width: 576px) { .pg-nav { justify-content: center; text-align: center; } }
+
+        /* Medidor visual de nivel de stock (barra), usado en tarjetas de insumos */
+        .stock-gauge { margin: .55rem 0 .8rem; }
+        .stock-gauge .sg-track { height: 8px; border-radius: 6px; background: #eef0f3; overflow: hidden; }
+        .stock-gauge .sg-fill { height: 100%; border-radius: 6px; transition: width .2s ease; }
+        .stock-gauge .sg-fill.ok   { background: #2ecc71; }
+        .stock-gauge .sg-fill.bajo { background: #e74c3c; }
+        .stock-gauge .sg-labels { display: flex; justify-content: space-between; font-size: .72rem; color: #8a8a9d; margin-top: .35rem; }
+        .stock-gauge .sg-labels strong { color: #1a1a2e; }
+        body.dark-mode .stock-gauge .sg-track { background: #33334d; }
+        body.dark-mode .stock-gauge .sg-labels { color: #9a9ac0; }
+        body.dark-mode .stock-gauge .sg-labels strong { color: #f0f0f7; }
     </style>
     @stack('styles')
 </head>

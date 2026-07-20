@@ -9,9 +9,17 @@ use Illuminate\Support\Facades\DB;
 
 class MateriaPrimaController extends Controller
 {
-    public function index() {
-        $materias = MateriaPrima::with('unidad')->orderBy('nombre')->paginate(15);
-        return view('materia_prima.index', compact('materias'));
+    public function index(Request $request) {
+        $materias = MateriaPrima::with(['unidad', 'proveedor'])
+            ->when($request->buscar, fn($q) => $q->where('nombre', 'like', '%'.$request->buscar.'%'))
+            ->when($request->proveedor, fn($q) => $q->where('id_proveedor', $request->proveedor))
+            ->when($request->estado, fn($q) => $q->where('estado', $request->estado))
+            ->when($request->stock === 'bajo', fn($q) => $q->whereColumn('stock_actual', '<=', 'stock_minimo'))
+            ->orderBy('nombre')->paginate(12)->withQueryString();
+
+        $proveedores = Proveedor::where('estado', 'activo')->orderBy('nombre')->get();
+
+        return view('materia_prima.index', compact('materias', 'proveedores'));
     }
 
     public function create() {

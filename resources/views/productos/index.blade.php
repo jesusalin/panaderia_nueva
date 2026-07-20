@@ -16,70 +16,101 @@
     </div>
 </div>
 
+<form method="GET" action="{{ route('productos.index') }}" class="filter-bar">
+    <div class="search-box flex-grow-1" style="min-width:220px;">
+        <i class="fas fa-search"></i>
+        <input type="text" name="buscar" class="form-control" placeholder="Buscar producto..." value="{{ request('buscar') }}">
+    </div>
+    <label class="fb-label mb-0">Categoría</label>
+    <select name="categoria" class="form-control" style="width:auto;" onchange="this.form.submit()">
+        <option value="">Todas</option>
+        @foreach($categorias as $c)
+            <option value="{{ $c->id }}" {{ request('categoria') == $c->id ? 'selected' : '' }}>{{ $c->nombre }}</option>
+        @endforeach
+    </select>
+    <label class="fb-label mb-0">Estado</label>
+    <select name="estado" class="form-control" style="width:auto;" onchange="this.form.submit()">
+        <option value="">Todos</option>
+        <option value="activo"   {{ request('estado') === 'activo'   ? 'selected' : '' }}>Activo</option>
+        <option value="inactivo" {{ request('estado') === 'inactivo' ? 'selected' : '' }}>Inactivo</option>
+    </select>
+    <button type="submit" class="btn btn-light"><i class="fas fa-filter mr-1"></i>Filtrar</button>
+    @if(request('buscar') || request('categoria') || request('estado'))
+        <a href="{{ route('productos.index') }}" class="btn btn-light text-muted"><i class="fas fa-times mr-1"></i>Limpiar</a>
+    @endif
+</form>
+
 @if($productos->count() > 0)
-<div class="table-card">
-    <table class="table table-hover table-modern">
-        <thead>
-            <tr>
-                <th>Producto</th>
-                <th>Categoría</th>
-                <th class="text-right">Precio Venta</th>
-                <th class="text-right">Costo</th>
-                <th class="text-center">Stock</th>
-                <th class="text-center">Estado</th>
-                <th class="text-center">Acciones</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach($productos as $p)
-            <tr>
-                <td>
-                    <div class="d-flex align-items-center gap-2">
-                        <div class="row-icon"><i class="fas fa-bread-slice"></i></div>
-                        <div class="ml-2">
-                            <div class="row-title">{{ $p->nombre }}</div>
-                            @if($p->tieneStockBajo())
-                                <span class="badge-soft badge-soft-danger"><i class="fas fa-exclamation-triangle mr-1"></i>Stock bajo</span>
-                            @endif
-                        </div>
-                    </div>
-                </td>
-                <td><span class="badge-soft badge-soft-secondary">{{ $p->categoria->nombre }}</span></td>
-                <td class="text-right font-weight-bold text-success">S/ {{ number_format($p->precio_venta, 2) }}</td>
-                <td class="text-right text-muted">S/ {{ number_format($p->costo_produccion, 2) }}</td>
-                <td class="text-center">
+<div class="card-grid">
+    @foreach($productos as $p)
+        @php
+            $nombreLower = mb_strtolower($p->categoria->nombre ?? '');
+            $icono = 'fa-bread-slice';
+            if (str_contains($nombreLower, 'pastel') || str_contains($nombreLower, 'torta')) $icono = 'fa-birthday-cake';
+            elseif (str_contains($nombreLower, 'galleta'))                  $icono = 'fa-cookie';
+            elseif (str_contains($nombreLower, 'empanada'))                 $icono = 'fa-cheese';
+            elseif (str_contains($nombreLower, 'bebida') || str_contains($nombreLower, 'café')) $icono = 'fa-mug-hot';
+        @endphp
+        <div class="item-card {{ $p->estado !== 'activo' ? 'is-inactive' : '' }}">
+            <div class="item-card-media">
+                @if($p->imagen)
+                    <img src="{{ asset('storage/'.$p->imagen) }}" alt="{{ $p->nombre }}">
+                @else
+                    <i class="fas {{ $icono }}"></i>
+                @endif
+
+                <span class="ic-badge">
+                    @if($p->tieneStockBajo())
+                        <span class="badge-soft badge-soft-danger"><i class="fas fa-exclamation-triangle mr-1"></i>Stock bajo</span>
+                    @elseif($p->estado !== 'activo')
+                        <span class="badge-soft badge-soft-secondary">Inactivo</span>
+                    @endif
+                </span>
+            </div>
+
+            <div class="item-card-body">
+                <div class="item-card-cat">{{ $p->categoria->nombre ?? 'Sin categoría' }}</div>
+                <h3 class="item-card-title">{{ $p->nombre }}</h3>
+
+                <div class="item-card-price">
+                    S/ {{ number_format($p->precio_venta, 2) }}
+                    @if($p->costo_produccion)
+                        <span class="ic-cost">costo S/ {{ number_format($p->costo_produccion, 2) }}</span>
+                    @endif
+                </div>
+
+                <div class="item-card-stockrow">
+                    <span>Stock disponible</span>
                     <span class="badge-soft {{ $p->tieneStockBajo() ? 'badge-soft-danger' : 'badge-soft-success' }}">
-                        {{ $p->stock_actual }}
+                        {{ $p->stock_actual }} uds
                     </span>
-                </td>
-                <td class="text-center">
-                    <span class="badge-soft {{ $p->estado === 'activo' ? 'badge-soft-success' : 'badge-soft-secondary' }}">
-                        {{ ucfirst($p->estado) }}
-                    </span>
-                </td>
-                <td class="text-center">
-                    <div class="btn-icon-group">
-                        <a href="{{ route('productos.edit', $p) }}" class="btn btn-icon btn-warning" title="Editar">
-                            <i class="fas fa-edit"></i>
-                        </a>
-                        <form action="{{ route('productos.destroy', $p) }}" method="POST" class="js-confirm"
-                            data-confirm-title="¿Desactivar producto?"
-                            data-confirm="&quot;{{ $p->nombre }}&quot; dejará de aparecer disponible para la venta.">
-                            @csrf @method('DELETE')
-                            <button class="btn btn-icon btn-danger" title="Desactivar"><i class="fas fa-ban"></i></button>
-                        </form>
-                    </div>
-                </td>
-            </tr>
-            @endforeach
-        </tbody>
-    </table>
-    <div class="card-footer bg-white">{{ $productos->links() }}</div>
+                </div>
+            </div>
+
+            <div class="item-card-footer">
+                <span class="badge-soft {{ $p->estado === 'activo' ? 'badge-soft-success' : 'badge-soft-secondary' }}">
+                    {{ ucfirst($p->estado) }}
+                </span>
+                <div class="btn-icon-group">
+                    <a href="{{ route('productos.edit', $p) }}" class="btn btn-icon btn-warning" title="Editar">
+                        <i class="fas fa-edit"></i>
+                    </a>
+                    <form action="{{ route('productos.destroy', $p) }}" method="POST" class="js-confirm"
+                        data-confirm-title="¿Desactivar producto?"
+                        data-confirm="&quot;{{ $p->nombre }}&quot; dejará de aparecer disponible para la venta.">
+                        @csrf @method('DELETE')
+                        <button class="btn btn-icon btn-danger" title="Desactivar"><i class="fas fa-ban"></i></button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    @endforeach
 </div>
+<div class="mt-3">{{ $productos->links() }}</div>
 @else
 <div class="empty-state">
     <i class="fas fa-bread-slice"></i>
-    <p>Todavía no tienes productos registrados</p>
+    <p>{{ request('buscar') || request('categoria') || request('estado') ? 'Ningún producto coincide con ese filtro' : 'Todavía no tienes productos registrados' }}</p>
     <a href="{{ route('productos.create') }}" class="btn btn-primary"><i class="fas fa-plus mr-1"></i>Crear el primero</a>
 </div>
 @endif

@@ -16,73 +16,102 @@
     </div>
 </div>
 
+<form method="GET" action="{{ route('materia-prima.index') }}" class="filter-bar">
+    <div class="search-box flex-grow-1" style="min-width:220px;">
+        <i class="fas fa-search"></i>
+        <input type="text" name="buscar" class="form-control" placeholder="Buscar insumo..." value="{{ request('buscar') }}">
+    </div>
+    <label class="fb-label mb-0">Proveedor</label>
+    <select name="proveedor" class="form-control" style="width:auto;" onchange="this.form.submit()">
+        <option value="">Todos</option>
+        @foreach($proveedores as $pr)
+            <option value="{{ $pr->id }}" {{ request('proveedor') == $pr->id ? 'selected' : '' }}>{{ $pr->nombre }}</option>
+        @endforeach
+    </select>
+    <label class="fb-label mb-0">Stock</label>
+    <select name="stock" class="form-control" style="width:auto;" onchange="this.form.submit()">
+        <option value="">Todos</option>
+        <option value="bajo" {{ request('stock') === 'bajo' ? 'selected' : '' }}>Solo stock bajo</option>
+    </select>
+    <label class="fb-label mb-0">Estado</label>
+    <select name="estado" class="form-control" style="width:auto;" onchange="this.form.submit()">
+        <option value="">Todos</option>
+        <option value="activo"   {{ request('estado') === 'activo'   ? 'selected' : '' }}>Activo</option>
+        <option value="inactivo" {{ request('estado') === 'inactivo' ? 'selected' : '' }}>Inactivo</option>
+    </select>
+    <button type="submit" class="btn btn-light"><i class="fas fa-filter mr-1"></i>Filtrar</button>
+    @if(request('buscar') || request('proveedor') || request('estado') || request('stock'))
+        <a href="{{ route('materia-prima.index') }}" class="btn btn-light text-muted"><i class="fas fa-times mr-1"></i>Limpiar</a>
+    @endif
+</form>
+
 @if($materias->count() > 0)
-<div class="table-card">
-    <table class="table table-hover table-modern">
-        <thead>
-            <tr>
-                <th>Insumo</th>
-                <th class="text-center">Unidad</th>
-                <th class="text-right">Stock Actual</th>
-                <th class="text-right">Stock Mínimo</th>
-                <th class="text-right">Costo Unitario</th>
-                <th class="text-center">Estado</th>
-                <th class="text-center">Acciones</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach($materias as $m)
-            <tr>
-                <td>
-                    <div class="d-flex align-items-center gap-2">
-                        <div class="row-icon"><i class="fas fa-wheat-awn"></i></div>
-                        <div class="ml-2">
-                            <div class="row-title">{{ $m->nombre }}</div>
-                            @if($m->tieneStockBajo())
-                                <span class="badge-soft badge-soft-danger"><i class="fas fa-exclamation-triangle mr-1"></i>Stock bajo</span>
-                            @endif
-                        </div>
+<div class="card-grid">
+    @foreach($materias as $m)
+        @php
+            // Referencia visual: barra llena al 100% cuando el stock duplica el mínimo
+            $referencia = max($m->stock_minimo * 2, 0.001);
+            $porcentaje = min(100, round(($m->stock_actual / $referencia) * 100));
+        @endphp
+        <div class="item-card {{ $m->estado !== 'activo' ? 'is-inactive' : '' }}">
+            <div class="item-card-media" style="height:80px;">
+                <i class="fas fa-wheat-awn"></i>
+                <span class="ic-badge">
+                    @if($m->tieneStockBajo())
+                        <span class="badge-soft badge-soft-danger"><i class="fas fa-exclamation-triangle mr-1"></i>Stock bajo</span>
+                    @elseif($m->estado !== 'activo')
+                        <span class="badge-soft badge-soft-secondary">Inactivo</span>
+                    @endif
+                </span>
+            </div>
+
+            <div class="item-card-body">
+                <div class="item-card-cat">{{ $m->proveedor->nombre ?? 'Sin proveedor asignado' }}</div>
+                <h3 class="item-card-title">{{ $m->nombre }}</h3>
+
+                <div class="stock-gauge">
+                    <div class="sg-track">
+                        <div class="sg-fill {{ $m->tieneStockBajo() ? 'bajo' : 'ok' }}" style="width: {{ $porcentaje }}%;"></div>
                     </div>
-                </td>
-                <td class="text-center"><span class="badge-soft badge-soft-secondary">{{ $m->unidad->abreviatura }}</span></td>
-                <td class="text-right">
-                    <span class="font-weight-bold {{ $m->tieneStockBajo() ? 'text-danger' : 'text-success' }}">
-                        {{ number_format($m->stock_actual, 3) }}
-                    </span>
-                </td>
-                <td class="text-right text-muted">{{ number_format($m->stock_minimo, 3) }}</td>
-                <td class="text-right">S/ {{ number_format($m->costo_unitario, 2) }}</td>
-                <td class="text-center">
-                    <span class="badge-soft {{ $m->estado === 'activo' ? 'badge-soft-success' : 'badge-soft-secondary' }}">
-                        {{ ucfirst($m->estado) }}
-                    </span>
-                </td>
-                <td class="text-center">
-                    <div class="btn-icon-group">
-                        <a href="{{ route('materia-prima.ajuste', $m) }}" class="btn btn-icon btn-info" title="Ajustar inventario">
-                            <i class="fas fa-balance-scale"></i>
-                        </a>
-                        <a href="{{ route('materia-prima.edit', $m) }}" class="btn btn-icon btn-warning" title="Editar">
-                            <i class="fas fa-edit"></i>
-                        </a>
-                        <form action="{{ route('materia-prima.destroy', $m) }}" method="POST" class="js-confirm"
-                            data-confirm-title="¿Desactivar insumo?"
-                            data-confirm="&quot;{{ $m->nombre }}&quot; dejará de estar disponible para recetas y compras.">
-                            @csrf @method('DELETE')
-                            <button class="btn btn-icon btn-danger" title="Desactivar"><i class="fas fa-ban"></i></button>
-                        </form>
+                    <div class="sg-labels">
+                        <span>Actual: <strong>{{ number_format($m->stock_actual, 2) }} {{ $m->unidad->abreviatura }}</strong></span>
+                        <span>Mínimo: {{ number_format($m->stock_minimo, 2) }} {{ $m->unidad->abreviatura }}</span>
                     </div>
-                </td>
-            </tr>
-            @endforeach
-        </tbody>
-    </table>
-    <div class="card-footer bg-white">{{ $materias->links() }}</div>
+                </div>
+
+                <div class="item-card-price" style="font-size:1.05rem;">
+                    S/ {{ number_format($m->costo_unitario, 2) }}
+                    <span class="ic-cost">por {{ $m->unidad->nombre }}</span>
+                </div>
+            </div>
+
+            <div class="item-card-footer">
+                <span class="badge-soft {{ $m->estado === 'activo' ? 'badge-soft-success' : 'badge-soft-secondary' }}">
+                    {{ ucfirst($m->estado) }}
+                </span>
+                <div class="btn-icon-group">
+                    <a href="{{ route('materia-prima.ajuste', $m) }}" class="btn btn-icon btn-info" title="Ajustar inventario">
+                        <i class="fas fa-balance-scale"></i>
+                    </a>
+                    <a href="{{ route('materia-prima.edit', $m) }}" class="btn btn-icon btn-warning" title="Editar">
+                        <i class="fas fa-edit"></i>
+                    </a>
+                    <form action="{{ route('materia-prima.destroy', $m) }}" method="POST" class="js-confirm"
+                        data-confirm-title="¿Desactivar insumo?"
+                        data-confirm="&quot;{{ $m->nombre }}&quot; dejará de estar disponible para recetas y compras.">
+                        @csrf @method('DELETE')
+                        <button class="btn btn-icon btn-danger" title="Desactivar"><i class="fas fa-ban"></i></button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    @endforeach
 </div>
+<div class="mt-3">{{ $materias->links() }}</div>
 @else
 <div class="empty-state">
     <i class="fas fa-boxes"></i>
-    <p>Todavía no tienes materia prima registrada</p>
+    <p>{{ request('buscar') || request('proveedor') || request('estado') || request('stock') ? 'Ningún insumo coincide con ese filtro' : 'Todavía no tienes materia prima registrada' }}</p>
     <a href="{{ route('materia-prima.create') }}" class="btn btn-primary"><i class="fas fa-plus mr-1"></i>Crear la primera</a>
 </div>
 @endif
