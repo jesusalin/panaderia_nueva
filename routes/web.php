@@ -39,11 +39,13 @@ Route::middleware(['auth'])->group(function () {
         Route::resource('categorias', CategoriasController::class);
         Route::put('categorias/{categoria}/toggle-estado', [CategoriasController::class, 'toggleEstado'])->name('categorias.toggle-estado');
         Route::resource('productos',  ProductosController::class);
+        Route::put('productos/{producto}/toggle-estado', [ProductosController::class, 'toggleEstado'])->name('productos.toggle-estado');
     });
 
     // ── Módulo: Inventario ───────────────────────────────────────
     Route::middleware(['modulo:inventario'])->group(function () {
         Route::resource('materia-prima', MateriaPrimaController::class);
+        Route::put('materia-prima/{materiaPrima}/toggle-estado', [MateriaPrimaController::class, 'toggleEstado'])->name('materia-prima.toggle-estado');
         Route::get('materia-prima/{materiaPrima}/ajuste',  [MateriaPrimaController::class, 'ajusteForm'])->name('materia-prima.ajuste');
         Route::post('materia-prima/{materiaPrima}/ajuste', [MateriaPrimaController::class, 'ajusteStore'])->name('materia-prima.ajuste.store');
         Route::get('movimientos_materia_prima', [MovimientosController::class, 'index'])->name('movimientos.index');
@@ -82,7 +84,7 @@ Route::middleware(['auth'])->group(function () {
 
     // ── Módulo: Ventas ───────────────────────────────────────────
     Route::middleware(['modulo:ventas'])->group(function () {
-        Route::resource('ventas', VentasController::class)->only(['index', 'create', 'store', 'show']);
+        Route::resource('ventas', VentasController::class)->only(['index', 'create', 'store', 'show', 'destroy']);
         Route::put('ventas/{venta}/anular', [VentasController::class, 'anular'])->name('ventas.anular');
     });
 

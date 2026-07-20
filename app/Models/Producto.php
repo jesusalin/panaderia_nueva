@@ -9,5 +9,6 @@ class Producto extends Model {
     public function receta()         { return $this->hasOne(Receta::class, 'id_producto'); }
     public function ventaDetalles()  { return $this->hasMany(VentaDetalle::class, 'id_producto'); }
     public function producciones()   { return $this->hasMany(Produccion::class, 'id_producto'); }
+    public function kardex()         { return $this->hasMany(KardexProducto::class, 'id_producto'); }
     public function tieneStockBajo() { return $this->stock_actual <= $this->stock_minimo; }
 }

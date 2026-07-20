@@ -51,6 +51,14 @@
             elseif (str_contains($nombreLower, 'empanada'))                 $icono = 'fa-cheese';
             elseif (str_contains($nombreLower, 'bebida') || str_contains($nombreLower, 'café')) $icono = 'fa-mug-hot';
         @endphp
+        @php
+            $usosProducto = [];
+            if ($p->venta_detalles_count > 0) $usosProducto[] = $p->venta_detalles_count . ' venta(s)';
+            if ($p->producciones_count > 0)   $usosProducto[] = $p->producciones_count . ' producción(es)';
+            if ($p->receta_count > 0)         $usosProducto[] = 'una receta';
+            if ($p->kardex_count > 0)         $usosProducto[] = 'movimientos de kardex';
+            $bloqueadoProducto = count($usosProducto) > 0;
+        @endphp
         <div class="item-card {{ $p->estado !== 'activo' ? 'is-inactive' : '' }}">
             <div class="item-card-media">
                 @if($p->imagen)
@@ -95,12 +103,28 @@
                     <a href="{{ route('productos.edit', $p) }}" class="btn btn-icon btn-warning" title="Editar">
                         <i class="fas fa-edit"></i>
                     </a>
-                    <form action="{{ route('productos.destroy', $p) }}" method="POST" class="js-confirm"
-                        data-confirm-title="¿Desactivar producto?"
-                        data-confirm="&quot;{{ $p->nombre }}&quot; dejará de aparecer disponible para la venta.">
-                        @csrf @method('DELETE')
-                        <button class="btn btn-icon btn-danger" title="Desactivar"><i class="fas fa-ban"></i></button>
+                    <form action="{{ route('productos.toggle-estado', $p) }}" method="POST" class="js-confirm"
+                        data-confirm-title="{{ $p->estado === 'activo' ? '¿Desactivar producto?' : '¿Reactivar producto?' }}"
+                        data-confirm="&quot;{{ $p->nombre }}&quot; {{ $p->estado === 'activo' ? 'dejará de aparecer disponible para la venta.' : 'volverá a estar disponible para la venta.' }}">
+                        @csrf @method('PUT')
+                        <button class="btn btn-icon {{ $p->estado === 'activo' ? 'btn-secondary' : 'btn-success' }}" title="{{ $p->estado === 'activo' ? 'Desactivar' : 'Reactivar' }}">
+                            <i class="fas {{ $p->estado === 'activo' ? 'fa-ban' : 'fa-rotate-left' }}"></i>
+                        </button>
                     </form>
+                    @if($bloqueadoProducto)
+                        <button type="button" class="btn btn-icon btn-secondary is-locked js-blocked"
+                            data-blocked-title="No se puede eliminar este producto"
+                            data-blocked-message="&quot;{{ $p->nombre }}&quot; tiene {{ implode(' y ', $usosProducto) }}. Usa Desactivar para que deje de estar disponible sin perder su historial.">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
+                    @else
+                        <form action="{{ route('productos.destroy', $p) }}" method="POST" class="js-confirm"
+                            data-confirm-title="¿Eliminar este producto?"
+                            data-confirm="&quot;{{ $p->nombre }}&quot; se borrará por completo del sistema. Esta acción NO se puede deshacer.">
+                            @csrf @method('DELETE')
+                            <button class="btn btn-icon btn-danger" title="Eliminar"><i class="fas fa-trash-alt"></i></button>
+                        </form>
+                    @endif
                 </div>
             </div>
         </div>

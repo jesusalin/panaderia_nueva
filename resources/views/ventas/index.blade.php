@@ -47,6 +47,20 @@
                         <a href="{{ route('ventas.show', $v) }}" class="btn btn-icon btn-info" title="Ver detalle">
                             <i class="fas fa-eye"></i>
                         </a>
+                        @if($v->estado !== 'anulada')
+                        <form action="{{ route('ventas.anular', $v) }}" method="POST" class="js-confirm"
+                            data-confirm-title="¿Anular esta venta?"
+                            data-confirm="La venta &quot;{{ $v->numero_venta }}&quot; quedará anulada y el stock de sus productos se devolverá al inventario. La venta se conserva en el historial. Esta acción no se puede deshacer.">
+                            @csrf @method('PUT')
+                            <button class="btn btn-icon btn-warning" title="Anular venta"><i class="fas fa-ban"></i></button>
+                        </form>
+                        @endif
+                        <form action="{{ route('ventas.destroy', $v) }}" method="POST" class="js-confirm"
+                            data-confirm-title="¿Borrar esta venta?"
+                            data-confirm="La venta &quot;{{ $v->numero_venta }}&quot; se eliminará por completo del sistema{{ $v->estado === 'completada' ? ' y el stock de sus productos se devolverá al inventario' : '' }}. Esta acción NO se puede deshacer.">
+                            @csrf @method('DELETE')
+                            <button class="btn btn-icon btn-danger" title="Borrar venta"><i class="fas fa-trash-alt"></i></button>
+                        </form>
                     </div>
                 </td>
             </tr>

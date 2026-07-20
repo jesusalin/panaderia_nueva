@@ -9,6 +9,7 @@ class ProductosController extends Controller
 {
     public function index(Request $request) {
         $productos = Producto::with('categoria')
+            ->withCount(['ventaDetalles', 'producciones', 'receta', 'kardex'])
             ->when($request->buscar, fn($q) => $q->where('nombre', 'like', '%'.$request->buscar.'%'))
             ->when($request->categoria, fn($q) => $q->where('id_categoria', $request->categoria))
             ->when($request->estado, fn($q) => $q->where('estado', $request->estado))
@@ -77,8 +78,35 @@ class ProductosController extends Controller
         return redirect()->route('productos.index')->with('success','Producto actualizado.');
     }
 
+    public function toggleEstado(Producto $producto) {
+        $nuevoEstado = $producto->estado === 'activo' ? 'inactivo' : 'activo';
+        $producto->update(['estado' => $nuevoEstado]);
+
+        return redirect()->route('productos.index')
+            ->with('success', 'Producto ' . ($nuevoEstado === 'activo' ? 'activado' : 'desactivado') . '.');
+    }
+
     public function destroy(Producto $producto) {
-        $producto->update(['estado'=>'inactivo']);
-        return redirect()->route('productos.index')->with('success','Producto desactivado.');
+        // Un producto con historial (ventas, producciones, receta o kardex) no se puede
+        // borrar de verdad sin romper esos registros: en ese caso se pide desactivarlo.
+        $usos = [];
+        if ($producto->ventaDetalles()->exists())               $usos[] = 'tiene ventas registradas';
+        if ($producto->producciones()->exists())                $usos[] = 'tiene producciones registradas';
+        if ($producto->receta()->exists())                      $usos[] = 'tiene una receta asociada';
+        if (\App\Models\KardexProducto::where('id_producto', $producto->id)->exists()) $usos[] = 'tiene movimientos de kardex';
+
+        if (!empty($usos)) {
+            return back()->withErrors([
+                'error' => "No se puede eliminar \"{$producto->nombre}\" porque " . implode(' y ', $usos) .
+                           ". Usa \"Desactivar\" para que deje de estar disponible sin perder su historial.",
+            ]);
+        }
+
+        if ($producto->imagen) {
+            Storage::disk('public')->delete($producto->imagen);
+        }
+        $nombre = $producto->nombre;
+        $producto->delete();
+        return redirect()->route('productos.index')->with('success', "Producto \"{$nombre}\" eliminado correctamente.");
     }
 }

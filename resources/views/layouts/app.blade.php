@@ -212,6 +212,8 @@
         }
         .btn-icon:hover { transform: translateY(-1px); }
         .btn-icon[disabled] { cursor: not-allowed; opacity: .4; transform: none; }
+        .btn-icon.is-locked, .cat-actions .btn.is-locked { cursor: not-allowed; opacity: .45; }
+        .btn-icon.is-locked:hover, .cat-actions .btn.is-locked:hover { transform: none; }
         .btn-icon-group { display: flex; gap: .35rem; align-items: center; justify-content: center; }
 
         /* Tarjeta contenedora de tabla, con cabecera consistente */
@@ -281,6 +283,18 @@
         }
         .item-card-media img { width: 100%; height: 100%; object-fit: cover; }
         .item-card-media .ic-badge { position: absolute; top: .55rem; right: .55rem; }
+        /* El badge de "Stock bajo" va siempre sobre un fondo oscuro (foto o degradado del
+           ícono), así que necesita colores propios y sólidos: los badge-soft normales usan
+           fondo traslúcido + texto oscuro pensados para tarjetas blancas, y ahí quedaban
+           casi invisibles tanto en modo claro como oscuro. */
+        .ic-badge .badge-soft-danger {
+            background: #e74c3c; color: #fff; box-shadow: 0 1px 5px rgba(0,0,0,.4);
+        }
+        .ic-badge .badge-soft-secondary {
+            background: rgba(15,15,25,.65); color: #fff; box-shadow: 0 1px 5px rgba(0,0,0,.4);
+        }
+        body.dark-mode .ic-badge .badge-soft-danger { background: #ff5b48; color: #1a0a08; }
+        body.dark-mode .ic-badge .badge-soft-secondary { background: rgba(0,0,0,.55); color: #f0f0f7; }
 
         .item-card-body { padding: 1rem 1.1rem .2rem; flex: 1; }
         .item-card-cat { font-size: .72rem; font-weight: 700; color: #b5451b; text-transform: uppercase; letter-spacing: .03em; }
@@ -647,6 +661,26 @@
     </div>
 </div>
 
+{{-- Modal informativo: para botones "bloqueados" (ej. Eliminar cuando el registro tiene
+     historial). En vez de un <button disabled> mudo, el botón queda clickeable con la
+     clase "js-blocked" y explica en este modal por qué no se puede hacer la acción. --}}
+<div class="modal fade" id="blockedModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-body text-center pt-4 pb-2">
+                <div class="mb-3" style="width:56px;height:56px;border-radius:50%;background:rgba(52,152,219,.12);display:flex;align-items:center;justify-content:center;margin:0 auto;">
+                    <i class="fas fa-info-circle" style="color:#2170a3;font-size:1.4rem;"></i>
+                </div>
+                <h5 class="font-weight-bold mb-2" id="blockedModalTitle">No se puede eliminar</h5>
+                <p class="text-muted mb-0" id="blockedModalText"></p>
+            </div>
+            <div class="modal-footer border-0 justify-content-center pb-4">
+                <button type="button" class="btn btn-primary px-4" data-dismiss="modal">Entendido</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/jquery@3.6/dist/jquery.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/js/adminlte.min.js"></script>
@@ -726,6 +760,22 @@
         document.getElementById('confirmModalAccept').addEventListener('click', function () {
             $('#confirmModal').modal('hide');
             if (formPendiente) { formPendiente.submit(); formPendiente = null; }
+        });
+    })();
+</script>
+
+<script>
+    // Botones "bloqueados" (ej. Eliminar cuando el registro tiene historial): en vez de un
+    // <button disabled> que no responde al clic, este botón sí es clickeable y muestra
+    // el motivo en el modal informativo.
+    (function () {
+        document.addEventListener('click', function (e) {
+            const btn = e.target.closest('.js-blocked');
+            if (!btn) return;
+            e.preventDefault();
+            document.getElementById('blockedModalTitle').textContent = btn.dataset.blockedTitle || 'No se puede realizar esta acción';
+            document.getElementById('blockedModalText').textContent = btn.dataset.blockedMessage || '';
+            $('#blockedModal').modal('show');
         });
     })();
 </script>

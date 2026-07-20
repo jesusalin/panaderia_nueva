@@ -102,13 +102,15 @@
                         <i class="fas fa-edit"></i>
                     </a>
                     @if($c->productos_count > 0)
-                        <button type="button" class="btn btn-sm btn-secondary" disabled
-                            title="No se puede eliminar: tiene {{ $c->productos_count }} producto(s) asociado(s)">
+                        <button type="button" class="btn btn-sm btn-secondary is-locked js-blocked"
+                            data-blocked-title="No se puede eliminar esta categoría"
+                            data-blocked-message="&quot;{{ $c->nombre }}&quot; tiene {{ $c->productos_count }} producto(s) asociado(s). Desactívala si ya no la usas, o mueve sus productos a otra categoría antes de eliminarla.">
                             <i class="fas fa-trash"></i>
                         </button>
                     @else
-                        <form action="{{ route('categorias.destroy', $c) }}" method="POST"
-                            onsubmit="return confirm('¿Eliminar la categoría \"{{ $c->nombre }}\"? Esta acción no se puede deshacer.')">
+                        <form action="{{ route('categorias.destroy', $c) }}" method="POST" class="js-confirm"
+                            data-confirm-title="¿Eliminar esta categoría?"
+                            data-confirm="&quot;{{ $c->nombre }}&quot; se borrará por completo del sistema. Esta acción no se puede deshacer.">
                             @csrf @method('DELETE')
                             <button type="submit" class="btn btn-sm btn-danger" title="Eliminar">
                                 <i class="fas fa-trash"></i>

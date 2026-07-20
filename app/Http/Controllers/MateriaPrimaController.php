@@ -11,6 +11,7 @@ class MateriaPrimaController extends Controller
 {
     public function index(Request $request) {
         $materias = MateriaPrima::with(['unidad', 'proveedor'])
+            ->withCount(['recetaDetalles', 'compraDetalles', 'movimientos', 'ordenesAutomaticas'])
             ->when($request->buscar, fn($q) => $q->where('nombre', 'like', '%'.$request->buscar.'%'))
             ->when($request->proveedor, fn($q) => $q->where('id_proveedor', $request->proveedor))
             ->when($request->estado, fn($q) => $q->where('estado', $request->estado))
@@ -64,9 +65,33 @@ class MateriaPrimaController extends Controller
         return redirect()->route('materia-prima.index')->with('success', 'Materia prima actualizada.');
     }
 
+    public function toggleEstado(MateriaPrima $materiaPrima) {
+        $nuevoEstado = $materiaPrima->estado === 'activo' ? 'inactivo' : 'activo';
+        $materiaPrima->update(['estado' => $nuevoEstado]);
+
+        return redirect()->route('materia-prima.index')
+            ->with('success', 'Materia prima ' . ($nuevoEstado === 'activo' ? 'activada' : 'desactivada') . '.');
+    }
+
     public function destroy(MateriaPrima $materiaPrima) {
-        $materiaPrima->update(['estado' => 'inactivo']);
-        return redirect()->route('materia-prima.index')->with('success', 'Materia prima desactivada.');
+        // Un insumo con historial (recetas, compras, movimientos u órdenes automáticas)
+        // no se puede borrar de verdad sin romper esos registros: se pide desactivarlo.
+        $usos = [];
+        if ($materiaPrima->recetaDetalles()->exists())      $usos[] = 'está usado en una o más recetas';
+        if ($materiaPrima->compraDetalles()->exists())      $usos[] = 'tiene compras registradas';
+        if ($materiaPrima->movimientos()->exists())         $usos[] = 'tiene movimientos de inventario';
+        if ($materiaPrima->ordenesAutomaticas()->exists())  $usos[] = 'tiene órdenes automáticas generadas';
+
+        if (!empty($usos)) {
+            return back()->withErrors([
+                'error' => "No se puede eliminar \"{$materiaPrima->nombre}\" porque " . implode(' y ', $usos) .
+                           ". Usa \"Desactivar\" para que deje de estar disponible sin perder su historial.",
+            ]);
+        }
+
+        $nombre = $materiaPrima->nombre;
+        $materiaPrima->delete();
+        return redirect()->route('materia-prima.index')->with('success', "Materia prima \"{$nombre}\" eliminada correctamente.");
     }
 
     /**

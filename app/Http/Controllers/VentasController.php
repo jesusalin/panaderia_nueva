@@ -153,4 +153,46 @@ class VentasController extends Controller
             return back()->withErrors(['error' => $e->getMessage()]);
         }
     }
+
+    public function destroy(Venta $venta)
+    {
+        DB::beginTransaction();
+        try {
+            // Si la venta seguía "completada" (no había sido anulada antes), el stock
+            // vendido todavía está descontado del inventario: hay que devolverlo antes
+            // de borrar el registro, igual que hace anular().
+            if ($venta->estado === 'completada') {
+                foreach ($venta->detalles as $detalle) {
+                    $producto     = Producto::find($detalle->id_producto);
+                    $stockAntes   = $producto->stock_actual;
+                    $stockDespues = $stockAntes + $detalle->cantidad;
+
+                    $producto->update(['stock_actual' => $stockDespues]);
+
+                    KardexProducto::create([
+                        'id_producto'   => $detalle->id_producto,
+                        'id_usuario'    => auth()->id(),
+                        'tipo'          => 'entrada',
+                        'motivo'        => 'devolucion',
+                        'referencia_id' => null,
+                        'cantidad'      => $detalle->cantidad,
+                        'stock_antes'   => $stockAntes,
+                        'stock_despues' => $stockDespues,
+                        'observacion'   => "Eliminación venta {$venta->numero_venta}",
+                    ]);
+                }
+            }
+
+            $numeroVenta = $venta->numero_venta;
+            $venta->detalles()->delete();
+            $venta->delete();
+
+            DB::commit();
+            return redirect()->route('ventas.index')
+                ->with('success', "Venta {$numeroVenta} eliminada correctamente.");
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->withErrors(['error' => $e->getMessage()]);
+        }
+    }
 }

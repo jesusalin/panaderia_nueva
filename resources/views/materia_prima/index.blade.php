@@ -52,6 +52,13 @@
             // Referencia visual: barra llena al 100% cuando el stock duplica el mínimo
             $referencia = max($m->stock_minimo * 2, 0.001);
             $porcentaje = min(100, round(($m->stock_actual / $referencia) * 100));
+
+            $usosMateria = [];
+            if ($m->receta_detalles_count > 0)      $usosMateria[] = 'está en ' . $m->receta_detalles_count . ' receta(s)';
+            if ($m->compra_detalles_count > 0)      $usosMateria[] = $m->compra_detalles_count . ' compra(s)';
+            if ($m->movimientos_count > 0)           $usosMateria[] = 'movimientos de inventario';
+            if ($m->ordenes_automaticas_count > 0)   $usosMateria[] = 'órdenes automáticas';
+            $bloqueadoMateria = count($usosMateria) > 0;
         @endphp
         <div class="item-card {{ $m->estado !== 'activo' ? 'is-inactive' : '' }}">
             <div class="item-card-media" style="height:80px;">
@@ -96,12 +103,28 @@
                     <a href="{{ route('materia-prima.edit', $m) }}" class="btn btn-icon btn-warning" title="Editar">
                         <i class="fas fa-edit"></i>
                     </a>
-                    <form action="{{ route('materia-prima.destroy', $m) }}" method="POST" class="js-confirm"
-                        data-confirm-title="¿Desactivar insumo?"
-                        data-confirm="&quot;{{ $m->nombre }}&quot; dejará de estar disponible para recetas y compras.">
-                        @csrf @method('DELETE')
-                        <button class="btn btn-icon btn-danger" title="Desactivar"><i class="fas fa-ban"></i></button>
+                    <form action="{{ route('materia-prima.toggle-estado', $m) }}" method="POST" class="js-confirm"
+                        data-confirm-title="{{ $m->estado === 'activo' ? '¿Desactivar insumo?' : '¿Reactivar insumo?' }}"
+                        data-confirm="&quot;{{ $m->nombre }}&quot; {{ $m->estado === 'activo' ? 'dejará de estar disponible para recetas y compras.' : 'volverá a estar disponible.' }}">
+                        @csrf @method('PUT')
+                        <button class="btn btn-icon {{ $m->estado === 'activo' ? 'btn-secondary' : 'btn-success' }}" title="{{ $m->estado === 'activo' ? 'Desactivar' : 'Reactivar' }}">
+                            <i class="fas {{ $m->estado === 'activo' ? 'fa-ban' : 'fa-rotate-left' }}"></i>
+                        </button>
                     </form>
+                    @if($bloqueadoMateria)
+                        <button type="button" class="btn btn-icon btn-secondary is-locked js-blocked"
+                            data-blocked-title="No se puede eliminar este insumo"
+                            data-blocked-message="&quot;{{ $m->nombre }}&quot; {{ implode(' y ', $usosMateria) }}. Usa Desactivar para que deje de estar disponible sin perder su historial.">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
+                    @else
+                        <form action="{{ route('materia-prima.destroy', $m) }}" method="POST" class="js-confirm"
+                            data-confirm-title="¿Eliminar este insumo?"
+                            data-confirm="&quot;{{ $m->nombre }}&quot; se borrará por completo del sistema. Esta acción NO se puede deshacer.">
+                            @csrf @method('DELETE')
+                            <button class="btn btn-icon btn-danger" title="Eliminar"><i class="fas fa-trash-alt"></i></button>
+                        </form>
+                    @endif
                 </div>
             </div>
         </div>
