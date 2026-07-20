@@ -174,6 +174,91 @@
         body.dark-mode .alert-banner.ok { background: rgba(46,204,113,.12); border-color: rgba(46,204,113,.3); color: #6ee7a5; }
         body.dark-mode .alert-banner.warn { background: rgba(243,156,18,.12); border-color: rgba(243,156,18,.3); color: #ffc673; }
         body.dark-mode .alert-banner .ab-text strong { color: inherit; }
+
+        /* ══════════════════════════════════════════════════════
+           KIT DE ESTILO COMPARTIDO — usado en todas las pantallas
+           de listado (toolbar, badges suaves, botones de acción,
+           tablas modernas, estados vacíos, barra de filtros)
+           ══════════════════════════════════════════════════════ */
+
+        /* Toolbar de cabecera de página */
+        .page-toolbar { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: .75rem; margin-bottom: 1.5rem; }
+        .page-toolbar h2 { font-weight: 800; margin: 0; color: #1a1a2e; font-size: 1.4rem; }
+        .page-toolbar p { margin: .15rem 0 0; color: #8a8a9d; font-size: .88rem; }
+        .page-toolbar .toolbar-actions { display: flex; gap: .5rem; flex-wrap: wrap; }
+        body.dark-mode .page-toolbar h2 { color: #f0f0f7; }
+        body.dark-mode .page-toolbar p { color: #9a9ac0; }
+
+        /* Badges suaves (más legibles que los sólidos de Bootstrap) */
+        .badge-soft { font-weight: 700; font-size: .74rem; padding: .35em .7em; border-radius: 20px; }
+        .badge-soft-success { background: rgba(46,204,113,.14); color: #1e8e5a; }
+        .badge-soft-danger  { background: rgba(231,76,60,.12);  color: #c0392b; }
+        .badge-soft-warning { background: rgba(243,156,18,.14); color: #b9770e; }
+        .badge-soft-info    { background: rgba(52,152,219,.14); color: #2170a3; }
+        .badge-soft-secondary { background: #eef0f3; color: #6c757d; }
+        .badge-soft-primary { background: rgba(181,69,27,.12); color: #b5451b; }
+        body.dark-mode .badge-soft-success { background: rgba(46,204,113,.16); color: #6ee7a5; }
+        body.dark-mode .badge-soft-danger  { background: rgba(231,76,60,.18);  color: #ff9b8f; }
+        body.dark-mode .badge-soft-warning { background: rgba(243,156,18,.18); color: #ffc673; }
+        body.dark-mode .badge-soft-info    { background: rgba(52,152,219,.18); color: #7ec3f5; }
+        body.dark-mode .badge-soft-secondary { background: #2c2c44; color: #b0b0cc; }
+        body.dark-mode .badge-soft-primary { background: rgba(181,69,27,.22); color: #ff9d6e; }
+
+        /* Botones de acción circulares (editar / eliminar / ver / etc.) */
+        .btn-icon {
+            width: 32px; height: 32px; padding: 0; border-radius: 8px; border: none;
+            display: inline-flex; align-items: center; justify-content: center;
+            font-size: .82rem; transition: transform .12s ease, box-shadow .12s ease; flex-shrink: 0;
+        }
+        .btn-icon:hover { transform: translateY(-1px); }
+        .btn-icon[disabled] { cursor: not-allowed; opacity: .4; transform: none; }
+        .btn-icon-group { display: flex; gap: .35rem; align-items: center; justify-content: center; }
+
+        /* Tarjeta contenedora de tabla, con cabecera consistente */
+        .table-card { background: #fff; border-radius: 14px; box-shadow: 0 2px 12px rgba(0,0,0,.05); overflow: hidden; }
+        body.dark-mode .table-card { background: #1f1f33; box-shadow: 0 2px 12px rgba(0,0,0,.3); }
+        .table-modern { margin-bottom: 0; }
+        .table-modern thead th {
+            background: #f7f5f3; border-top: none; border-bottom: 2px solid #efece8 !important;
+            font-size: .72rem; text-transform: uppercase; letter-spacing: .04em; color: #8a8a9d; font-weight: 800;
+            padding: .85rem 1rem;
+        }
+        .table-modern tbody td { padding: .8rem 1rem; vertical-align: middle; }
+        .table-modern tbody tr { transition: background .1s ease; }
+        .table-modern tbody tr:hover { background: #fbf7f4; }
+        body.dark-mode .table-modern thead th { background: #24243b; border-bottom-color: #33334d !important; color: #9a9ac0; }
+        body.dark-mode .table-modern tbody tr:hover { background: #24243b; }
+
+        /* Icono/avatar circular al inicio de una fila (nombre de producto, insumo, etc.) */
+        .row-icon {
+            width: 38px; height: 38px; border-radius: 10px; flex-shrink: 0;
+            background: linear-gradient(135deg, #1a1a2e, #b5451b); color: #fff;
+            display: inline-flex; align-items: center; justify-content: center; font-size: 1rem;
+        }
+        .row-title { font-weight: 700; color: #1a1a2e; }
+        .row-subtitle { font-size: .78rem; color: #8a8a9d; }
+        body.dark-mode .row-title { color: #f0f0f7; }
+        body.dark-mode .row-subtitle { color: #9a9ac0; }
+
+        /* Estado vacío (reutilizable en toda pantalla de listado) */
+        .empty-state { text-align: center; padding: 4rem 1rem; color: #adb5bd; }
+        .empty-state i { font-size: 2.6rem; margin-bottom: .8rem; opacity: .5; display: block; }
+        .empty-state p { margin: 0 0 1rem; }
+
+        /* Barra de filtros/búsqueda */
+        .filter-bar {
+            background: #fff; border-radius: 14px; padding: 1rem 1.25rem; margin-bottom: 1.25rem;
+            box-shadow: 0 2px 12px rgba(0,0,0,.05); display: flex; flex-wrap: wrap; gap: .6rem; align-items: center;
+        }
+        .filter-bar .form-control, .filter-bar select.form-control { border-radius: 8px; }
+        .filter-bar label.fb-label { font-size: .76rem; font-weight: 700; color: #8a8a9d; text-transform: uppercase; letter-spacing: .03em; margin: 0 .2rem 0 0; }
+        body.dark-mode .filter-bar { background: #1f1f33; box-shadow: 0 2px 12px rgba(0,0,0,.3); }
+        body.dark-mode .filter-bar .fb-label { color: #9a9ac0; }
+
+        /* Búsqueda con icono */
+        .search-box { position: relative; }
+        .search-box i { position: absolute; left: .8rem; top: 50%; transform: translateY(-50%); color: #adb5bd; font-size: .85rem; }
+        .search-box input { padding-left: 2.1rem; border-radius: 8px; }
     </style>
     @stack('styles')
 </head>
@@ -469,6 +554,26 @@
     </footer>
 </div>
 
+{{-- Modal de confirmación reutilizable: cualquier <form class="js-confirm" data-confirm="mensaje">
+     dispara este modal en vez del confirm() nativo del navegador. --}}
+<div class="modal fade" id="confirmModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-body text-center pt-4 pb-2">
+                <div class="mb-3" style="width:56px;height:56px;border-radius:50%;background:rgba(231,76,60,.12);display:flex;align-items:center;justify-content:center;margin:0 auto;">
+                    <i class="fas fa-exclamation-triangle" style="color:#e74c3c;font-size:1.4rem;"></i>
+                </div>
+                <h5 class="font-weight-bold mb-2" id="confirmModalTitle">¿Estás seguro?</h5>
+                <p class="text-muted mb-0" id="confirmModalText">Esta acción no se puede deshacer.</p>
+            </div>
+            <div class="modal-footer border-0 justify-content-center pb-4">
+                <button type="button" class="btn btn-light px-4" data-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-danger px-4" id="confirmModalAccept">Sí, continuar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/jquery@3.6/dist/jquery.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/js/adminlte.min.js"></script>
@@ -529,6 +634,26 @@
                 }
             });
         }
+    })();
+</script>
+
+<script>
+    // Modal de confirmación reutilizable para formularios de eliminar/desactivar/etc.
+    (function () {
+        let formPendiente = null;
+        document.addEventListener('submit', function (e) {
+            const form = e.target;
+            if (!form.classList || !form.classList.contains('js-confirm')) return;
+            e.preventDefault();
+            formPendiente = form;
+            document.getElementById('confirmModalTitle').textContent = form.dataset.confirmTitle || '¿Estás seguro?';
+            document.getElementById('confirmModalText').textContent = form.dataset.confirm || 'Esta acción no se puede deshacer.';
+            $('#confirmModal').modal('show');
+        });
+        document.getElementById('confirmModalAccept').addEventListener('click', function () {
+            $('#confirmModal').modal('hide');
+            if (formPendiente) { formPendiente.submit(); formPendiente = null; }
+        });
     })();
 </script>
 
