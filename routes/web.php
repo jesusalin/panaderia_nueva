@@ -72,6 +72,7 @@ Route::middleware(['auth'])->group(function () {
             ->parameters(['proveedores' => 'proveedor']);
         Route::resource('compras', ComprasController::class)->only(['index', 'create', 'store', 'show']);
         Route::put('compras/{compra}/recibir', [ComprasController::class, 'recibir'])->name('compras.recibir');
+        Route::put('compras/{compra}/anular',  [ComprasController::class, 'anular'])->name('compras.anular');
 
         Route::get('ordenes-automaticas',  [OrdenesAutomaticasController::class, 'index'])->name('ordenes-automaticas.index');
         Route::post('ordenes-automaticas/generar', [OrdenesAutomaticasController::class, 'generar'])->name('ordenes-automaticas.generar');

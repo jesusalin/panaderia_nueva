@@ -12,11 +12,30 @@ use Illuminate\Support\Facades\DB;
 
 class ComprasController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $compras = Compra::with(['proveedor', 'usuario'])
-            ->orderBy('created_at', 'desc')->paginate(15);
-        return view('compras.index', compact('compras'));
+        $query = Compra::with(['proveedor', 'usuario']);
+
+        if ($request->filled('id_proveedor'))
+            $query->where('id_proveedor', $request->id_proveedor);
+        if ($request->filled('estado'))
+            $query->where('estado', $request->estado);
+        if ($request->filled('fecha_desde'))
+            $query->whereDate('fecha_compra', '>=', $request->fecha_desde);
+        if ($request->filled('fecha_hasta'))
+            $query->whereDate('fecha_compra', '<=', $request->fecha_hasta);
+
+        $stats = [
+            'total'     => (clone $query)->count(),
+            'pendientes'=> (clone $query)->where('estado', 'pendiente')->count(),
+            'recibidas' => (clone $query)->where('estado', 'recibida')->count(),
+            'monto_mes' => Compra::whereMonth('fecha_compra', now()->month)->whereYear('fecha_compra', now()->year)->sum('total'),
+        ];
+
+        $compras = $query->orderBy('created_at', 'desc')->paginate(15)->withQueryString();
+        $proveedores = Proveedor::orderBy('nombre')->get();
+
+        return view('compras.index', compact('compras', 'proveedores', 'stats'));
     }
 
     public function create()
@@ -127,6 +146,66 @@ class ComprasController extends Controller
         } catch (\Exception $e) {
             DB::rollBack();
             return back()->withErrors(['error' => $e->getMessage()]);
+        }
+    }
+
+    public function anular(Compra $compra)
+    {
+        if ($compra->estado === 'anulada') {
+            return back()->withErrors(['error' => 'Esta compra ya está anulada.']);
+        }
+
+        $estadoOriginal = $compra->estado;
+
+        DB::beginTransaction();
+        try {
+            // Si ya se había recibido, hay que revertir el stock que se sumó a la materia prima.
+            // Primero se valida TODO antes de tocar nada, para no dejar reversiones a medias.
+            if ($estadoOriginal === 'recibida') {
+                foreach ($compra->detalles as $detalle) {
+                    $materia = MateriaPrima::find($detalle->id_materia);
+                    if ($materia && $materia->stock_actual < $detalle->cantidad) {
+                        DB::rollBack();
+                        return back()->withErrors([
+                            'error' => "No se puede anular esta compra: ya se consumió parte de \"{$materia->nombre}\" que llegó con este pedido. " .
+                                       "Stock actual: {$materia->stock_actual}, se necesitaría revertir {$detalle->cantidad}. " .
+                                       "El stock quedaría negativo.",
+                        ]);
+                    }
+                }
+
+                foreach ($compra->detalles as $detalle) {
+                    $materia = MateriaPrima::find($detalle->id_materia);
+                    if (!$materia) continue;
+
+                    $stockAntes   = $materia->stock_actual;
+                    $stockDespues = round($stockAntes - $detalle->cantidad, 3);
+                    $materia->update(['stock_actual' => $stockDespues]);
+
+                    MovimientoInventario::create([
+                        'id_materia'    => $materia->id,
+                        'id_usuario'    => auth()->id(),
+                        'tipo'          => 'salida',
+                        'motivo'        => 'devolucion',
+                        'referencia_id' => $compra->id,
+                        'cantidad'      => $detalle->cantidad,
+                        'stock_antes'   => $stockAntes,
+                        'stock_despues' => $stockDespues,
+                        'observacion'   => "Anulación de compra #{$compra->id} (registrada por error)",
+                    ]);
+                }
+            }
+
+            $compra->update(['estado' => 'anulada']);
+            DB::commit();
+
+            $mensaje = "Compra #{$compra->id} anulada correctamente.";
+            if ($estadoOriginal === 'recibida') $mensaje .= ' El stock de materia prima fue revertido.';
+
+            return back()->with('success', $mensaje);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->withErrors(['error' => 'Error al anular: ' . $e->getMessage()]);
         }
     }
 }

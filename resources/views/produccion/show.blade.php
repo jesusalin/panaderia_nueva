@@ -72,7 +72,7 @@
                         data-confirm-title="¿Eliminar esta producción?"
                         data-confirm="Se quitarán {{ $produccion->cantidad }} unidades de &quot;{{ $produccion->producto->nombre }}&quot; del stock y se devolverán los insumos que se habían descontado. Esta acción NO se puede deshacer.">
                         @csrf @method('DELETE')
-                        <button class="btn btn-danger"><i class="fas fa-trash-alt mr-1"></i>Eliminar (registrado por error)</button>
+                        <button class="btn btn-danger"><i class="fas fa-trash-alt mr-1"></i>Eliminar</button>
                     </form>
                 @else
                     <button type="button" class="btn btn-secondary is-locked js-blocked"

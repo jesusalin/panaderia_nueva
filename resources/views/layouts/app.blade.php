@@ -204,6 +204,47 @@
         body.dark-mode .badge-soft-secondary { background: #2c2c44; color: #b0b0cc; }
         body.dark-mode .badge-soft-primary { background: rgba(181,69,27,.22); color: #ff9d6e; }
 
+        /* Filas de lista (transaccional: compras, ventas, movimientos, kardex) */
+        .list-rows { display: flex; flex-direction: column; gap: .6rem; }
+        .list-row {
+            background: #fff; border-radius: 12px; padding: .9rem 1.2rem; box-shadow: 0 2px 10px rgba(0,0,0,.04);
+            display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; transition: box-shadow .12s ease;
+        }
+        .list-row:hover { box-shadow: 0 4px 16px rgba(0,0,0,.08); }
+        body.dark-mode .list-row { background: #1f1f33; box-shadow: 0 2px 10px rgba(0,0,0,.25); }
+        body.dark-mode .list-row:hover { box-shadow: 0 4px 16px rgba(0,0,0,.4); }
+
+        .lr-icon {
+            width: 42px; height: 42px; border-radius: 11px; flex-shrink: 0;
+            display: flex; align-items: center; justify-content: center; font-size: 1.05rem; color: #fff;
+            background: linear-gradient(135deg, #1a1a2e, #b5451b);
+        }
+        .lr-icon.success { background: linear-gradient(135deg, #1e8e5a, #2ecc71); }
+        .lr-icon.danger  { background: linear-gradient(135deg, #a93226, #e74c3c); }
+        .lr-icon.warning { background: linear-gradient(135deg, #a1670c, #f39c12); }
+        .lr-icon.info    { background: linear-gradient(135deg, #1c5d80, #3498db); }
+
+        .lr-main { min-width: 180px; flex: 1 1 220px; }
+        .lr-title { font-weight: 800; color: #1a1a2e; font-size: .92rem; }
+        .lr-subtitle { font-size: .78rem; color: #8a8a9d; margin-top: .1rem; }
+        body.dark-mode .lr-title { color: #f0f0f7; }
+        body.dark-mode .lr-subtitle { color: #9a9ac0; }
+
+        .lr-meta { display: flex; gap: 1.6rem; flex-wrap: wrap; }
+        .lr-meta .lm-item { text-align: left; min-width: 80px; }
+        .lr-meta .lm-label { font-size: .66rem; color: #adb5bd; text-transform: uppercase; letter-spacing: .03em; font-weight: 700; display: block; }
+        .lr-meta .lm-value { font-size: .88rem; font-weight: 700; color: #1a1a2e; }
+        body.dark-mode .lr-meta .lm-value { color: #e4e4ef; }
+
+        .lr-side { margin-left: auto; display: flex; align-items: center; gap: .8rem; flex-shrink: 0; }
+        .lr-amount { font-size: 1.05rem; font-weight: 800; color: #1a1a2e; }
+        body.dark-mode .lr-amount { color: #f0f0f7; }
+
+        @media (max-width: 767px) {
+            .list-row { flex-direction: column; align-items: flex-start; }
+            .lr-side { margin-left: 0; width: 100%; justify-content: space-between; }
+        }
+
         /* Botones de acción circulares (editar / eliminar / ver / etc.) */
         .btn-icon {
             width: 32px; height: 32px; padding: 0; border-radius: 8px; border: none;
