@@ -216,6 +216,29 @@
         .btn-icon.is-locked:hover, .cat-actions .btn.is-locked:hover { transform: none; }
         .btn-icon-group { display: flex; gap: .35rem; align-items: center; justify-content: center; }
 
+        /* Cuando el producto/categoría está inactivo, el botón Eliminar resalta en rojo */
+        .is-inactive .btn-icon.btn-danger,
+        .inactiva .btn-icon.btn-danger,
+        .inactiva .cat-actions .btn-danger {
+            background: #e74c3c; box-shadow: 0 0 0 3px rgba(231,76,60,.18);
+        }
+        .is-inactive .btn-icon.btn-danger:hover,
+        .inactiva .cat-actions .btn-danger:hover { background: #c0392b; }
+
+        /* Switch de estado activo/inactivo (usado en Categorías, Productos, etc.) */
+        .estado-switch { display: flex; align-items: center; gap: .4rem; cursor: pointer; border: none; background: none; padding: 0; }
+        .estado-switch .track {
+            width: 34px; height: 18px; border-radius: 20px; background: #dee2e6; position: relative; transition: background .15s; flex-shrink: 0;
+        }
+        .estado-switch .track::after {
+            content: ''; position: absolute; top: 2px; left: 2px; width: 14px; height: 14px; border-radius: 50%;
+            background: #fff; transition: left .15s;
+        }
+        .estado-switch.activa .track { background: #2ecc71; }
+        .estado-switch.activa .track::after { left: 18px; }
+        .estado-switch .txt { font-size: .74rem; font-weight: 700; color: #8a8a9d; white-space: nowrap; }
+        .estado-switch.activa .txt { color: #1e8e5a; }
+
         /* Tarjeta contenedora de tabla, con cabecera consistente */
         .table-card { background: #fff; border-radius: 14px; box-shadow: 0 2px 12px rgba(0,0,0,.05); overflow: hidden; }
         body.dark-mode .table-card { background: #1f1f33; box-shadow: 0 2px 12px rgba(0,0,0,.3); }
@@ -273,7 +296,8 @@
             border: 1.5px solid transparent; transition: all .15s ease; display: flex; flex-direction: column;
         }
         .item-card:hover { box-shadow: 0 10px 26px rgba(0,0,0,.09); border-color: #f0dccd; transform: translateY(-2px); }
-        .item-card.is-inactive { opacity: .55; }
+        .item-card.is-inactive { border-color: #f2d4d4; }
+        .item-card.is-inactive .item-card-media { filter: grayscale(.3); }
         body.dark-mode .item-card { background: #1f1f33; box-shadow: 0 2px 12px rgba(0,0,0,.3); }
         body.dark-mode .item-card:hover { border-color: #45304f; }
 

@@ -93,9 +93,13 @@
             </div>
 
             <div class="item-card-footer">
-                <span class="badge-soft {{ $m->estado === 'activo' ? 'badge-soft-success' : 'badge-soft-secondary' }}">
-                    {{ ucfirst($m->estado) }}
-                </span>
+                <form action="{{ route('materia-prima.toggle-estado', $m) }}" method="POST">
+                    @csrf @method('PUT')
+                    <button type="submit" class="estado-switch {{ $m->estado === 'activo' ? 'activa' : '' }}">
+                        <span class="track"></span>
+                        <span class="txt">{{ $m->estado === 'activo' ? 'Activo' : 'Inactivo' }}</span>
+                    </button>
+                </form>
                 <div class="btn-icon-group">
                     <a href="{{ route('materia-prima.ajuste', $m) }}" class="btn btn-icon btn-info" title="Ajustar inventario">
                         <i class="fas fa-balance-scale"></i>
@@ -103,18 +107,10 @@
                     <a href="{{ route('materia-prima.edit', $m) }}" class="btn btn-icon btn-warning" title="Editar">
                         <i class="fas fa-edit"></i>
                     </a>
-                    <form action="{{ route('materia-prima.toggle-estado', $m) }}" method="POST" class="js-confirm"
-                        data-confirm-title="{{ $m->estado === 'activo' ? '¿Desactivar insumo?' : '¿Reactivar insumo?' }}"
-                        data-confirm="&quot;{{ $m->nombre }}&quot; {{ $m->estado === 'activo' ? 'dejará de estar disponible para recetas y compras.' : 'volverá a estar disponible.' }}">
-                        @csrf @method('PUT')
-                        <button class="btn btn-icon {{ $m->estado === 'activo' ? 'btn-secondary' : 'btn-success' }}" title="{{ $m->estado === 'activo' ? 'Desactivar' : 'Reactivar' }}">
-                            <i class="fas {{ $m->estado === 'activo' ? 'fa-ban' : 'fa-rotate-left' }}"></i>
-                        </button>
-                    </form>
                     @if($bloqueadoMateria)
                         <button type="button" class="btn btn-icon btn-secondary is-locked js-blocked"
                             data-blocked-title="No se puede eliminar este insumo"
-                            data-blocked-message="&quot;{{ $m->nombre }}&quot; {{ implode(' y ', $usosMateria) }}. Usa Desactivar para que deje de estar disponible sin perder su historial.">
+                            data-blocked-message="&quot;{{ $m->nombre }}&quot; {{ implode(' y ', $usosMateria) }}. Usa el interruptor para desactivarlo sin perder su historial.">
                             <i class="fas fa-trash-alt"></i>
                         </button>
                     @else

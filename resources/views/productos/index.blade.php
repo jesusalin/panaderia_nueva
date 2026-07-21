@@ -96,25 +96,21 @@
             </div>
 
             <div class="item-card-footer">
-                <span class="badge-soft {{ $p->estado === 'activo' ? 'badge-soft-success' : 'badge-soft-secondary' }}">
-                    {{ ucfirst($p->estado) }}
-                </span>
+                <form action="{{ route('productos.toggle-estado', $p) }}" method="POST">
+                    @csrf @method('PUT')
+                    <button type="submit" class="estado-switch {{ $p->estado === 'activo' ? 'activa' : '' }}">
+                        <span class="track"></span>
+                        <span class="txt">{{ $p->estado === 'activo' ? 'Activo' : 'Inactivo' }}</span>
+                    </button>
+                </form>
                 <div class="btn-icon-group">
                     <a href="{{ route('productos.edit', $p) }}" class="btn btn-icon btn-warning" title="Editar">
                         <i class="fas fa-edit"></i>
                     </a>
-                    <form action="{{ route('productos.toggle-estado', $p) }}" method="POST" class="js-confirm"
-                        data-confirm-title="{{ $p->estado === 'activo' ? '¿Desactivar producto?' : '¿Reactivar producto?' }}"
-                        data-confirm="&quot;{{ $p->nombre }}&quot; {{ $p->estado === 'activo' ? 'dejará de aparecer disponible para la venta.' : 'volverá a estar disponible para la venta.' }}">
-                        @csrf @method('PUT')
-                        <button class="btn btn-icon {{ $p->estado === 'activo' ? 'btn-secondary' : 'btn-success' }}" title="{{ $p->estado === 'activo' ? 'Desactivar' : 'Reactivar' }}">
-                            <i class="fas {{ $p->estado === 'activo' ? 'fa-ban' : 'fa-rotate-left' }}"></i>
-                        </button>
-                    </form>
                     @if($bloqueadoProducto)
                         <button type="button" class="btn btn-icon btn-secondary is-locked js-blocked"
                             data-blocked-title="No se puede eliminar este producto"
-                            data-blocked-message="&quot;{{ $p->nombre }}&quot; tiene {{ implode(' y ', $usosProducto) }}. Usa Desactivar para que deje de estar disponible sin perder su historial.">
+                            data-blocked-message="&quot;{{ $p->nombre }}&quot; tiene {{ implode(' y ', $usosProducto) }}. Usa el interruptor para desactivarlo sin perder su historial.">
                             <i class="fas fa-trash-alt"></i>
                         </button>
                     @else

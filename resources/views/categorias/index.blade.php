@@ -14,7 +14,8 @@
         border: 1.5px solid transparent; transition: all .15s; position: relative;
     }
     .cat-card:hover { box-shadow: 0 6px 20px rgba(0,0,0,.08); border-color: #f0dccd; }
-    .cat-card.inactiva { opacity: .6; }
+    .cat-card.inactiva { border-color: #f2d4d4; }
+    .cat-card.inactiva .cat-icon { filter: grayscale(.3); }
 
     .cat-head { display: flex; align-items: flex-start; gap: .85rem; margin-bottom: .8rem; }
     .cat-icon {
