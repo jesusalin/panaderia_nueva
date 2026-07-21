@@ -15,20 +15,38 @@ use Illuminate\Support\Facades\DB;
 class ProduccionController extends Controller
 {
     // ─── LISTADO ─────────────────────────────────────────────
-    public function index()
+    public function index(Request $request)
     {
-        $producciones = Produccion::with(['producto', 'usuario'])
-            ->orderBy('created_at', 'desc')
-            ->paginate(15);
+        $query = Produccion::with(['producto.categoria', 'usuario'])
+            ->orderBy('fecha', 'desc')
+            ->orderBy('created_at', 'desc');
 
-        return view('produccion.index', compact('producciones'));
+        if ($request->filled('id_producto'))
+            $query->where('id_producto', $request->id_producto);
+        if ($request->filled('fecha_desde'))
+            $query->whereDate('fecha', '>=', $request->fecha_desde);
+        if ($request->filled('fecha_hasta'))
+            $query->whereDate('fecha', '<=', $request->fecha_hasta);
+
+        $stats = [
+            'total'    => (clone $query)->count(),
+            'unidades' => (clone $query)->sum('cantidad'),
+            'hoy'      => (clone $query)->whereDate('fecha', now())->count(),
+            'top'      => (clone $query)->select('id_producto', DB::raw('SUM(cantidad) as total'))
+                            ->groupBy('id_producto')->orderByDesc('total')->with('producto')->first(),
+        ];
+
+        $producciones = $query->paginate(15)->withQueryString();
+        $productos    = Producto::where('estado', 'activo')->orderBy('nombre')->get();
+
+        return view('produccion.index', compact('producciones', 'productos', 'stats'));
     }
 
     // ─── FORMULARIO NUEVA PRODUCCIÓN ─────────────────────────
     public function create()
     {
         $productos = Producto::where('estado', 'activo')
-            ->with('receta.detalles.materia.unidad')
+            ->with(['receta.detalles.materia.unidad', 'categoria'])
             ->orderBy('nombre')
             ->get();
 
@@ -141,11 +159,17 @@ class ProduccionController extends Controller
     public function recetas()
     {
         $productos = Producto::where('estado', 'activo')
-            ->with('receta.detalles.materia.unidad')
+            ->with(['receta.detalles.materia.unidad', 'categoria'])
             ->orderBy('nombre')
             ->get();
 
-        return view('produccion.recetas', compact('productos'));
+        $stats = [
+            'total'       => $productos->count(),
+            'con_receta'  => $productos->filter(fn($p) => $p->receta)->count(),
+            'sin_receta'  => $productos->filter(fn($p) => !$p->receta)->count(),
+        ];
+
+        return view('produccion.recetas', compact('productos', 'stats'));
     }
 
     public function crearReceta(Request $request)

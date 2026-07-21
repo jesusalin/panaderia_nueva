@@ -23,10 +23,17 @@ class KardexController extends Controller
         if ($request->filled('fecha_hasta'))
             $query->whereDate('created_at', '<=', $request->fecha_hasta);
 
+        $stats = [
+            'entradas' => (clone $query)->where('tipo', 'entrada')->count(),
+            'salidas'  => (clone $query)->where('tipo', 'salida')->count(),
+            'hoy'      => (clone $query)->whereDate('created_at', now())->count(),
+            'ajustes'  => (clone $query)->where('motivo', 'ajuste_manual')->count(),
+        ];
+
         $movimientos = $query->paginate(20)->withQueryString();
         $productos   = Producto::where('estado', 'activo')->orderBy('nombre')->get();
 
-        return view('kardex.index', compact('movimientos', 'productos'));
+        return view('kardex.index', compact('movimientos', 'productos', 'stats'));
     }
 
     public function rotacion(Request $request)
@@ -44,6 +51,7 @@ class KardexController extends Controller
             ->select(
                 'productos.id',
                 'productos.nombre',
+                'productos.imagen',
                 'categorias.nombre as categoria',
                 'productos.stock_actual',
                 'productos.stock_minimo',
@@ -52,7 +60,7 @@ class KardexController extends Controller
                 DB::raw('SUM(venta_detalles.cantidad) as total_vendido'),
                 DB::raw('SUM(venta_detalles.subtotal) as total_ingresos')
             )
-            ->groupBy('productos.id','productos.nombre','categorias.nombre','productos.stock_actual','productos.stock_minimo','productos.precio_venta','productos.costo_produccion')
+            ->groupBy('productos.id','productos.nombre','productos.imagen','categorias.nombre','productos.stock_actual','productos.stock_minimo','productos.precio_venta','productos.costo_produccion')
             ->orderByDesc('total_vendido')
             ->get();
 
@@ -68,6 +76,24 @@ class KardexController extends Controller
         $meses = [1=>'Enero',2=>'Febrero',3=>'Marzo',4=>'Abril',5=>'Mayo',6=>'Junio',
                   7=>'Julio',8=>'Agosto',9=>'Septiembre',10=>'Octubre',11=>'Noviembre',12=>'Diciembre'];
 
-        return view('kardex.rotacion', compact('rotacion', 'mes', 'año', 'meses'));
+        // Resumen agrupado por categoría (panes, pasteles, bebidas, etc.)
+        $totalIngresosGeneral = $rotacion->sum('total_ingresos');
+        $porCategoria = $rotacion
+            ->groupBy('categoria')
+            ->map(function ($productosCat, $nombreCategoria) use ($totalIngresosGeneral) {
+                $ingresos = $productosCat->sum('total_ingresos');
+                return (object) [
+                    'categoria'    => $nombreCategoria,
+                    'productos'    => $productosCat->count(),
+                    'vendido'      => $productosCat->sum('total_vendido'),
+                    'ingresos'     => $ingresos,
+                    'utilidad'     => $productosCat->sum('utilidad'),
+                    'participacion'=> $totalIngresosGeneral > 0 ? round(($ingresos / $totalIngresosGeneral) * 100, 1) : 0,
+                ];
+            })
+            ->sortByDesc('ingresos')
+            ->values();
+
+        return view('kardex.rotacion', compact('rotacion', 'mes', 'año', 'meses', 'porCategoria'));
     }
 }

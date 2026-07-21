@@ -6,7 +6,6 @@
 @php
     $tabsProductos = [];
     if (auth()->user()->hasModulo('catalogo')) {
-        $tabsProductos[] = ['ruta' => 'categorias.index', 'activo' => request()->routeIs('categorias.*'),  'icono' => 'fa-tags',        'label' => 'Categorías'];
         $tabsProductos[] = ['ruta' => 'productos.index',  'activo' => request()->routeIs('productos.*'),   'icono' => 'fa-bread-slice', 'label' => 'Productos'];
     }
     if (auth()->user()->hasModulo('produccion')) {

@@ -428,13 +428,21 @@
                         </a>
                     </li>
 
+                    @if(auth()->user()->hasModulo('catalogo'))
+                    <li class="nav-item">
+                        <a href="{{ route('categorias.index') }}" class="nav-link {{ request()->routeIs('categorias.*') ? 'active' : '' }}">
+                            <i class="nav-icon fas fa-tags"></i><p>Categorías</p>
+                        </a>
+                    </li>
+                    @endif
+
                     @if(auth()->user()->hasModulo('catalogo') || auth()->user()->hasModulo('produccion'))
                     @php
-                        // El módulo "Productos" agrupa Categorías, Productos, Producción y Recetas.
-                        // En vez de un desplegable con 4 sub-ítems, es un único link: al entrar,
+                        // El módulo "Productos" agrupa Productos, Producción y Recetas.
+                        // En vez de un desplegable con sub-ítems, es un único link: al entrar,
                         // la propia pantalla muestra pestañas para moverse entre esas secciones
                         // (ver partials/tabs-productos.blade.php).
-                        $enProductos = request()->routeIs('categorias.*', 'productos.*', 'produccion.*');
+                        $enProductos = request()->routeIs('productos.*', 'produccion.*');
                         $rutaProductos = auth()->user()->hasModulo('catalogo') ? 'productos.index' : 'produccion.index';
                     @endphp
                     <li class="nav-item">
