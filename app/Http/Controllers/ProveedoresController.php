@@ -5,9 +5,30 @@ use Illuminate\Http\Request;
 
 class ProveedoresController extends Controller
 {
-    public function index() {
-        $proveedores = Proveedor::withCount('compras')->orderBy('nombre')->paginate(15);
-        return view('proveedores.index', compact('proveedores'));
+    public function index(Request $request) {
+        $query = Proveedor::withCount('compras')->orderBy('nombre');
+
+        if ($request->filled('buscar')) {
+            $buscar = $request->buscar;
+            $query->where(function($q) use ($buscar) {
+                $q->where('nombre', 'like', "%{$buscar}%")
+                  ->orWhere('ruc', 'like', "%{$buscar}%")
+                  ->orWhere('contacto', 'like', "%{$buscar}%");
+            });
+        }
+        if ($request->filled('estado')) {
+            $query->where('estado', $request->estado);
+        }
+
+        $stats = [
+            'total'    => Proveedor::count(),
+            'activos'  => Proveedor::where('estado', 'activo')->count(),
+            'inactivos'=> Proveedor::where('estado', 'inactivo')->count(),
+            'compras'  => \App\Models\Compra::count(),
+        ];
+
+        $proveedores = $query->paginate(15)->withQueryString();
+        return view('proveedores.index', compact('proveedores', 'stats'));
     }
     public function create() { return view('proveedores.create'); }
     public function store(Request $request) {
