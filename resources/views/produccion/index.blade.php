@@ -6,6 +6,8 @@
 
 @section('content')
 
+@include('partials.tabs-productos')
+
 <div class="page-toolbar">
     <div>
         <h2><i class="fas fa-industry mr-2 text-warning"></i>Registro de Producción</h2>

@@ -428,30 +428,24 @@
                         </a>
                     </li>
 
-                    @if(auth()->user()->hasModulo('catalogo'))
-                    @php $abierta = request()->routeIs('categorias.*') || request()->routeIs('productos.*'); @endphp
-                    <li class="nav-section {{ $abierta ? 'open' : '' }}">
-                        <a href="#" class="nav-header-toggle">
-                            <span>CATÁLOGO</span>
-                            <i class="fas fa-chevron-right chevron"></i>
+                    @if(auth()->user()->hasModulo('catalogo') || auth()->user()->hasModulo('produccion'))
+                    @php
+                        // El módulo "Productos" agrupa Categorías, Productos, Producción y Recetas.
+                        // En vez de un desplegable con 4 sub-ítems, es un único link: al entrar,
+                        // la propia pantalla muestra pestañas para moverse entre esas secciones
+                        // (ver partials/tabs-productos.blade.php).
+                        $enProductos = request()->routeIs('categorias.*', 'productos.*', 'produccion.*');
+                        $rutaProductos = auth()->user()->hasModulo('catalogo') ? 'productos.index' : 'produccion.index';
+                    @endphp
+                    <li class="nav-item">
+                        <a href="{{ route($rutaProductos) }}" class="nav-link {{ $enProductos ? 'active' : '' }}">
+                            <i class="nav-icon fas fa-bread-slice"></i><p>
+                                Productos
+                                @if($stockBajoProductosCount > 0)
+                                    <span class="badge badge-danger right">{{ $stockBajoProductosCount }}</span>
+                                @endif
+                            </p>
                         </a>
-                        <ul class="nav-section-body" style="{{ $abierta ? '' : 'display:none;' }}">
-                            <li class="nav-item">
-                                <a href="{{ route('categorias.index') }}" class="nav-link {{ request()->routeIs('categorias.*') ? 'active' : '' }}">
-                                    <i class="nav-icon fas fa-tags"></i><p>Categorías</p>
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a href="{{ route('productos.index') }}" class="nav-link {{ request()->routeIs('productos.*') ? 'active' : '' }}">
-                                    <i class="nav-icon fas fa-bread-slice"></i><p>
-                                        Productos
-                                        @if($stockBajoProductosCount > 0)
-                                            <span class="badge badge-danger right">{{ $stockBajoProductosCount }}</span>
-                                        @endif
-                                    </p>
-                                </a>
-                            </li>
-                        </ul>
                     </li>
                     @endif
 
@@ -481,32 +475,6 @@
                             <li class="nav-item">
                                 <a href="{{ route('kardex.index') }}" class="nav-link {{ request()->routeIs('kardex.*') ? 'active' : '' }}">
                                     <i class="nav-icon fas fa-book-open"></i><p>Movimientos de Productos</p>
-                                </a>
-                            </li>
-                        </ul>
-                    </li>
-                    @endif
-
-                    @if(auth()->user()->hasModulo('produccion'))
-                    @php
-                        $enProduccion = request()->routeIs('produccion.index', 'produccion.create', 'produccion.store', 'produccion.show', 'produccion.ingredientes');
-                        $enRecetas    = request()->routeIs('produccion.recetas', 'produccion.guardar-receta');
-                        $abierta      = $enProduccion || $enRecetas;
-                    @endphp
-                    <li class="nav-section {{ $abierta ? 'open' : '' }}">
-                        <a href="#" class="nav-header-toggle">
-                            <span>PRODUCCIÓN</span>
-                            <i class="fas fa-chevron-right chevron"></i>
-                        </a>
-                        <ul class="nav-section-body" style="{{ $abierta ? '' : 'display:none;' }}">
-                            <li class="nav-item">
-                                <a href="{{ route('produccion.index') }}" class="nav-link {{ $enProduccion ? 'active' : '' }}">
-                                    <i class="nav-icon fas fa-industry"></i><p>Producción</p>
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a href="{{ route('produccion.recetas') }}" class="nav-link {{ $enRecetas ? 'active' : '' }}">
-                                    <i class="nav-icon fas fa-book"></i><p>Recetas</p>
                                 </a>
                             </li>
                         </ul>

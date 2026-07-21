@@ -54,6 +54,8 @@
 
 @section('content')
 
+@include('partials.tabs-productos')
+
 <div class="cat-toolbar">
     <div>
         <h2><i class="fas fa-tags mr-2 text-primary"></i>Categorías</h2>

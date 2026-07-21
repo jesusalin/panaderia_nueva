@@ -4,6 +4,8 @@
 
 @section('content')
 
+@include('partials.tabs-productos')
+
 <div class="page-toolbar">
     <div>
         <h2><i class="fas fa-bread-slice mr-2 text-warning"></i>Productos</h2>
