@@ -136,7 +136,7 @@ class ProduccionController extends Controller
                 'cantidad'      => $request->cantidad,
                 'stock_antes'   => $stockAntesProd,
                 'stock_despues' => $stockAntesProd + $request->cantidad,
-                'observacion'   => "Producción #{->id}",
+                'observacion'   => "Producción #{$produccion->id}",
             ]);
 
             DB::commit();
@@ -153,6 +153,75 @@ class ProduccionController extends Controller
     {
         $produccion->load(['producto.receta.detalles.materia.unidad', 'usuario']);
         return view('produccion.show', compact('produccion'));
+    }
+
+    // ─── ELIMINAR (revirtiendo el stock que generó) ──────────
+    public function destroy(Produccion $produccion)
+    {
+        $producto = $produccion->producto;
+
+        // Si parte de lo producido ya se vendió o se movió, revertir dejaría el
+        // stock en negativo. En ese caso no se puede deshacer la producción.
+        if ($producto->stock_actual < $produccion->cantidad) {
+            return back()->withErrors([
+                'error' => "No se puede eliminar esta producción: ya se vendieron o movieron unidades de \"{$producto->nombre}\" desde entonces. " .
+                           "Stock actual: {$producto->stock_actual}, se necesitarían revertir {$produccion->cantidad}. " .
+                           "El stock quedaría negativo.",
+            ]);
+        }
+
+        DB::beginTransaction();
+        try {
+            // Revertir el stock del producto que se había sumado
+            $stockAntesProd = $producto->stock_actual;
+            $producto->decrement('stock_actual', $produccion->cantidad);
+            KardexProducto::create([
+                'id_producto'   => $producto->id,
+                'id_usuario'    => auth()->id(),
+                'tipo'          => 'salida',
+                'motivo'        => 'devolucion',
+                'referencia_id' => null,
+                'cantidad'      => $produccion->cantidad,
+                'stock_antes'   => $stockAntesProd,
+                'stock_despues' => $stockAntesProd - $produccion->cantidad,
+                'observacion'   => "Eliminación de producción #{$produccion->id} (registrada por error)",
+            ]);
+
+            // Devolver la materia prima que se había descontado para esta producción
+            $movimientos = MovimientoInventario::where('motivo', 'produccion')
+                ->where('referencia_id', $produccion->id)->get();
+
+            foreach ($movimientos as $mov) {
+                $materia = MateriaPrima::find($mov->id_materia);
+                if (!$materia) continue;
+
+                $stockAntes   = $materia->stock_actual;
+                $stockDespues = round($stockAntes + $mov->cantidad, 3);
+                $materia->update(['stock_actual' => $stockDespues]);
+
+                MovimientoInventario::create([
+                    'id_materia'    => $materia->id,
+                    'id_usuario'    => auth()->id(),
+                    'tipo'          => 'entrada',
+                    'motivo'        => 'devolucion',
+                    'referencia_id' => null,
+                    'cantidad'      => $mov->cantidad,
+                    'stock_antes'   => $stockAntes,
+                    'stock_despues' => $stockDespues,
+                    'observacion'   => "Devuelto por eliminación de producción #{$produccion->id}",
+                ]);
+            }
+
+            $productoNombre = $producto->nombre;
+            $produccion->delete();
+
+            DB::commit();
+            return redirect()->route('produccion.index')
+                ->with('success', "Producción de \"{$productoNombre}\" eliminada. El stock del producto y de los insumos se revirtió correctamente.");
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->withErrors(['error' => 'Error al eliminar: ' . $e->getMessage()]);
+        }
     }
 
     // ─── RECETAS ─────────────────────────────────────────────

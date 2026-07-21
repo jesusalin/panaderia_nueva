@@ -25,15 +25,13 @@
     .prov-stat.inactivos .pv-icon { background: rgba(173,181,189,.18); color: #6c757d; }
     .prov-stat.compras   { border-left-color: #b5451b; }
     .prov-stat.compras .pv-icon   { background: rgba(181,69,27,.12); color: #b5451b; }
-
-    .prov-contacto { line-height: 1.35; }
-    .prov-contacto .pc-persona { font-weight: 600; color: #495057; font-size: .86rem; }
-    body.dark-mode .prov-contacto .pc-persona { color: #c8c8d4; }
-    .prov-contacto .pc-tel { font-size: .78rem; color: #8a8a9d; }
-    body.dark-mode .prov-contacto .pc-tel { color: #9a9ac0; }
-    .prov-contacto .pc-vacio { color: #ced4da; font-style: italic; font-size: .82rem; }
-
     @media (max-width: 900px) { .prov-stats { grid-template-columns: repeat(2, 1fr); } }
+
+    .prov-card-body { padding: 1rem 1.1rem .2rem; flex: 1; }
+    .prov-card-row { display: flex; align-items: center; gap: .5rem; font-size: .83rem; color: #6c757d; padding: .28rem 0; }
+    .prov-card-row i { width: 16px; color: #adb5bd; }
+    body.dark-mode .prov-card-row { color: #b0b0cc; }
+    .prov-card-row.vacio { color: #ced4da; font-style: italic; }
 </style>
 @endpush
 
@@ -88,66 +86,82 @@
 </form>
 
 @if($proveedores->count() > 0)
-<div class="table-card">
-    <table class="table table-hover table-modern">
-        <thead>
-            <tr>
-                <th>Proveedor</th>
-                <th>RUC</th>
-                <th>Contacto</th>
-                <th class="text-center">Compras</th>
-                <th class="text-center">Estado</th>
-                <th class="text-center">Acciones</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach($proveedores as $p)
-            <tr>
-                <td>
-                    <div class="d-flex align-items-center gap-2">
-                        <div class="row-icon"><i class="fas fa-truck"></i></div>
-                        <div class="ml-2">
-                            <div class="row-title">{{ $p->nombre }}</div>
-                            @if($p->email)<div class="row-subtitle">{{ $p->email }}</div>@endif
-                        </div>
-                    </div>
-                </td>
-                <td>{{ $p->ruc ?? '—' }}</td>
-                <td>
-                    <div class="prov-contacto">
-                        @if($p->contacto || $p->telefono)
-                            @if($p->contacto)<div class="pc-persona">{{ $p->contacto }}</div>@endif
-                            @if($p->telefono)<div class="pc-tel"><i class="fas fa-phone-alt mr-1"></i>{{ $p->telefono }}</div>@endif
-                        @else
-                            <span class="pc-vacio">Sin datos de contacto</span>
-                        @endif
-                    </div>
-                </td>
-                <td class="text-center"><span class="badge-soft badge-soft-info">{{ $p->compras_count }}</span></td>
-                <td class="text-center">
-                    <span class="badge-soft {{ $p->estado === 'activo' ? 'badge-soft-success' : 'badge-soft-secondary' }}">
-                        {{ ucfirst($p->estado) }}
-                    </span>
-                </td>
-                <td class="text-center">
-                    <div class="btn-icon-group">
-                        <a href="{{ route('proveedores.edit', $p) }}" class="btn btn-icon btn-warning" title="Editar">
-                            <i class="fas fa-edit"></i>
-                        </a>
+<div class="card-grid">
+    @foreach($proveedores as $p)
+        @php
+            $usosProveedor = [];
+            if ($p->compras_count > 0)            $usosProveedor[] = $p->compras_count . ' compra(s)';
+            if ($p->ordenes_automaticas_count > 0) $usosProveedor[] = 'órdenes automáticas asociadas';
+            $tieneHistorial = count($usosProveedor) > 0;
+            $estaActivo = $p->estado === 'activo';
+        @endphp
+        <div class="item-card {{ !$estaActivo ? 'is-inactive' : '' }}">
+            <div class="item-card-body prov-card-body">
+                <div class="d-flex align-items-start justify-content-between">
+                    <div class="row-icon" style="margin-bottom:.6rem;"><i class="fas fa-truck"></i></div>
+                </div>
+                <div class="item-card-cat">{{ $p->ruc ?? 'Sin RUC registrado' }}</div>
+                <h3 class="item-card-title">{{ $p->nombre }}</h3>
+
+                <div class="mt-2">
+                    @if($p->contacto)
+                        <div class="prov-card-row"><i class="fas fa-user"></i>{{ $p->contacto }}</div>
+                    @endif
+                    @if($p->telefono)
+                        <div class="prov-card-row"><i class="fas fa-phone-alt"></i>{{ $p->telefono }}</div>
+                    @endif
+                    @if($p->email)
+                        <div class="prov-card-row"><i class="fas fa-envelope"></i>{{ $p->email }}</div>
+                    @endif
+                    @if(!$p->contacto && !$p->telefono && !$p->email)
+                        <div class="prov-card-row vacio">Sin datos de contacto</div>
+                    @endif
+                </div>
+
+                <div class="item-card-stockrow mt-2">
+                    <span>Compras registradas</span>
+                    <span class="badge-soft badge-soft-info">{{ $p->compras_count }}</span>
+                </div>
+            </div>
+
+            <div class="item-card-footer">
+                <form action="{{ route('proveedores.toggle-estado', $p) }}" method="POST">
+                    @csrf @method('PUT')
+                    <button type="submit" class="estado-switch {{ $estaActivo ? 'activa' : '' }}">
+                        <span class="track"></span>
+                        <span class="txt">{{ $estaActivo ? 'Activo' : 'Inactivo' }}</span>
+                    </button>
+                </form>
+                <div class="btn-icon-group">
+                    <a href="{{ route('proveedores.edit', $p) }}" class="btn btn-icon btn-warning" title="Editar">
+                        <i class="fas fa-edit"></i>
+                    </a>
+                    @if($estaActivo)
+                        <button type="button" class="btn btn-icon btn-secondary is-locked js-blocked"
+                            data-blocked-title="Desactívalo primero"
+                            data-blocked-message="Por seguridad, un proveedor activo no se puede eliminar directamente. Usa el interruptor para desactivar a &quot;{{ $p->nombre }}&quot; antes de eliminarlo, así evitamos borrados por error.">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
+                    @elseif($tieneHistorial)
+                        <button type="button" class="btn btn-icon btn-secondary is-locked js-blocked"
+                            data-blocked-title="No se puede eliminar este proveedor"
+                            data-blocked-message="&quot;{{ $p->nombre }}&quot; {{ implode(' y ', $usosProveedor) }}. Permanecerá desactivado para conservar el historial.">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
+                    @else
                         <form action="{{ route('proveedores.destroy', $p) }}" method="POST" class="js-confirm"
-                            data-confirm-title="¿Desactivar proveedor?"
-                            data-confirm="&quot;{{ $p->nombre }}&quot; ya no aparecerá disponible para nuevas compras.">
+                            data-confirm-title="¿Eliminar este proveedor?"
+                            data-confirm="&quot;{{ $p->nombre }}&quot; se borrará por completo del sistema. Esta acción NO se puede deshacer.">
                             @csrf @method('DELETE')
-                            <button class="btn btn-icon btn-danger" title="Desactivar"><i class="fas fa-ban"></i></button>
+                            <button class="btn btn-icon btn-danger" title="Eliminar"><i class="fas fa-trash-alt"></i></button>
                         </form>
-                    </div>
-                </td>
-            </tr>
-            @endforeach
-        </tbody>
-    </table>
-    <div class="card-footer bg-white">{{ $proveedores->links() }}</div>
+                    @endif
+                </div>
+            </div>
+        </div>
+    @endforeach
 </div>
+<div class="mt-3">{{ $proveedores->links() }}</div>
 @else
 <div class="empty-state">
     <i class="fas fa-truck"></i>

@@ -167,6 +167,21 @@
                         <a href="{{ route('produccion.show', $p) }}" class="btn btn-icon btn-info" title="Ver detalle">
                             <i class="fas fa-eye"></i>
                         </a>
+                        @if($p->producto->stock_actual >= $p->cantidad)
+                            <form action="{{ route('produccion.destroy', $p) }}" method="POST" class="js-confirm"
+                                data-confirm-title="¿Eliminar esta producción?"
+                                data-confirm="Se quitarán {{ $p->cantidad }} unidades de &quot;{{ $p->producto->nombre }}&quot; del stock y se devolverán los insumos que se habían descontado. Esta acción NO se puede deshacer.">
+                                @csrf @method('DELETE')
+                                <button class="btn btn-icon btn-danger" title="Eliminar (registrado por error)"><i class="fas fa-trash-alt"></i></button>
+                            </form>
+                        @else
+                            <button type="button" class="btn btn-icon btn-secondary is-locked js-blocked"
+                                title="No se puede eliminar"
+                                data-blocked-title="No se puede eliminar esta producción"
+                                data-blocked-message="Ya se vendieron o movieron unidades de &quot;{{ $p->producto->nombre }}&quot; desde que se registró. Eliminarla dejaría el stock en negativo.">
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
+                        @endif
                     </div>
                 </td>
             </tr>

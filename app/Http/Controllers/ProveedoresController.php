@@ -6,7 +6,7 @@ use Illuminate\Http\Request;
 class ProveedoresController extends Controller
 {
     public function index(Request $request) {
-        $query = Proveedor::withCount('compras')->orderBy('nombre');
+        $query = Proveedor::withCount(['compras', 'ordenesAutomaticas'])->orderBy('nombre');
 
         if ($request->filled('buscar')) {
             $buscar = $request->buscar;
@@ -42,8 +42,38 @@ class ProveedoresController extends Controller
         $proveedor->update($request->all());
         return redirect()->route('proveedores.index')->with('success','Proveedor actualizado.');
     }
+    public function toggleEstado(Proveedor $proveedor) {
+        $nuevoEstado = $proveedor->estado === 'activo' ? 'inactivo' : 'activo';
+        $proveedor->update(['estado' => $nuevoEstado]);
+
+        return redirect()->route('proveedores.index')
+            ->with('success', 'Proveedor ' . ($nuevoEstado === 'activo' ? 'activado' : 'desactivado') . '.');
+    }
+
     public function destroy(Proveedor $proveedor) {
-        $proveedor->update(['estado'=>'inactivo']);
-        return redirect()->route('proveedores.index')->with('success','Proveedor desactivado.');
+        // Medida de seguridad: para eliminar un proveedor primero hay que desactivarlo.
+        // Así se evita borrar por error un proveedor que todavía está en uso.
+        if ($proveedor->estado === 'activo') {
+            return back()->withErrors([
+                'error' => "Por seguridad, primero debes desactivar a \"{$proveedor->nombre}\" antes de poder eliminarlo. Usa el interruptor de la tarjeta para desactivarlo.",
+            ]);
+        }
+
+        // Aun estando desactivado, si tiene historial asociado no se puede eliminar
+        // sin romper esos registros (compras y órdenes automáticas lo referencian).
+        $usos = [];
+        if ($proveedor->compras()->exists()) $usos[] = 'tiene compras registradas';
+        if (\App\Models\OrdenAutomatica::where('id_proveedor', $proveedor->id)->exists()) $usos[] = 'tiene órdenes automáticas asociadas';
+
+        if (!empty($usos)) {
+            return back()->withErrors([
+                'error' => "No se puede eliminar \"{$proveedor->nombre}\" porque " . implode(' y ', $usos) .
+                           ". Permanecerá desactivado para conservar el historial.",
+            ]);
+        }
+
+        $nombre = $proveedor->nombre;
+        $proveedor->delete();
+        return redirect()->route('proveedores.index')->with('success', "Proveedor \"{$nombre}\" eliminado correctamente.");
     }
 }

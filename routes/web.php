@@ -59,6 +59,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('produccion/crear',            [ProduccionController::class, 'create'])->name('produccion.create');
         Route::post('produccion',                 [ProduccionController::class, 'store'])->name('produccion.store');
         Route::get('produccion/{produccion}',     [ProduccionController::class, 'show'])->name('produccion.show');
+        Route::delete('produccion/{produccion}',  [ProduccionController::class, 'destroy'])->name('produccion.destroy');
         Route::get('produccion/recetas/listado',  [ProduccionController::class, 'recetas'])->name('produccion.recetas');
         Route::post('produccion/recetas/guardar', [ProduccionController::class, 'crearReceta'])->name('produccion.guardar-receta');
         Route::get('produccion/ingredientes/{producto}', [ProduccionController::class, 'ingredientes'])->name('produccion.ingredientes');
@@ -66,6 +67,7 @@ Route::middleware(['auth'])->group(function () {
 
     // ── Módulo: Compras ──────────────────────────────────────────
     Route::middleware(['modulo:compras'])->group(function () {
+        Route::put('proveedores/{proveedor}/toggle-estado', [ProveedoresController::class, 'toggleEstado'])->name('proveedores.toggle-estado');
         Route::resource('proveedores', ProveedoresController::class)
             ->parameters(['proveedores' => 'proveedor']);
         Route::resource('compras', ComprasController::class)->only(['index', 'create', 'store', 'show']);
