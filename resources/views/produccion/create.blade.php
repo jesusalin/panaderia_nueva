@@ -19,7 +19,7 @@
     }
     .prod-form-header h5 { margin: 0; font-weight: 800; }
     .prod-form-header small { display: block; opacity: .85; font-weight: 400; }
-    .prod-form-body { padding: 1.4rem; }
+    .prod-form-body { padding: 1.5rem; }
     body.dark-mode .prod-form-body label { color: #d5d5e2; }
 
     .prod-preview {

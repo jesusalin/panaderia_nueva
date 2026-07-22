@@ -27,6 +27,9 @@
         width: 34px; height: 34px; border-radius: 9px; display: inline-flex; align-items: center; justify-content: center;
         background: rgba(52,152,219,.14); color: #2170a3; margin-right: .6rem; flex-shrink: 0;
     }
+
+    .prod-form-card { border: none; border-radius: 14px; box-shadow: 0 4px 24px rgba(0,0,0,.06); overflow: hidden; }
+    .prod-form-body { padding: 1.5rem; }
 </style>
 <div class="row justify-content-center">
     <div class="col-lg-9">

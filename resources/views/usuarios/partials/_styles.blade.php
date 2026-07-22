@@ -12,7 +12,7 @@
     }
     .usuario-form-header h5 { margin: 0; font-weight: 800; }
     .usuario-form-header p { margin: 0; opacity: .75; font-size: .85rem; }
-    .usuario-form-body { padding: 2rem; }
+    .usuario-form-body { padding: 1.5rem; }
 
     .section-label {
         display: block; font-weight: 800; font-size: .78rem; letter-spacing: .04em;

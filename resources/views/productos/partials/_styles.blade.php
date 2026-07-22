@@ -12,7 +12,7 @@
     }
     .prod-form-header h5 { margin: 0; font-weight: 800; }
     .prod-form-header p { margin: 0; opacity: .75; font-size: .85rem; }
-    .prod-form-body { padding: 2rem; }
+    .prod-form-body { padding: 1.5rem; }
     .prod-form-body .form-control { border-radius: 10px; border: 1.5px solid #e9ecef; }
     .prod-form-body .form-control:focus { border-color: #b5451b; box-shadow: 0 0 0 3px rgba(181,69,27,.12); }
     body.dark-mode .prod-form-body .form-control { background: #24243b; border-color: #33334d; color: #e4e4ef; }

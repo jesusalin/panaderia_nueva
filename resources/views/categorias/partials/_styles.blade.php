@@ -12,7 +12,7 @@
     }
     .cat-form-header h5 { margin: 0; font-weight: 800; }
     .cat-form-header p { margin: 0; opacity: .75; font-size: .85rem; }
-    .cat-form-body { padding: 2rem; }
+    .cat-form-body { padding: 1.5rem; }
     .cat-form-body .form-control { border-radius: 10px; border: 1.5px solid #e9ecef; }
     .cat-form-body .form-control:focus { border-color: #b5451b; box-shadow: 0 0 0 3px rgba(181,69,27,.12); }
     .form-actions { display: flex; justify-content: flex-end; gap: .6rem; margin-top: 1.75rem; padding-top: 1.25rem; border-top: 1px solid #f0f0f0; }
