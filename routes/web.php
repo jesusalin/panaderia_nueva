@@ -32,6 +32,7 @@ Route::middleware(['auth'])->group(function () {
     // ── Reservado solo para ADMIN (gestión de usuarios y accesos) ──
     Route::middleware(['modulo:usuarios'])->group(function () {
         Route::resource('usuarios', UsuariosController::class);
+        Route::put('usuarios/{usuario}/toggle-estado', [UsuariosController::class, 'toggleEstado'])->name('usuarios.toggle-estado');
     });
 
     // ── Módulo: Catálogo ─────────────────────────────────────────

@@ -14,6 +14,9 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'modulo' => \App\Http\Middleware\CheckModulo::class,
         ]);
+        $middleware->web(append: [
+            \App\Http\Middleware\ActualizarUltimoAcceso::class,
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>@yield('title', 'Panel') — Panadería</title>
+    <title>@yield('title', 'Panel') — Muruwasi</title>
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 
@@ -534,7 +534,7 @@
     <aside class="main-sidebar sidebar-dark-primary elevation-4">
         <a href="{{ route('dashboard') }}" class="brand-link text-center">
             <i class="fas fa-bread-slice mr-2"></i>
-            <span class="brand-text font-weight-bold">Panadería</span>
+            <span class="brand-text font-weight-bold">Muruwasi</span>
         </a>
         <div class="sidebar">
             <nav class="mt-2">
@@ -710,23 +710,7 @@
 
     <!-- Content -->
     <div class="content-wrapper">
-        <div class="content-header">
-            <div class="container-fluid">
-                <div class="row mb-2">
-                    <div class="col-sm-6">
-                        <h1 class="m-0">@yield('title', 'Dashboard')</h1>
-                    </div>
-                    <div class="col-sm-6">
-                        <ol class="breadcrumb float-sm-right">
-                            <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Inicio</a></li>
-                            @yield('breadcrumb')
-                        </ol>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <section class="content">
+        <section class="content" style="padding-top: 1.25rem;">
             <div class="container-fluid">
 
                 {{-- Alertas --}}
@@ -756,7 +740,7 @@
     </div>
 
     <footer class="main-footer text-center text-muted small">
-        Sistema de Gestión &mdash; Panadería &copy; {{ date('Y') }}
+        Sistema de Gestión &mdash; Muruwasi &copy; {{ date('Y') }}
     </footer>
 </div>
 

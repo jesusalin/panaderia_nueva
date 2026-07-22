@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Crear Cuenta — Panadería</title>
+    <title>Crear Cuenta — Muruwasi</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6/css/all.min.css">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap">
@@ -146,7 +146,7 @@
 
     <div class="login-brand">
         <div class="brand-icon">🍞</div>
-        <h1>Panadería</h1>
+        <h1>Muruwasi</h1>
         <p>Sistema de Gestión</p>
     </div>
 
@@ -304,7 +304,7 @@
     </div>
 
     <p class="text-center text-white-50 small mt-3">
-        &copy; {{ date('Y') }} Sistema de Gestión de Panadería
+        &copy; {{ date('Y') }} Sistema de Gestión de Muruwasi
     </p>
 </div>
 

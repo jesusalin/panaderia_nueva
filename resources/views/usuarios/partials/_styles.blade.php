@@ -69,5 +69,27 @@
     }
 
     .form-actions { display: flex; justify-content: flex-end; gap: .6rem; margin-top: 2rem; padding-top: 1.25rem; border-top: 1px solid #f0f0f0; }
+
+    /* ===== Modo oscuro ===== */
+    body.dark-mode .section-label { color: #ff9d6e; border-bottom-color: #33334d; }
+
+    body.dark-mode .form-control { background: #24243b; border-color: #33334d; color: #e4e4ef; }
+    body.dark-mode .form-control:focus { background: #24243b; }
+
+    body.dark-mode .field-warning { background: rgba(243,156,18,.1); border-color: rgba(243,156,18,.3); color: #ffc673; }
+
+    body.dark-mode .password-wrap .toggle-pass { color: #7a7a9d; }
+    body.dark-mode .password-wrap .toggle-pass:hover { color: #d5d5e2; }
+
+    body.dark-mode .permiso-card { background: #24243b; border-color: #33334d; }
+    body.dark-mode .permiso-card:hover { border-color: #b5451b; background: #2a2438; }
+    body.dark-mode .permiso-icon { background: #33334d; color: #b0b0cc; }
+    body.dark-mode .permiso-texto { color: #d5d5e2; }
+    body.dark-mode .permiso-check { border-color: #45455f; }
+    body.dark-mode .permiso-card:has(input:checked) { background: rgba(181,69,27,.14); border-color: #b5451b; }
+
+    body.dark-mode .alert-admin-total { background: rgba(59,79,184,.16); color: #a8b6ff; border-color: rgba(59,79,184,.35); }
+
+    body.dark-mode .form-actions { border-top-color: #33334d; }
 </style>
 @endpush

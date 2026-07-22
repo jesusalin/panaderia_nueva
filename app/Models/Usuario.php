@@ -7,9 +7,12 @@ class Usuario extends Authenticatable {
     use Notifiable;
 
     protected $table    = 'usuarios';
-    protected $fillable = ['nombre','apodo','usuario','email','password','foto_perfil','id_rol','estado'];
+    protected $fillable = ['nombre','apodo','usuario','email','password','foto_perfil','id_rol','estado','ultimo_acceso'];
     protected $hidden   = ['password'];
-    protected $casts    = ['password' => 'hashed'];
+    protected $casts    = ['password' => 'hashed', 'ultimo_acceso' => 'datetime'];
+
+    // Minutos de inactividad tras los cuales dejamos de considerar "en línea" a un usuario.
+    const MINUTOS_CONECTADO = 3;
 
     /**
      * Lista de módulos que se pueden asignar a un usuario.
@@ -25,11 +28,14 @@ class Usuario extends Authenticatable {
         'reportes'   => 'Reportes (Tiempos por Operación)',
     ];
 
-    public function rol()         { return $this->belongsTo(Rol::class, 'id_rol'); }
-    public function ventas()      { return $this->hasMany(Venta::class, 'id_usuario'); }
-    public function compras()     { return $this->hasMany(Compra::class, 'id_usuario'); }
-    public function movimientos() { return $this->hasMany(MovimientoInventario::class, 'id_usuario'); }
-    public function permisos()    { return $this->hasMany(PermisoUsuario::class, 'id_usuario'); }
+    public function rol()          { return $this->belongsTo(Rol::class, 'id_rol'); }
+    public function ventas()       { return $this->hasMany(Venta::class, 'id_usuario'); }
+    public function compras()      { return $this->hasMany(Compra::class, 'id_usuario'); }
+    public function movimientos()  { return $this->hasMany(MovimientoInventario::class, 'id_usuario'); }
+    public function permisos()     { return $this->hasMany(PermisoUsuario::class, 'id_usuario'); }
+    public function producciones() { return $this->hasMany(Produccion::class, 'id_usuario'); }
+    public function kardex()       { return $this->hasMany(KardexProducto::class, 'id_usuario'); }
+    public function tiempos()      { return $this->hasMany(TiempoOperacion::class, 'id_usuario'); }
 
     /**
      * true si el usuario es administrador (acceso total, sin importar permisos_usuario).
@@ -59,5 +65,16 @@ class Usuario extends Authenticatable {
     public function modulosAsignados(): array
     {
         return $this->permisos->pluck('modulo')->all();
+    }
+
+    /**
+     * true si el usuario tuvo actividad en el sistema hace pocos minutos
+     * (ver ActualizarUltimoAcceso). Se usa para el indicador "En línea"
+     * en el listado de Usuarios.
+     */
+    public function estaConectado(): bool
+    {
+        return $this->ultimo_acceso !== null
+            && $this->ultimo_acceso->diffInMinutes(now()) <= self::MINUTOS_CONECTADO;
     }
 }
