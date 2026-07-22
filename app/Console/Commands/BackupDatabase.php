@@ -98,8 +98,19 @@ class BackupDatabase extends Command
         $destino  = "{$carpeta}/backup-mysql-{$timestamp}.sql.gz";
         $mysqldump = config('backup.mysqldump_path', 'mysqldump');
 
+        // La contraseña se pasa por un archivo de credenciales temporal
+        // (--defaults-extra-file) en vez de la variable de entorno MYSQL_PWD.
+        // En Windows, forzar un entorno personalizado al proceso hijo puede
+        // omitir variables internas del sistema (p. ej. SystemRoot), lo que
+        // impide que Winsock inicialice sockets TCP/IP dentro de ese proceso
+        // y produce el error "Can't create TCP/IP socket (10106)" aunque el
+        // mismo comando funcione perfecto ejecutado manualmente en la terminal.
+        $credenciales = tempnam(sys_get_temp_dir(), 'bkpcnf');
+        file_put_contents($credenciales, "[client]\npassword={$conexion['password']}\n");
+
         $comando = [
             $mysqldump,
+            '--defaults-extra-file=' . $credenciales,
             '--host=' . $conexion['host'],
             '--port=' . $conexion['port'],
             '--user=' . $conexion['username'],
@@ -108,10 +119,9 @@ class BackupDatabase extends Command
             $conexion['database'],
         ];
 
-        // MYSQL_PWD evita exponer el password en la lista de procesos del sistema
-        $resultado = Process::env(['MYSQL_PWD' => $conexion['password']])
-            ->timeout(300)
-            ->run($comando);
+        $resultado = Process::timeout(300)->run($comando);
+
+        File::delete($credenciales);
 
         if ($resultado->failed()) {
             logger()->error('backup:run — falló mysqldump: ' . $resultado->errorOutput());
