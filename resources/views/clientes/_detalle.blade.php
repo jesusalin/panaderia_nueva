@@ -2,7 +2,7 @@
     .cli-head { display: flex; align-items: center; gap: 1rem; padding: 1.4rem 1.5rem; }
     .cli-head .ch-icon {
         width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
-        font-size: 1.5rem; color: #fff; background: linear-gradient(135deg, #1a1a2e, #b5451b); flex-shrink: 0;
+        font-size: 1.5rem; color: #fff; flex-shrink: 0;
     }
     .cli-head h5 { margin: 0 0 .3rem; font-weight: 800; }
     .cli-head .cli-badges { display: flex; gap: .4rem; flex-wrap: wrap; }
@@ -21,27 +21,42 @@
     .cli-total-box .ct-label { font-size: .78rem; color: #8a8a9d; font-weight: 700; }
     .cli-total-box .ct-value { font-weight: 800; font-size: 1.35rem; color: #1e8e5a; }
     body.dark-mode .cli-total-box .ct-value { color: #6ee7a5; }
+
+    .cli-mini-stats { padding: 0 1.5rem 1.4rem; display: grid; grid-template-columns: 1fr 1fr; gap: .7rem; }
+    .cli-mini-stats .cms-item { background: #f7f5f3; border-radius: 10px; padding: .7rem .9rem; text-align: center; }
+    body.dark-mode .cli-mini-stats .cms-item { background: #24243b; }
+    .cli-mini-stats .cms-value { font-weight: 800; font-size: 1.05rem; color: #1a1a2e; }
+    body.dark-mode .cli-mini-stats .cms-value { color: #f0f0f7; }
+    .cli-mini-stats .cms-label { font-size: .68rem; color: #8a8a9d; font-weight: 700; text-transform: uppercase; letter-spacing: .03em; }
 </style>
 
 <div class="row">
     <div class="col-md-4">
         <div class="card prod-form-card mb-3 mb-md-0">
             <div class="cli-head flex-column text-center">
-                @php
-                    $tipo = $cliente->tipo ?? 'particular';
-                    $icono = ['bodega'=>'fa-store','colegio'=>'fa-school','restaurante'=>'fa-utensils','supermercado'=>'fa-cart-shopping'][$tipo] ?? 'fa-user';
-                @endphp
-                <div class="ch-icon"><i class="fas {{ $icono }}"></i></div>
+                <div class="ch-icon" style="background:{{ $cliente->color_tipo }};"><i class="fas {{ $cliente->icono }}"></i></div>
                 <h5>{{ $cliente->nombre }}</h5>
                 <div class="cli-badges justify-content-center">
-                    <span class="badge-soft badge-soft-info">{{ ucfirst($tipo) }}</span>
+                    <span class="badge-soft badge-soft-info">{{ $cliente->tipo_label }}</span>
                     <span class="badge-soft {{ ($cliente->estado ?? 'activo') === 'activo' ? 'badge-soft-success' : 'badge-soft-secondary' }}">
                         {{ ($cliente->estado ?? 'activo') === 'activo' ? 'Activo' : 'Inactivo' }}
                     </span>
                 </div>
             </div>
 
+            <div class="cli-mini-stats">
+                <div class="cms-item">
+                    <div class="cms-value">{{ $ventasCompletadas ?? $cliente->ventas_count ?? 0 }}</div>
+                    <div class="cms-label">Ventas</div>
+                </div>
+                <div class="cms-item">
+                    <div class="cms-value">S/ {{ number_format($ticketPromedio ?? 0, 2) }}</div>
+                    <div class="cms-label">Ticket promedio</div>
+                </div>
+            </div>
+
             <div class="cli-info-grid">
+                <div class="ci-item"><div class="ci-label">Cliente desde</div><div class="ci-value">{{ $cliente->created_at?->format('d/m/Y') ?? '—' }}</div></div>
                 @if($cliente->ruc)
                 <div class="ci-item"><div class="ci-label">RUC</div><div class="ci-value">{{ $cliente->ruc }}</div></div>
                 @endif

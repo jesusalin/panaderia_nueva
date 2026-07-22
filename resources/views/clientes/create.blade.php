@@ -103,7 +103,7 @@
             <div class="item-card">
                 <div class="item-card-body" style="padding:1.1rem 1.1rem .3rem;">
                     <div class="d-flex align-items-center gap-2 mb-2">
-                        <div class="row-icon"><i class="fas fa-user" id="prevIcono"></i></div>
+                        <div class="row-icon" id="prevIconoWrap"><i class="fas fa-user" id="prevIcono"></i></div>
                         <div class="ml-2">
                             <div class="row-title" id="prevNombre">Nombre del cliente</div>
                             <div class="row-subtitle" id="prevDistrito">Sin distrito</div>
@@ -137,9 +137,14 @@
 @push('scripts')
 <script>
     const $ = id => document.getElementById(id);
-    const iconosPorTipo = {
-        bodega: 'fa-store', supermercado: 'fa-cart-shopping', colegio: 'fa-school',
-        restaurante: 'fa-utensils', panaderia: 'fa-bread-slice', particular: 'fa-user', otro: 'fa-building',
+    const tiposVisual = {
+        bodega:       { icono: 'fa-store',         color: '#b5451b' },
+        supermercado: { icono: 'fa-cart-shopping',  color: '#2170a3' },
+        colegio:      { icono: 'fa-school',         color: '#8e44ad' },
+        restaurante:  { icono: 'fa-utensils',       color: '#c0392b' },
+        panaderia:    { icono: 'fa-bread-slice',    color: '#b9770e' },
+        particular:   { icono: 'fa-user',           color: '#1e8e5a' },
+        otro:         { icono: 'fa-building',       color: '#6c757d' },
     };
 
     function actualizarPreview() {
@@ -147,8 +152,10 @@
         $('prevDistrito').textContent = $('inDistrito').value.trim() || 'Sin distrito';
 
         const tipo = $('inTipo').value;
+        const visual = tiposVisual[tipo];
         $('prevTipo').textContent = $('inTipo').selectedOptions[0]?.text && tipo ? $('inTipo').selectedOptions[0].text : 'Tipo de cliente';
-        $('prevIcono').className = 'fas ' + (iconosPorTipo[tipo] || 'fa-user');
+        $('prevIcono').className = 'fas ' + (visual?.icono || 'fa-user');
+        $('prevIconoWrap').style.background = visual?.color || 'linear-gradient(135deg, #1a1a2e, #b5451b)';
 
         $('prevTelefono').textContent = $('inTelefono').value.trim() || '—';
         $('prevEmail').textContent = $('inEmail').value.trim() || '—';

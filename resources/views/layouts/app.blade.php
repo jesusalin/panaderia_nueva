@@ -6,6 +6,8 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', 'Panel') — Panadería</title>
 
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
+
     <!-- AdminLTE & Bootstrap -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/css/adminlte.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6/css/all.min.css">
@@ -859,6 +861,11 @@
             modalTitle.textContent = link.dataset.tituloDetalle || 'Detalle';
             modalBody.innerHTML = LOADING_HTML;
             $('#detalleModal').modal('show');
+
+            if (!window.axios) {
+                modalBody.innerHTML = '<div class="alert alert-danger mb-0">No se pudo cargar el detalle (recursos JS no disponibles). Recarga la página e inténtalo de nuevo.</div>';
+                return;
+            }
 
             window.axios.get(link.href)
                 .then(function (respuesta) {
