@@ -30,9 +30,15 @@
 
     .prod-form-card { border: none; border-radius: 14px; box-shadow: 0 4px 24px rgba(0,0,0,.06); overflow: hidden; }
     .prod-form-body { padding: 1.5rem; }
+
+    @media print {
+        .col-lg-8.venta-print-col { flex: 0 0 100% !important; max-width: 100% !important; }
+        .venta-topbar { background: #000 !important; height: 2px !important; }
+        .ch-icon { background: #f0f0f0 !important; color: #000 !important; box-shadow: none !important; }
+    }
 </style>
 <div class="row">
-    <div class="col-lg-8">
+    <div class="col-lg-8 venta-print-col">
         <div class="card prod-form-card mb-3">
             <div class="venta-topbar"></div>
             <div class="venta-head">
@@ -108,7 +114,7 @@
         </div>
     </div>
 
-    <div class="col-lg-4">
+    <div class="col-lg-4 no-print">
         <div class="card prod-form-card">
             <div class="venta-topbar"></div>
             <div class="prod-form-body">

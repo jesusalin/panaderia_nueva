@@ -158,6 +158,34 @@
         body.dark-mode .text-dark { color: #e4e4ef !important; }
         body.dark-mode .list-group-item { background: #1f1f33; border-color: #33334d; color: #d5d5e2; }
 
+        /* ===== Impresión: solo el contenido, sin sidebar/navbar/botones ===== */
+        @media print {
+            .main-header, .main-sidebar, .content-header, .main-footer,
+            .no-print, .alert, .cart-fab, .cart-overlay, .cart-drawer { display: none !important; }
+            .wrapper { min-height: 0 !important; }
+            .content-wrapper, .content, .container-fluid { padding: 0 !important; margin: 0 !important; }
+            a[href]::after { content: "" !important; }
+
+            /* Blanco y negro siempre, incluso si quedó en modo oscuro:
+               un recibo con fondo oscuro y texto negro sería ilegible. */
+            * { background: #fff !important; color: #000 !important; box-shadow: none !important; border-color: #ccc !important; }
+            .badge-soft-success, .badge-soft-danger, .badge-soft-warning,
+            .badge-soft-info, .badge-soft-secondary, .badge-soft-primary {
+                background: #fff !important; border: 1px solid #999 !important;
+            }
+            .card, .table-card { border: 1px solid #ddd !important; }
+
+            /* Si el detalle se abrió como modal (clic en "Ver detalle" desde un
+               listado, sin recargar la página), la página de fondo NO debe
+               imprimirse: solo el contenido del modal. */
+            body.modal-open .wrapper { display: none !important; }
+            .modal-backdrop { display: none !important; }
+            .modal.show { position: static !important; }
+            .modal-dialog { max-width: 100% !important; margin: 0 !important; }
+            .modal-content { border: none !important; }
+            #detalleModal .modal-header { display: none !important; }
+        }
+
         /* Componentes personalizados reutilizados en varias vistas (dashboard, catálogo, etc.) */
         body.dark-mode .dash-greeting h2,
         body.dark-mode .cat-toolbar h2,

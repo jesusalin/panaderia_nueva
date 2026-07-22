@@ -32,7 +32,8 @@ class ProduccionController extends Controller
             'total'    => (clone $query)->count(),
             'unidades' => (clone $query)->sum('cantidad'),
             'hoy'      => (clone $query)->whereDate('fecha', now())->count(),
-            'top'      => (clone $query)->select('id_producto', DB::raw('SUM(cantidad) as total'))
+            'top'      => (clone $query)->reorder()
+                            ->select('id_producto', DB::raw('SUM(cantidad) as total'))
                             ->groupBy('id_producto')->orderByDesc('total')->with('producto')->first(),
         ];
 

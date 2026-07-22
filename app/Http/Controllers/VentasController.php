@@ -17,7 +17,18 @@ class VentasController extends Controller
     {
         $ventas = Venta::with(['usuario', 'cliente'])
             ->orderBy('created_at', 'desc')->paginate(15);
-        return view('ventas.index', compact('ventas'));
+
+        $hoy = Venta::whereDate('fecha_venta', today())->where('estado', 'completada');
+
+        $stats = [
+            'ventas_hoy'    => (clone $hoy)->count(),
+            'ingresos_hoy'  => (clone $hoy)->sum('total'),
+            'ticket_prom'   => (clone $hoy)->count() > 0 ? (clone $hoy)->sum('total') / (clone $hoy)->count() : 0,
+            'pago_top'      => (clone $hoy)->select('tipo_pago', DB::raw('COUNT(*) as total'))
+                                    ->groupBy('tipo_pago')->orderByDesc('total')->first(),
+        ];
+
+        return view('ventas.index', compact('ventas', 'stats'));
     }
 
     public function create()
