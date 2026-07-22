@@ -78,6 +78,29 @@
     .kpi-card .kpi-ring.neutral { border-color: #dee2e6; color: #6c757d; }
     .kpi-card .kpi-title { font-weight: 800; font-size: .85rem; color: #1a1a2e; margin-bottom: .25rem; }
     .kpi-card .kpi-desc { font-size: .76rem; color: #8a8a9d; line-height: 1.35; }
+
+    /* ══════════ Modo oscuro (mismos tonos que el resto del sistema) ══════════ */
+    body.dark-mode .dash-greeting h2 { color: #f0f0f7; }
+    body.dark-mode .dash-greeting p { color: #9a9ac0; }
+
+    body.dark-mode .section-heading { color: #f0f0f7; }
+    body.dark-mode .section-heading .sh-icon { background: rgba(181,69,27,.22); color: #ff9d6e; }
+    body.dark-mode .section-heading small { color: #6c6c8a; }
+
+    body.dark-mode .stat-card { background: #1f1f33; box-shadow: 0 2px 12px rgba(0,0,0,.3); }
+    body.dark-mode .stat-card .label { color: #9a9ac0; }
+    body.dark-mode .stat-card .value { color: #f0f0f7; }
+    body.dark-mode .stat-card .foot-link { color: #ff9d6e; }
+
+    body.dark-mode .kpi-card { background: #1f1f33; box-shadow: 0 2px 12px rgba(0,0,0,.3); }
+    body.dark-mode .kpi-card .kpi-title { color: #f0f0f7; }
+    body.dark-mode .kpi-card .kpi-desc { color: #9a9ac0; }
+    body.dark-mode .kpi-card .kpi-desc a { color: #ff9d6e; }
+    body.dark-mode .kpi-ring { border-color: #33334d; }
+    body.dark-mode .kpi-ring.good    { border-color: #2ecc71; color: #6ee7a5; }
+    body.dark-mode .kpi-ring.mid     { border-color: #f39c12; color: #ffc673; }
+    body.dark-mode .kpi-ring.bad     { border-color: #e74c3c; color: #ff9b8f; }
+    body.dark-mode .kpi-ring.neutral { border-color: #33334d; color: #9a9ac0; }
 </style>
 @endpush
 

@@ -50,11 +50,25 @@ class OrdenesAutomaticasController extends Controller
                 : "No hay insumos con stock bajo sin orden pendiente.");
     }
 
-    public function index()
+    public function index(Request $request)
     {
         $ordenes = OrdenAutomatica::with(['materia.unidad', 'proveedor'])
-            ->orderBy('created_at', 'desc')->paginate(15);
-        return view('ordenes-automaticas.index', compact('ordenes'));
+            ->when($request->estado, fn($q) => $q->where('estado', $request->estado))
+            ->orderBy('created_at', 'desc')->paginate(12)->withQueryString();
+
+        $conteos = [
+            'pendiente'  => OrdenAutomatica::where('estado', 'pendiente')->count(),
+            'convertida' => OrdenAutomatica::where('estado', 'convertida')->count(),
+            'descartada' => OrdenAutomatica::where('estado', 'descartada')->count(),
+        ];
+
+        // Cuando el filtro de pestañas pide la lista por AJAX, devolvemos
+        // solo el fragmento (sin el layout completo) para no recargar la página.
+        if ($request->ajax()) {
+            return view('ordenes-automaticas._lista', compact('ordenes'));
+        }
+
+        return view('ordenes-automaticas.index', compact('ordenes', 'conteos'));
     }
 
     /**

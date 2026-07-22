@@ -2,6 +2,7 @@
 namespace App\Http\Controllers;
 use App\Models\Producto;
 use App\Models\Categoria;
+use App\Models\Cliente;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
@@ -17,7 +18,10 @@ class ProductosController extends Controller
 
         $categorias = Categoria::orderBy('nombre')->get();
 
-        return view('productos.index', compact('productos', 'categorias'));
+        // Solo se necesita si el usuario puede vender (para el carrito de compra rápida)
+        $clientes = auth()->user()->hasModulo('ventas') ? Cliente::orderBy('nombre')->get() : collect();
+
+        return view('productos.index', compact('productos', 'categorias', 'clientes'));
     }
 
     public function create() {
