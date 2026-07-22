@@ -692,7 +692,7 @@
                     @endif
 
                     @if(auth()->user()->isAdmin())
-                    @php $abierta = request()->routeIs('usuarios.*'); @endphp
+                    @php $abierta = request()->routeIs('usuarios.*') || request()->routeIs('backups.*'); @endphp
                     <li class="nav-section {{ $abierta ? 'open' : '' }}">
                         <a href="#" class="nav-header-toggle">
                             <span>ADMINISTRACIÓN</span>
@@ -702,6 +702,11 @@
                             <li class="nav-item">
                                 <a href="{{ route('usuarios.index') }}" class="nav-link {{ request()->routeIs('usuarios.*') ? 'active' : '' }}">
                                     <i class="nav-icon fas fa-users"></i><p>Usuarios</p>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="{{ route('backups.index') }}" class="nav-link {{ request()->routeIs('backups.*') ? 'active' : '' }}">
+                                    <i class="nav-icon fas fa-database"></i><p>Respaldos</p>
                                 </a>
                             </li>
                         </ul>

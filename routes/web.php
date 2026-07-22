@@ -11,6 +11,7 @@ use App\Http\Controllers\ComprasController;
 use App\Http\Controllers\VentasController;
 use App\Http\Controllers\ClientesController;
 use App\Http\Controllers\UsuariosController;
+use App\Http\Controllers\BackupController;
 use App\Http\Controllers\MovimientosController;
 use App\Http\Controllers\ProduccionController;
 use App\Http\Controllers\KardexController;
@@ -34,6 +35,11 @@ Route::middleware(['auth'])->group(function () {
     Route::middleware(['modulo:usuarios'])->group(function () {
         Route::resource('usuarios', UsuariosController::class);
         Route::put('usuarios/{usuario}/toggle-estado', [UsuariosController::class, 'toggleEstado'])->name('usuarios.toggle-estado');
+
+        Route::get('backups', [BackupController::class, 'index'])->name('backups.index');
+        Route::post('backups', [BackupController::class, 'store'])->name('backups.store');
+        Route::get('backups/{archivo}/descargar', [BackupController::class, 'download'])->name('backups.download');
+        Route::delete('backups/{archivo}', [BackupController::class, 'destroy'])->name('backups.destroy');
     });
 
     // ── Módulo: Catálogo ─────────────────────────────────────────
