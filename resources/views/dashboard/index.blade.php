@@ -95,6 +95,7 @@
     body.dark-mode .kpi-card { background: #1f1f33; box-shadow: 0 2px 12px rgba(0,0,0,.3); }
     body.dark-mode .kpi-card .kpi-title { color: #f0f0f7; }
     body.dark-mode .kpi-card .kpi-desc { color: #9a9ac0; }
+    .kpi-card .kpi-desc a { color: #b5451b; font-weight: 700; }
     body.dark-mode .kpi-card .kpi-desc a { color: #ff9d6e; }
     body.dark-mode .kpi-ring { border-color: #33334d; }
     body.dark-mode .kpi-ring.good    { border-color: #2ecc71; color: #6ee7a5; }
@@ -230,7 +231,17 @@
             @php $estadoExact = $exactitudInventario >= 90 ? 'good' : ($exactitudInventario >= 70 ? 'mid' : 'bad'); @endphp
             <div class="kpi-ring {{ $estadoExact }}">{{ $exactitudInventario }}%</div>
             <div class="kpi-title">Exactitud del Inventario</div>
-            <div class="kpi-desc">Qué tanto coincide tu stock real con lo que dice el sistema</div>
+            @if($exactitudEsReal)
+                <div class="kpi-desc">
+                    Basado en tu conteo físico del {{ \Carbon\Carbon::parse($fechaUltimoConteo)->locale('es')->translatedFormat('d M') }}
+                    <a href="{{ route('conteo-fisico.index') }}">· Nuevo conteo</a>
+                </div>
+            @else
+                <div class="kpi-desc">
+                    Estimado (aún no haces un conteo físico real).
+                    <a href="{{ route('conteo-fisico.index') }}">Contar ahora →</a>
+                </div>
+            @endif
         </div>
     </div>
     <div class="col-lg-3 col-6 mb-3">

@@ -5,6 +5,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ProductosController;
 use App\Http\Controllers\CategoriasController;
 use App\Http\Controllers\MateriaPrimaController;
+use App\Http\Controllers\ConteoFisicoController;
 use App\Http\Controllers\ProveedoresController;
 use App\Http\Controllers\ComprasController;
 use App\Http\Controllers\VentasController;
@@ -52,6 +53,11 @@ Route::middleware(['auth'])->group(function () {
         Route::get('movimientos_materia_prima', [MovimientosController::class, 'index'])->name('movimientos.index');
         Route::get('movimientos_productos', [KardexController::class, 'index'])->name('kardex.index');
         Route::get('movimientos_productos/rotacion', [KardexController::class, 'rotacion'])->name('kardex.rotacion');
+
+        Route::get('conteo-fisico',            [ConteoFisicoController::class, 'index'])->name('conteo-fisico.index');
+        Route::post('conteo-fisico',           [ConteoFisicoController::class, 'store'])->name('conteo-fisico.store');
+        Route::get('conteo-fisico/historial',  [ConteoFisicoController::class, 'historial'])->name('conteo-fisico.historial');
+        Route::get('conteo-fisico/{lote}',     [ConteoFisicoController::class, 'detalleLote'])->name('conteo-fisico.detalle');
     });
 
     // ── Módulo: Producción ───────────────────────────────────────

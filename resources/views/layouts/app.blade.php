@@ -577,7 +577,7 @@
                     @endif
 
                     @if(auth()->user()->hasModulo('inventario'))
-                    @php $abierta = request()->routeIs('materia-prima.*') || request()->routeIs('movimientos.*') || request()->routeIs('kardex.*'); @endphp
+                    @php $abierta = request()->routeIs('materia-prima.*') || request()->routeIs('movimientos.*') || request()->routeIs('kardex.*') || request()->routeIs('conteo-fisico.*'); @endphp
                     <li class="nav-section {{ $abierta ? 'open' : '' }}">
                         <a href="#" class="nav-header-toggle">
                             <span>INVENTARIO</span>
@@ -602,6 +602,11 @@
                             <li class="nav-item">
                                 <a href="{{ route('kardex.index') }}" class="nav-link {{ request()->routeIs('kardex.*') ? 'active' : '' }}">
                                     <i class="nav-icon fas fa-book-open"></i><p>Movimientos de Productos</p>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="{{ route('conteo-fisico.index') }}" class="nav-link {{ request()->routeIs('conteo-fisico.*') ? 'active' : '' }}">
+                                    <i class="nav-icon fas fa-clipboard-check"></i><p>Conteo Físico</p>
                                 </a>
                             </li>
                         </ul>

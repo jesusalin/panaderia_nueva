@@ -12,5 +12,6 @@ class MateriaPrima extends Model {
     public function compraDetalles()  { return $this->hasMany(CompraDetalle::class, 'id_materia'); }
     public function movimientos()     { return $this->hasMany(MovimientoInventario::class, 'id_materia'); }
     public function ordenesAutomaticas() { return $this->hasMany(OrdenAutomatica::class, 'id_materia'); }
+    public function conteosFisicos()  { return $this->hasMany(ConteoFisico::class, 'id_materia'); }
     public function tieneStockBajo()  { return $this->stock_actual <= $this->stock_minimo; }
 }

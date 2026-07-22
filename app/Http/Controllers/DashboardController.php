@@ -9,6 +9,7 @@ use App\Models\KardexProducto;
 use App\Models\MovimientoInventario;
 use App\Models\TiempoOperacion;
 use App\Models\TiempoBaseline;
+use App\Models\ConteoFisico;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 
@@ -50,16 +51,31 @@ class DashboardController extends Controller
             ->whereColumn('stock_actual', '<=', 'stock_minimo')->count();
 
         // ── Exactitud del inventario (OE2 de tesis) ──────────
-        // % de insumos cuyo stock no necesitó corrección este mes
-        $totalMateriasActivas = MateriaPrima::where('estado', 'activo')->count();
-        $materiasConAjusteMes = MovimientoInventario::where('tipo', 'ajuste')
-            ->whereYear('created_at', $hoy->year)
-            ->whereMonth('created_at', $hoy->month)
-            ->distinct('id_materia')->count('id_materia');
+        // Fórmula real: promedio de exactitud del último conteo físico
+        // registrado (stock físico vs. stock del sistema). Si todavía no
+        // se ha hecho ningún conteo, se usa un proxy como respaldo.
+        $ultimoLote = ConteoFisico::orderByDesc('created_at')->value('lote');
 
-        $exactitudInventario = $totalMateriasActivas > 0
-            ? round((($totalMateriasActivas - $materiasConAjusteMes) / $totalMateriasActivas) * 100, 1)
-            : 100;
+        if ($ultimoLote) {
+            $exactitudInventario = round(
+                ConteoFisico::where('lote', $ultimoLote)->get()->avg('exactitud'), 1
+            );
+            $exactitudEsReal = true;
+            $fechaUltimoConteo = ConteoFisico::where('lote', $ultimoLote)->min('created_at');
+        } else {
+            // Proxy de respaldo (mientras no exista ningún conteo físico real)
+            $totalMateriasActivas = MateriaPrima::where('estado', 'activo')->count();
+            $materiasConAjusteMes = MovimientoInventario::where('tipo', 'ajuste')
+                ->whereYear('created_at', $hoy->year)
+                ->whereMonth('created_at', $hoy->month)
+                ->distinct('id_materia')->count('id_materia');
+
+            $exactitudInventario = $totalMateriasActivas > 0
+                ? round((($totalMateriasActivas - $materiasConAjusteMes) / $totalMateriasActivas) * 100, 1)
+                : 100;
+            $exactitudEsReal = false;
+            $fechaUltimoConteo = null;
+        }
 
         // ── Registros procesados hoy (KPI tesis) ─────────────
         $registrosHoy = KardexProducto::whereDate('created_at', $hoy)->count()
@@ -124,7 +140,7 @@ class DashboardController extends Controller
         return view('dashboard.index', compact(
             'ventasHoy', 'ventasAyer', 'variacionVentas', 'ventasMes', 'comprasMes', 'gananciaMes',
             'productosStockBajo', 'materiaStockBaja',
-            'exactitudInventario', 'registrosHoy', 'reduccionTiemposMuertos',
+            'exactitudInventario', 'exactitudEsReal', 'fechaUltimoConteo', 'registrosHoy', 'reduccionTiemposMuertos',
             'ultimasVentas', 'topProductos', 'ventasSemana', 'rotacionStock'
         ));
     }
