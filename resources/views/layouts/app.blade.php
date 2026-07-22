@@ -184,6 +184,41 @@
             .modal-dialog { max-width: 100% !important; margin: 0 !important; }
             .modal-content { border: none !important; }
             #detalleModal .modal-header { display: none !important; }
+
+            /* ===== Modo "Boleta / Ticket": para impresoras térmicas angostas
+               (58-80mm), activado por JS (ver imprimirDetalle) antes de llamar a
+               window.print(). Convierte cualquier detalle (venta, compra,
+               producción) en un formato de una sola columna, compacto y sin
+               decoración, en vez de ocupar una hoja A4 completa. ===== */
+            html.modo-boleta .col-lg-8,
+            html.modo-boleta .col-md-8,
+            html.modo-boleta [class*="print-col"] {
+                width: 100% !important; max-width: 100% !important; flex: 0 0 100% !important;
+                padding: 0 !important; margin: 0 !important;
+            }
+            html.modo-boleta .prod-form-card { border: none !important; box-shadow: none !important; border-radius: 0 !important; margin: 0 !important; }
+            html.modo-boleta [class$="-topbar"] { display: none !important; }
+            html.modo-boleta [class$="-head"] {
+                flex-direction: column !important; align-items: center !important; text-align: center !important;
+                padding: .3rem 0 .5rem !important; gap: .2rem !important;
+            }
+            html.modo-boleta [class$="-head"] .ch-icon { display: none !important; }
+            html.modo-boleta [class$="-head"] h5 { font-size: 13px !important; }
+            html.modo-boleta [class$="-head"] p { font-size: 10px !important; }
+            html.modo-boleta [class$="-head"] .badge-soft { font-size: 9px !important; margin-top: .2rem !important; }
+            html.modo-boleta .info-strip {
+                grid-template-columns: 1fr !important; gap: .15rem !important; padding: 0 .3rem .4rem !important;
+            }
+            html.modo-boleta .info-strip .is-item {
+                border-left: none !important; padding-left: 0 !important; border-bottom: 1px dashed #ccc !important;
+                display: flex !important; justify-content: space-between !important; align-items: baseline !important; padding-bottom: .1rem !important;
+            }
+            html.modo-boleta .info-strip .is-label { font-size: 9px !important; }
+            html.modo-boleta .info-strip .is-value { font-size: 10px !important; }
+            html.modo-boleta body, html.modo-boleta table { font-size: 10px !important; }
+            html.modo-boleta .table-card { border: none !important; box-shadow: none !important; margin: 0 !important; }
+            html.modo-boleta .table-modern th, html.modo-boleta .table-modern td { padding: .2rem .25rem !important; }
+            html.modo-boleta .table-modern thead th { font-size: 8px !important; }
         }
 
         /* Componentes personalizados reutilizados en varias vistas (dashboard, catálogo, etc.) */
@@ -925,6 +960,37 @@
                 });
         });
     })();
+</script>
+
+<script>
+    // Imprimir el detalle de una venta/compra/producción de dos formas:
+    //  - 'a4': impresión normal, tal cual se ve en pantalla (impresora de oficina).
+    //  - 'boleta': fuerza un ancho de página angosto (80mm, como una impresora
+    //    térmica de tickets) y compacta el contenido a una sola columna.
+    // Está en el layout (no en cada vista) porque el detalle a veces se carga
+    // dentro del modal "Ver detalle" vía innerHTML, y las etiquetas <script>
+    // inyectadas así no se ejecutan; una función global sí queda disponible.
+    window.imprimirDetalle = function (modo) {
+        document.documentElement.classList.remove('modo-boleta');
+        const estiloPrevio = document.getElementById('boletaPrintStyle');
+        if (estiloPrevio) estiloPrevio.remove();
+
+        if (modo === 'boleta') {
+            document.documentElement.classList.add('modo-boleta');
+            const estilo = document.createElement('style');
+            estilo.id = 'boletaPrintStyle';
+            estilo.textContent = '@page { size: 80mm auto; margin: 3mm; }';
+            document.head.appendChild(estilo);
+        }
+
+        window.print();
+    };
+
+    window.addEventListener('afterprint', function () {
+        document.documentElement.classList.remove('modo-boleta');
+        const estilo = document.getElementById('boletaPrintStyle');
+        if (estilo) estilo.remove();
+    });
 </script>
 
 @stack('scripts')

@@ -137,9 +137,19 @@
 
                 <hr class="detalle-divider">
 
-                <button onclick="window.print()" class="btn btn-outline-secondary btn-block">
-                    <i class="fas fa-print mr-2"></i>Imprimir
-                </button>
+                <div class="dropdown mb-2">
+                    <button type="button" class="btn btn-outline-secondary btn-block dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        <i class="fas fa-print mr-2"></i>Imprimir
+                    </button>
+                    <div class="dropdown-menu w-100">
+                        <a class="dropdown-item" href="#" onclick="imprimirDetalle('a4'); return false;">
+                            <i class="fas fa-file mr-2 text-muted"></i>Hoja completa (A4)
+                        </a>
+                        <a class="dropdown-item" href="#" onclick="imprimirDetalle('boleta'); return false;">
+                            <i class="fas fa-receipt mr-2 text-muted"></i>Boleta / Ticket angosto
+                        </a>
+                    </div>
+                </div>
                 <a href="{{ route('ventas.create') }}" class="btn btn-success btn-block">
                     <i class="fas fa-plus mr-2"></i>Nueva venta
                 </a>
