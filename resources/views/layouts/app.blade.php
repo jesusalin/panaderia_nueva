@@ -65,6 +65,19 @@
         .nav-section-body { list-style: none; margin: .15rem 0 0; padding: 0; }
 
         .card { border: none; box-shadow: 0 2px 10px rgba(0,0,0,.08); border-radius: 12px; }
+
+        /* ===== Modal "Ver detalle": sin el borde duro de Bootstrap, con sombra suave
+           y un fondo con leve contraste para que las tarjetas de adentro no se
+           vean planas/vacías pegadas contra un fondo blanco idéntico. ===== */
+        #detalleModal .modal-content { border: none; border-radius: 18px; box-shadow: 0 20px 60px rgba(20,20,30,.25); overflow: hidden; }
+        #detalleModal .modal-header { background: #fff; border-bottom: 1px solid #eee; padding: 1.1rem 1.5rem; }
+        #detalleModal .modal-title { font-weight: 800; color: #1a1a2e; }
+        #detalleModal .modal-body { background: #f7f5f3; padding: 1.5rem; }
+        body.dark-mode #detalleModal .modal-header { background: #1f1f33; }
+        body.dark-mode #detalleModal .modal-title { color: #f0f0f7; }
+        body.dark-mode #detalleModal .modal-body { background: #14141f; }
+        .detalle-divider { border: none; border-top: 1px solid #f0ece6; margin: 1rem 0; }
+        body.dark-mode .detalle-divider { border-top-color: #2c2c44; }
         .card-header { border-radius: 12px 12px 0 0 !important; font-weight: 700; }
         .btn { border-radius: 8px; font-weight: 600; }
         .badge { border-radius: 6px; }
@@ -728,7 +741,7 @@
      controlador (compras, ventas, clientes, producción), así el usuario ve el
      detalle sin que la página se recargue. Los enlaces llevan la clase "js-ver-detalle". --}}
 <div class="modal fade" id="detalleModal" tabindex="-1" role="dialog" aria-hidden="true">
-    <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+    <div class="modal-dialog modal-xl modal-dialog-centered" role="document">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="detalleModalTitle">Detalle</h5>

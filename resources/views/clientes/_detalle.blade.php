@@ -1,13 +1,15 @@
 <style>
+    .cli-topbar { height: 5px; background: {{ $cliente->color_tipo }}; }
     .cli-head { display: flex; align-items: center; gap: 1rem; padding: 1.4rem 1.5rem; }
     .cli-head .ch-icon {
         width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
-        font-size: 1.5rem; color: #fff; flex-shrink: 0;
+        font-size: 1.5rem; color: #fff; flex-shrink: 0; box-shadow: 0 4px 10px {{ $cliente->color_tipo }}55;
     }
     .cli-head h5 { margin: 0 0 .3rem; font-weight: 800; }
     .cli-head .cli-badges { display: flex; gap: .4rem; flex-wrap: wrap; }
 
     .cli-info-grid { padding: 0 1.5rem 1.4rem; display: grid; grid-template-columns: 1fr 1fr; gap: .9rem 1.2rem; }
+    .cli-info-grid .ci-item { border-left: 3px solid {{ $cliente->color_tipo }}22; padding-left: .6rem; }
     .cli-info-grid .ci-item .ci-label { font-size: .68rem; text-transform: uppercase; letter-spacing: .03em; color: #adb5bd; font-weight: 700; }
     .cli-info-grid .ci-item .ci-value { font-size: .9rem; font-weight: 700; color: #1a1a2e; }
     body.dark-mode .cli-info-grid .ci-item .ci-value { color: #f0f0f7; }
@@ -23,16 +25,25 @@
     body.dark-mode .cli-total-box .ct-value { color: #6ee7a5; }
 
     .cli-mini-stats { padding: 0 1.5rem 1.4rem; display: grid; grid-template-columns: 1fr 1fr; gap: .7rem; }
-    .cli-mini-stats .cms-item { background: #f7f5f3; border-radius: 10px; padding: .7rem .9rem; text-align: center; }
-    body.dark-mode .cli-mini-stats .cms-item { background: #24243b; }
+    .cli-mini-stats .cms-item { background: {{ $cliente->color_tipo }}10; border-radius: 10px; padding: .7rem .9rem; text-align: center; }
+    body.dark-mode .cli-mini-stats .cms-item { background: {{ $cliente->color_tipo }}22; }
     .cli-mini-stats .cms-value { font-weight: 800; font-size: 1.05rem; color: #1a1a2e; }
     body.dark-mode .cli-mini-stats .cms-value { color: #f0f0f7; }
     .cli-mini-stats .cms-label { font-size: .68rem; color: #8a8a9d; font-weight: 700; text-transform: uppercase; letter-spacing: .03em; }
+
+    .clientes-table thead th { background: {{ $cliente->color_tipo }}12 !important; }
+    body.dark-mode .clientes-table thead th { background: {{ $cliente->color_tipo }}25 !important; }
+
+    .action-icon-chip {
+        width: 34px; height: 34px; border-radius: 9px; display: inline-flex; align-items: center; justify-content: center;
+        background: {{ $cliente->color_tipo }}20; color: {{ $cliente->color_tipo }}; margin-right: .6rem; flex-shrink: 0;
+    }
 </style>
 
 <div class="row">
     <div class="col-md-4">
         <div class="card prod-form-card mb-3 mb-md-0">
+            <div class="cli-topbar"></div>
             <div class="cli-head flex-column text-center">
                 <div class="ch-icon" style="background:{{ $cliente->color_tipo }};"><i class="fas {{ $cliente->icono }}"></i></div>
                 <h5>{{ $cliente->nombre }}</h5>
@@ -95,8 +106,14 @@
 
     <div class="col-md-8">
         <div class="table-card" style="box-shadow:none;border:1px solid #f0f0f0;">
-            <div class="p-3 pb-0"><h6 class="font-weight-bold mb-0"><i class="fas fa-receipt mr-2 text-primary"></i>Historial de Ventas</h6></div>
-            <table class="table table-modern mb-0">
+            <div class="cli-topbar"></div>
+            <div class="p-3 pb-0">
+                <h6 class="font-weight-bold mb-0 d-flex align-items-center">
+                    <span class="action-icon-chip"><i class="fas fa-receipt"></i></span>Historial de Ventas
+                </h6>
+            </div>
+            <div class="table-responsive">
+            <table class="table table-modern clientes-table mb-0">
                 <thead>
                     <tr>
                         <th>N° Venta</th>
@@ -124,6 +141,7 @@
                     @endforelse
                 </tbody>
             </table>
+            </div>
             @if($ventas->hasPages())
             <div class="p-3" style="border-top:1px solid #f0f0f0;">{{ $ventas->links() }}</div>
             @endif

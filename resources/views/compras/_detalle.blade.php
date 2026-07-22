@@ -1,20 +1,37 @@
 <style>
+    .compra-topbar { height: 5px; background: linear-gradient(90deg, #b5451b, #e8935f); }
     .compra-head { display: flex; align-items: center; gap: 1rem; padding: 1.4rem 1.5rem; }
     .compra-head .ch-icon {
         width: 54px; height: 54px; border-radius: 14px; display: flex; align-items: center; justify-content: center;
         font-size: 1.4rem; color: #fff; background: linear-gradient(135deg, #1a1a2e, #b5451b); flex-shrink: 0;
+        box-shadow: 0 4px 10px rgba(181,69,27,.3);
     }
     .compra-head h5 { margin: 0; font-weight: 800; }
     .compra-head p { margin: .1rem 0 0; color: #8a8a9d; font-size: .85rem; }
     .info-strip { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; padding: 0 1.5rem 1.4rem; }
+    .info-strip .is-item { border-left: 3px solid #f0e4dc; padding-left: .7rem; }
     .info-strip .is-item .is-label { font-size: .68rem; text-transform: uppercase; letter-spacing: .03em; color: #adb5bd; font-weight: 700; }
     .info-strip .is-item .is-value { font-size: .95rem; font-weight: 700; color: #1a1a2e; }
+    body.dark-mode .info-strip .is-item { border-left-color: #3a2a22; }
     body.dark-mode .info-strip .is-item .is-value { color: #f0f0f7; }
     @media (max-width: 767px) { .info-strip { grid-template-columns: repeat(2, 1fr); } }
+
+    .compra-note { background: rgba(181,69,27,.06); border-left: 3px solid #b5451b; border-radius: 8px; padding: .9rem 1.1rem; display: flex; gap: .6rem; align-items: flex-start; }
+    .compra-note i { color: #b5451b; margin-top: .15rem; }
+    body.dark-mode .compra-note { background: rgba(181,69,27,.14); }
+
+    .compra-table thead th { background: rgba(181,69,27,.05) !important; }
+    body.dark-mode .compra-table thead th { background: rgba(181,69,27,.1) !important; }
+
+    .action-icon-chip {
+        width: 34px; height: 34px; border-radius: 9px; display: inline-flex; align-items: center; justify-content: center;
+        background: rgba(181,69,27,.12); color: #b5451b; margin-right: .6rem; flex-shrink: 0;
+    }
 </style>
 <div class="row">
     <div class="col-lg-8">
         <div class="card prod-form-card mb-3">
+            <div class="compra-topbar"></div>
             <div class="compra-head">
                 <div class="ch-icon"><i class="fas fa-file-invoice"></i></div>
                 <div class="flex-grow-1">
@@ -48,12 +65,13 @@
 
             @if($compra->observaciones)
             <div class="px-4 pb-3">
-                <div class="alert alert-light mb-0"><i class="fas fa-comment-alt mr-2 text-muted"></i>{{ $compra->observaciones }}</div>
+                <div class="compra-note"><i class="fas fa-comment-alt"></i><span>{{ $compra->observaciones }}</span></div>
             </div>
             @endif
 
             <div class="table-card m-3 mt-0" style="box-shadow:none;border:1px solid #f0f0f0;">
-                <table class="table table-modern mb-0">
+                <div class="table-responsive">
+                <table class="table table-modern compra-table mb-0">
                     <thead>
                         <tr>
                             <th>Ingrediente</th>
@@ -73,6 +91,7 @@
                         @endforeach
                     </tbody>
                 </table>
+                </div>
                 <div class="p-3" style="border-top:1px solid #f0f0f0;">
                     <div class="row justify-content-end">
                         <div class="col-md-5">
@@ -95,8 +114,11 @@
 
     <div class="col-lg-4">
         <div class="card prod-form-card">
+            <div class="compra-topbar"></div>
             <div class="prod-form-body">
-                <h6 class="font-weight-bold mb-3"><i class="fas fa-bolt mr-2 text-warning"></i>Acciones</h6>
+                <h6 class="font-weight-bold mb-3 d-flex align-items-center">
+                    <span class="action-icon-chip"><i class="fas fa-bolt"></i></span>Acciones
+                </h6>
 
                 @if($compra->estado === 'pendiente')
                 <form action="{{ route('compras.recibir', $compra) }}" method="POST" class="js-confirm mb-2"
@@ -125,16 +147,13 @@
                     </button>
                 </form>
                 @else
-                <div class="alert alert-light small text-center mb-2">
-                    <i class="fas fa-info-circle mr-1"></i>Esta compra ya fue procesada
-                </div>
+                <div class="compra-note mb-2"><i class="fas fa-info-circle"></i><span>Esta compra ya fue procesada</span></div>
                 @endif
+
+                <hr class="detalle-divider">
 
                 <a href="{{ route('compras.create') }}" class="btn btn-outline-secondary btn-block">
                     <i class="fas fa-plus mr-2"></i>Nueva compra
-                </a>
-                <a href="{{ route('compras.index') }}" class="btn btn-light btn-block">
-                    <i class="fas fa-list mr-2"></i>Ver todas
                 </a>
             </div>
         </div>
