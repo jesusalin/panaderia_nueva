@@ -24,6 +24,9 @@
         width: 38px; height: 38px; border-radius: 10px; flex-shrink: 0; color: #fff;
         display: flex; align-items: center; justify-content: center; font-size: .95rem;
     }
+
+    tr.cli-row-inactiva { opacity: .55; }
+    tr.cli-row-inactiva:hover { opacity: .85; }
 </style>
 @endpush
 
@@ -100,7 +103,7 @@
         </thead>
         <tbody>
             @foreach($clientes as $cliente)
-            <tr>
+            <tr class="{{ ($cliente->estado ?? 'activo') !== 'activo' ? 'cli-row-inactiva' : '' }}">
                 <td>
                     <div class="d-flex align-items-center gap-2">
                         <div class="cli-type-icon" style="background:{{ $cliente->color_tipo }};"><i class="fas {{ $cliente->icono }}"></i></div>
@@ -110,7 +113,7 @@
                         </div>
                     </div>
                 </td>
-                <td><span class="badge-soft badge-soft-info">{{ $cliente->tipo_label }}</span></td>
+                <td><span class="badge-soft" style="background:{{ $cliente->color_tipo }}18; color:{{ $cliente->color_tipo }};">{{ $cliente->tipo_label }}</span></td>
                 <td>{{ $cliente->distrito ?? '—' }}</td>
                 <td>{{ $cliente->telefono ?? '—' }}</td>
                 <td class="text-center"><span class="badge-soft badge-soft-info">{{ $cliente->ventas_count }}</span></td>

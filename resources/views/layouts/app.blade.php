@@ -888,6 +888,9 @@
     // recarga todo el sitio), interceptamos el clic, pedimos el fragmento por
     // AJAX y lo mostramos en un modal. Si el enlace se abre en pestaña nueva,
     // con clic derecho, o si algo falla, sigue funcionando como enlace normal.
+    // Usa fetch() nativo (no depende de que el bundle de Vite/axios haya
+    // cargado) para que funcione siempre, incluso si "npm run build" no se
+    // ejecutó todavía.
     (function () {
         const modalBody  = document.getElementById('detalleModalBody');
         const modalTitle = document.getElementById('detalleModalTitle');
@@ -903,17 +906,22 @@
             modalBody.innerHTML = LOADING_HTML;
             $('#detalleModal').modal('show');
 
-            if (!window.axios) {
-                modalBody.innerHTML = '<div class="alert alert-danger mb-0">No se pudo cargar el detalle (recursos JS no disponibles). Recarga la página e inténtalo de nuevo.</div>';
-                return;
-            }
-
-            window.axios.get(link.href)
+            fetch(link.href, {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'text/html',
+                },
+                credentials: 'same-origin',
+            })
                 .then(function (respuesta) {
-                    modalBody.innerHTML = respuesta.data;
+                    if (!respuesta.ok) throw new Error('HTTP ' + respuesta.status);
+                    return respuesta.text();
                 })
-                .catch(function () {
-                    modalBody.innerHTML = '<div class="alert alert-danger mb-0">No se pudo cargar el detalle. Intenta nuevamente.</div>';
+                .then(function (html) {
+                    modalBody.innerHTML = html;
+                })
+                .catch(function (error) {
+                    modalBody.innerHTML = '<div class="alert alert-danger mb-0">No se pudo cargar el detalle (' + error.message + '). Intenta nuevamente.</div>';
                 });
         });
     })();
