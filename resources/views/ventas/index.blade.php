@@ -44,7 +44,7 @@
                 </td>
                 <td class="text-center">
                     <div class="btn-icon-group">
-                        <a href="{{ route('ventas.show', $v) }}" class="btn btn-icon btn-info" title="Ver detalle">
+                        <a href="{{ route('ventas.show', $v) }}" class="btn btn-icon btn-info js-ver-detalle" data-titulo-detalle="Comprobante {{ $v->numero_venta }}" title="Ver detalle">
                             <i class="fas fa-eye"></i>
                         </a>
                         @if($v->estado !== 'anulada')

@@ -127,7 +127,7 @@
                 <button class="btn btn-icon btn-danger" title="Anular (registrada por error)"><i class="fas fa-ban"></i></button>
             </form>
             @endif
-            <a href="{{ route('compras.show', $c) }}" class="btn btn-icon btn-info" title="Ver detalle">
+            <a href="{{ route('compras.show', $c) }}" class="btn btn-icon btn-info js-ver-detalle" data-titulo-detalle="Compra #{{ $c->id }}" title="Ver detalle">
                 <i class="fas fa-eye"></i>
             </a>
         </div>

@@ -152,6 +152,14 @@ class ProduccionController extends Controller
     public function show(Produccion $produccion)
     {
         $produccion->load(['producto.receta.detalles.materia.unidad', 'usuario']);
+
+        // Si la petición viene por AJAX (clic en "Ver detalle" desde el listado),
+        // devolvemos solo el fragmento con el contenido, sin el layout completo,
+        // para poder mostrarlo en un modal sin recargar la página.
+        if (request()->ajax()) {
+            return view('produccion._detalle', compact('produccion'));
+        }
+
         return view('produccion.show', compact('produccion'));
     }
 

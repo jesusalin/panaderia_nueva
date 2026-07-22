@@ -57,7 +57,7 @@
                 </td>
                 <td class="text-center">
                     <div class="btn-icon-group">
-                        <a href="{{ route('clientes.show', $cliente) }}" class="btn btn-icon btn-info" title="Ver detalle">
+                        <a href="{{ route('clientes.show', $cliente) }}" class="btn btn-icon btn-info js-ver-detalle" data-titulo-detalle="{{ $cliente->nombre }}" title="Ver detalle">
                             <i class="fas fa-eye"></i>
                         </a>
                         <a href="{{ route('clientes.edit', $cliente) }}" class="btn btn-icon btn-warning" title="Editar">

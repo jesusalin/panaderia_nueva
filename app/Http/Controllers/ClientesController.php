@@ -39,6 +39,14 @@ class ClientesController extends Controller
             ->orderByDesc('fecha_venta')
             ->paginate(10);
         $totalComprado = $cliente->totalComprado();
+
+        // Si la petición viene por AJAX (clic en "Ver detalle" desde el listado),
+        // devolvemos solo el fragmento con el contenido, sin el layout completo,
+        // para poder mostrarlo en un modal sin recargar la página.
+        if (request()->ajax()) {
+            return view('clientes._detalle', compact('cliente', 'ventas', 'totalComprado'));
+        }
+
         return view('clientes.show', compact('cliente', 'ventas', 'totalComprado'));
     }
 

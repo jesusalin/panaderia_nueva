@@ -164,7 +164,7 @@
                 </td>
                 <td class="text-center">
                     <div class="btn-icon-group">
-                        <a href="{{ route('produccion.show', $p) }}" class="btn btn-icon btn-info" title="Ver detalle">
+                        <a href="{{ route('produccion.show', $p) }}" class="btn btn-icon btn-info js-ver-detalle" data-titulo-detalle="Producción #{{ $p->id }}" title="Ver detalle">
                             <i class="fas fa-eye"></i>
                         </a>
                         @if($p->producto->stock_actual >= $p->cantidad)

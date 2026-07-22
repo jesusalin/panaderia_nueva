@@ -353,7 +353,7 @@
                     <tbody>
                         @forelse($ultimasVentas as $v)
                         <tr>
-                            <td><a href="{{ route('ventas.show', $v) }}">{{ $v->numero_venta }}</a></td>
+                            <td><a href="{{ route('ventas.show', $v) }}" class="js-ver-detalle" data-titulo-detalle="Comprobante {{ $v->numero_venta }}">{{ $v->numero_venta }}</a></td>
                             <td>{{ $v->cliente->nombre ?? 'General' }}</td>
                             <td><span class="badge badge-light">{{ ucfirst($v->tipo_pago) }}</span></td>
                             <td class="font-weight-bold">S/ {{ number_format($v->total, 2) }}</td>

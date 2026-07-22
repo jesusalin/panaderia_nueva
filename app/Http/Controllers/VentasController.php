@@ -115,6 +115,14 @@ class VentasController extends Controller
     public function show(Venta $venta)
     {
         $venta->load(['usuario', 'cliente', 'detalles.producto.categoria']);
+
+        // Si la petición viene por AJAX (clic en "Ver detalle" desde el listado),
+        // devolvemos solo el fragmento con el contenido, sin el layout completo,
+        // para poder mostrarlo en un modal sin recargar la página.
+        if (request()->ajax()) {
+            return view('ventas._detalle', compact('venta'));
+        }
+
         return view('ventas.show', compact('venta'));
     }
 

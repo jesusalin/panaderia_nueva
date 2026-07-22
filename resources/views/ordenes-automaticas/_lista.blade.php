@@ -69,7 +69,7 @@
                         </form>
                     </div>
                 @elseif($o->estado === 'convertida')
-                    <a href="{{ route('compras.show', $o->id_compra) }}" class="btn btn-sm btn-info">
+                    <a href="{{ route('compras.show', $o->id_compra) }}" class="btn btn-sm btn-info js-ver-detalle" data-titulo-detalle="Compra #{{ $o->id_compra }}">
                         <i class="fas fa-eye mr-1"></i>Ver compra
                     </a>
                 @endif

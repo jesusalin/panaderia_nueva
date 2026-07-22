@@ -106,6 +106,14 @@ class ComprasController extends Controller
     public function show(Compra $compra)
     {
         $compra->load(['proveedor', 'usuario', 'detalles.materia.unidad']);
+
+        // Si la petición viene por AJAX (clic en "Ver detalle" desde el listado),
+        // devolvemos solo el fragmento con el contenido, sin el layout completo,
+        // para poder mostrarlo en un modal sin recargar la página.
+        if (request()->ajax()) {
+            return view('compras._detalle', compact('compra'));
+        }
+
         return view('compras.show', compact('compra'));
     }
 

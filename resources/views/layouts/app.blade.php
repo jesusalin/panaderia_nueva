@@ -722,6 +722,25 @@
     </div>
 </div>
 
+{{-- Modal de "Ver detalle": se llena por AJAX con el fragmento que devuelve el
+     controlador (compras, ventas, clientes, producción), así el usuario ve el
+     detalle sin que la página se recargue. Los enlaces llevan la clase "js-ver-detalle". --}}
+<div class="modal fade" id="detalleModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="detalleModalTitle">Detalle</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body" id="detalleModalBody">
+                <div class="text-center py-5 text-muted"><i class="fas fa-spinner fa-spin fa-2x"></i></div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/jquery@3.6/dist/jquery.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/js/adminlte.min.js"></script>
@@ -817,6 +836,37 @@
             document.getElementById('blockedModalTitle').textContent = btn.dataset.blockedTitle || 'No se puede realizar esta acción';
             document.getElementById('blockedModalText').textContent = btn.dataset.blockedMessage || '';
             $('#blockedModal').modal('show');
+        });
+    })();
+</script>
+
+<script>
+    // "Ver detalle" por AJAX: en vez de navegar a la página de detalle (lo que
+    // recarga todo el sitio), interceptamos el clic, pedimos el fragmento por
+    // AJAX y lo mostramos en un modal. Si el enlace se abre en pestaña nueva,
+    // con clic derecho, o si algo falla, sigue funcionando como enlace normal.
+    (function () {
+        const modalBody  = document.getElementById('detalleModalBody');
+        const modalTitle = document.getElementById('detalleModalTitle');
+        const LOADING_HTML = '<div class="text-center py-5 text-muted"><i class="fas fa-spinner fa-spin fa-2x"></i></div>';
+
+        document.addEventListener('click', function (e) {
+            const link = e.target.closest('.js-ver-detalle');
+            if (!link) return;
+            if (e.ctrlKey || e.metaKey || e.shiftKey) return; // dejar que abra en pestaña nueva si el usuario quiere
+
+            e.preventDefault();
+            modalTitle.textContent = link.dataset.tituloDetalle || 'Detalle';
+            modalBody.innerHTML = LOADING_HTML;
+            $('#detalleModal').modal('show');
+
+            window.axios.get(link.href)
+                .then(function (respuesta) {
+                    modalBody.innerHTML = respuesta.data;
+                })
+                .catch(function () {
+                    modalBody.innerHTML = '<div class="alert alert-danger mb-0">No se pudo cargar el detalle. Intenta nuevamente.</div>';
+                });
         });
     })();
 </script>
