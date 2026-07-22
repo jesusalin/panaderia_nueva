@@ -94,14 +94,17 @@ Route::middleware(['auth'])->group(function () {
 
     // ── Módulo: Ventas ───────────────────────────────────────────
     Route::middleware(['modulo:ventas'])->group(function () {
+        Route::get('ventas/exportar-excel', [VentasController::class, 'exportarExcel'])->name('ventas.exportar-excel');
         Route::resource('ventas', VentasController::class)->only(['index', 'create', 'store', 'show', 'destroy']);
         Route::put('ventas/{venta}/anular', [VentasController::class, 'anular'])->name('ventas.anular');
+        Route::get('ventas/{venta}/pdf', [VentasController::class, 'pdf'])->name('ventas.pdf');
     });
 
     // ── Módulo: Reportes ─────────────────────────────────────────
     Route::middleware(['modulo:reportes'])->group(function () {
         Route::get('tiempos-operacion', [TiemposOperacionController::class, 'index'])->name('tiempos-operacion.index');
         Route::post('tiempos-operacion/baseline', [TiemposOperacionController::class, 'actualizarBaseline'])->name('tiempos-operacion.baseline');
+        Route::get('tiempos-operacion/exportar-pdf', [TiemposOperacionController::class, 'exportarPdf'])->name('tiempos-operacion.exportar-pdf');
     });
 });
 

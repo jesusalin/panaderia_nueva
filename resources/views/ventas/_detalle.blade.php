@@ -150,6 +150,9 @@
                         </a>
                     </div>
                 </div>
+                <a href="{{ route('ventas.pdf', $venta) }}" target="_blank" class="btn btn-outline-secondary btn-block mb-2">
+                    <i class="fas fa-file-pdf mr-2"></i>Descargar PDF
+                </a>
                 <a href="{{ route('ventas.create') }}" class="btn btn-success btn-block">
                     <i class="fas fa-plus mr-2"></i>Nueva venta
                 </a>

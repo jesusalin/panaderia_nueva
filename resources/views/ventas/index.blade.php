@@ -46,6 +46,9 @@
         <p>Historial de ventas realizadas a clientes y puntos de distribución</p>
     </div>
     <div class="toolbar-actions">
+        <a href="{{ route('ventas.exportar-excel') }}" class="btn btn-outline-secondary">
+            <i class="fas fa-file-excel mr-1"></i>Exportar Excel
+        </a>
         <a href="{{ route('ventas.create') }}" class="btn btn-success">
             <i class="fas fa-plus mr-1"></i>Nueva Venta
         </a>

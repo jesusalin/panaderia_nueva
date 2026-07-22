@@ -2,17 +2,24 @@
 
 namespace Tests\Feature;
 
-// use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 class ExampleTest extends TestCase
 {
     /**
-     * A basic test example.
+     * La raíz del sistema no muestra nada por sí misma: siempre redirige
+     * al dashboard (que a su vez exige login si no hay sesión).
      */
-    public function test_the_application_returns_a_successful_response(): void
+    public function test_la_raiz_redirige_al_dashboard(): void
     {
         $response = $this->get('/');
+
+        $response->assertRedirect(route('dashboard'));
+    }
+
+    public function test_la_pagina_de_login_carga_correctamente(): void
+    {
+        $response = $this->get('/login');
 
         $response->assertStatus(200);
     }

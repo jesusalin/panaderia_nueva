@@ -7,8 +7,11 @@ use App\Models\VentaDetalle;
 use App\Models\Producto;
 use App\Models\Cliente;
 use App\Models\KardexProducto;
+use App\Exports\VentasExport;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Barryvdh\DomPDF\Facade\Pdf;
+use Maatwebsite\Excel\Facades\Excel;
 use Carbon\Carbon;
 
 class VentasController extends Controller
@@ -135,6 +138,34 @@ class VentasController extends Controller
         }
 
         return view('ventas.show', compact('venta'));
+    }
+
+    /**
+     * Comprobante de venta en PDF descargable (para entregar al cliente
+     * o como evidencia en anexos), además de la vista de impresión del navegador.
+     */
+    public function pdf(Venta $venta)
+    {
+        $venta->load(['usuario', 'cliente', 'detalles.producto']);
+
+        $pdf = Pdf::loadView('ventas.pdf', compact('venta'))->setPaper('a4');
+
+        return $pdf->stream("comprobante-{$venta->numero_venta}.pdf");
+    }
+
+    /**
+     * Exporta el listado de ventas a Excel. Acepta los mismos filtros de
+     * fecha que otros reportes del sistema (fecha_desde / fecha_hasta);
+     * sin filtro exporta todo el historial.
+     */
+    public function exportarExcel(Request $request)
+    {
+        $fechaDesde = $request->get('fecha_desde');
+        $fechaHasta = $request->get('fecha_hasta');
+
+        $nombre = 'ventas' . ($fechaDesde || $fechaHasta ? "_{$fechaDesde}_a_{$fechaHasta}" : '') . '.xlsx';
+
+        return Excel::download(new VentasExport($fechaDesde, $fechaHasta), $nombre);
     }
 
     public function anular(Venta $venta)

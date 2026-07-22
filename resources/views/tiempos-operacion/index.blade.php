@@ -104,6 +104,12 @@
             </span>
         </div>
     </div>
+    <div class="toolbar-actions">
+        <a href="{{ route('tiempos-operacion.exportar-pdf', request()->only('fecha_desde', 'fecha_hasta')) }}"
+           target="_blank" class="btn btn-outline-secondary">
+            <i class="fas fa-file-pdf mr-1"></i>Exportar PDF
+        </a>
+    </div>
 </div>
 
 {{-- Filtro de fechas --}}

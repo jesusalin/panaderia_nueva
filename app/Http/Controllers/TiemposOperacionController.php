@@ -6,6 +6,7 @@ use App\Models\TiempoOperacion;
 use App\Models\TiempoBaseline;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 
 class TiemposOperacionController extends Controller
@@ -41,6 +42,38 @@ class TiemposOperacionController extends Controller
         $fechaDesde = $request->get('fecha_desde');
         $fechaHasta = $request->get('fecha_hasta');
 
+        $resultados = $this->calcularResultados($fechaDesde, $fechaHasta);
+
+        return view('tiempos-operacion.index', [
+            'resultados'  => $resultados,
+            'fechaDesde'  => $fechaDesde,
+            'fechaHasta'  => $fechaHasta,
+        ]);
+    }
+
+    /**
+     * Exporta el mismo reporte comparativo a PDF: evidencia lista para
+     * anexar en la sustentación (indicador OE3, pre-test vs post-test).
+     */
+    public function exportarPdf(Request $request)
+    {
+        $fechaDesde = $request->get('fecha_desde');
+        $fechaHasta = $request->get('fecha_hasta');
+
+        $resultados = $this->calcularResultados($fechaDesde, $fechaHasta);
+
+        $pdf = Pdf::loadView('tiempos-operacion.pdf', compact('resultados', 'fechaDesde', 'fechaHasta'))->setPaper('a4');
+
+        return $pdf->stream('reporte-tiempos-operacion.pdf');
+    }
+
+    /**
+     * Calcula el comparativo inicial (manual, pre-test) vs final (promedio
+     * registrado por el sistema, post-test) por tipo de operación.
+     * Fórmula de la tesis: (inicial - final) / final x 100
+     */
+    private function calcularResultados(?string $fechaDesde, ?string $fechaHasta): array
+    {
         $query = TiempoOperacion::query();
         if ($fechaDesde) $query->whereDate('created_at', '>=', $fechaDesde);
         if ($fechaHasta) $query->whereDate('created_at', '<=', $fechaHasta);
@@ -76,11 +109,7 @@ class TiemposOperacionController extends Controller
             ];
         }
 
-        return view('tiempos-operacion.index', [
-            'resultados'  => $resultados,
-            'fechaDesde'  => $fechaDesde,
-            'fechaHasta'  => $fechaHasta,
-        ]);
+        return $resultados;
     }
 
     /**
