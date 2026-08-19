@@ -13,6 +13,7 @@ Configura tu `.env`:
 DB_DATABASE=panaderia_nueva
 DB_USERNAME=root
 DB_PASSWORD=
+BACKUP_MYSQLDUMP_PATH='C:\xampp\mysql\bin\mysqldump.exe'
 ```
 ```bash
 php artisan migrate:fresh --seed
