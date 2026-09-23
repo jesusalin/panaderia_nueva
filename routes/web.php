@@ -17,6 +17,7 @@ use App\Http\Controllers\ProduccionController;
 use App\Http\Controllers\KardexController;
 use App\Http\Controllers\OrdenesAutomaticasController;
 use App\Http\Controllers\TiemposOperacionController;
+use App\Http\Controllers\ReportesController;
 
 // Redirigir raíz al dashboard
 Route::get('/', fn() => redirect()->route('dashboard'));
@@ -112,6 +113,14 @@ Route::middleware(['auth'])->group(function () {
         Route::get('tiempos-operacion', [TiemposOperacionController::class, 'index'])->name('tiempos-operacion.index');
         Route::post('tiempos-operacion/baseline', [TiemposOperacionController::class, 'actualizarBaseline'])->name('tiempos-operacion.baseline');
         Route::get('tiempos-operacion/exportar-pdf', [TiemposOperacionController::class, 'exportarPdf'])->name('tiempos-operacion.exportar-pdf');
+
+        Route::get('reportes/stock',        [ReportesController::class, 'stock'])->name('reportes.stock');
+        Route::get('reportes/stock/pdf',    [ReportesController::class, 'stockPdf'])->name('reportes.stock.pdf');
+        Route::get('reportes/stock/excel',  [ReportesController::class, 'stockExcel'])->name('reportes.stock.excel');
+
+        Route::get('reportes/kardex',       [ReportesController::class, 'kardex'])->name('reportes.kardex');
+        Route::get('reportes/kardex/pdf',   [ReportesController::class, 'kardexPdf'])->name('reportes.kardex.pdf');
+        Route::get('reportes/kardex/excel', [ReportesController::class, 'kardexExcel'])->name('reportes.kardex.excel');
     });
 });
 

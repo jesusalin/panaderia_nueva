@@ -26,7 +26,7 @@ class Usuario extends Authenticatable {
         'compras'    => 'Compras (Proveedores, Compras, Órdenes Automáticas)',
         'clientes'   => 'Clientes',
         'ventas'     => 'Ventas',
-        'reportes'   => 'Reportes (Tiempos por Operación)',
+        'reportes'   => 'Reportes (Stock, Kardex, Tiempos por Operación)',
     ];
 
     public function rol()          { return $this->belongsTo(Rol::class, 'id_rol'); }

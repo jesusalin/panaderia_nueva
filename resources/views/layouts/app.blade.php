@@ -641,13 +641,23 @@
                     @endif
 
                     @if(auth()->user()->hasModulo('reportes'))
-                    @php $abierta = request()->routeIs('tiempos-operacion.*'); @endphp
+                    @php $abierta = request()->routeIs('tiempos-operacion.*') || request()->routeIs('reportes.*'); @endphp
                     <li class="nav-section {{ $abierta ? 'open' : '' }}">
                         <a href="#" class="nav-header-toggle">
                             <span>REPORTES</span>
                             <i class="fas fa-chevron-right chevron"></i>
                         </a>
                         <ul class="nav-section-body" style="{{ $abierta ? '' : 'display:none;' }}">
+                            <li class="nav-item">
+                                <a href="{{ route('reportes.stock') }}" class="nav-link {{ request()->routeIs('reportes.stock*') ? 'active' : '' }}">
+                                    <i class="nav-icon fas fa-warehouse"></i><p>Reporte de Stock</p>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="{{ route('reportes.kardex') }}" class="nav-link {{ request()->routeIs('reportes.kardex*') ? 'active' : '' }}">
+                                    <i class="nav-icon fas fa-file-invoice"></i><p>Reporte de Kardex</p>
+                                </a>
+                            </li>
                             <li class="nav-item">
                                 <a href="{{ route('tiempos-operacion.index') }}" class="nav-link {{ request()->routeIs('tiempos-operacion.*') ? 'active' : '' }}">
                                     <i class="nav-icon fas fa-stopwatch"></i><p>Tiempos por Operación</p>
