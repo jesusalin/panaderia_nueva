@@ -65,11 +65,17 @@
             @endforeach
         </select>
 
-        <input type="date" name="fecha_desde" class="form-control" value="{{ request('fecha_desde') }}" title="Desde">
-        <input type="date" name="fecha_hasta" class="form-control" value="{{ request('fecha_hasta') }}" title="Hasta">
+        <input type="date" name="fecha_desde" class="form-control" value="{{ $fechaDesde }}" title="Desde">
+        <input type="date" name="fecha_hasta" class="form-control" value="{{ $fechaHasta }}" title="Hasta">
 
         <button class="btn btn-primary"><i class="fas fa-search mr-1"></i>Ver Kardex</button>
     </form>
+    @if($item && $sinFiltroFecha)
+    <p class="text-muted small mt-2 mb-0">
+        <i class="fas fa-circle-info mr-1"></i>Mostrando los últimos 30 días automáticamente.
+        <a href="{{ route('reportes.kardex', array_merge(request()->except(['fecha_desde','fecha_hasta']), ['fecha_desde' => '2000-01-01'])) }}">Ver historial completo</a>
+    </p>
+    @endif
 </div>
 
 @if($item)
@@ -80,9 +86,16 @@
     @endphp
 
     <div class="rp-stat-grid">
-        <div class="rp-stat acc-info">
+        <div class="rp-stat {{ $stockBajo ? 'acc-danger' : 'acc-info' }}">
             <div class="rp-label">Ítem</div>
-            <div class="rp-value" style="font-size:1.05rem;">{{ $item->nombre }}</div>
+            <div class="rp-value" style="font-size:1.05rem;">
+                {{ $item->nombre }}
+                @if($stockBajo)
+                    <span class="badge-soft badge-soft-danger ml-1" style="font-size:.65rem;vertical-align:middle;">
+                        <i class="fas fa-triangle-exclamation mr-1"></i>Stock bajo
+                    </span>
+                @endif
+            </div>
         </div>
         <div class="rp-stat acc-success">
             <div class="rp-label">Total Entradas (periodo)</div>

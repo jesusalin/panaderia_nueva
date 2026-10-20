@@ -13,6 +13,33 @@ use Maatwebsite\Excel\Facades\Excel;
 
 class ReportesController extends Controller
 {
+    /**
+     * Página de entrada a Reportes: en vez de obligar al almacenero a saber
+     * en cuál sub-menú está cada reporte, aquí ve todos de un vistazo, con
+     * un par de cifras clave que ya le dicen si necesita entrar a revisar algo.
+     */
+    public function index()
+    {
+        $insumosStockBajo = MateriaPrima::where('estado', 'activo')
+            ->whereColumn('stock_actual', '<=', 'stock_minimo')->count();
+
+        $productosStockBajo = Producto::where('estado', 'activo')
+            ->whereColumn('stock_actual', '<=', 'stock_minimo')->count();
+
+        $movimientosHoy = MovimientoInventario::whereDate('created_at', now())->count();
+
+        // La exactitud del último conteo es el PROMEDIO de todas las filas de su
+        // lote (un conteo cuenta varios insumos a la vez), no la de una sola fila.
+        $ultimoLote = \App\Models\ConteoFisico::orderByDesc('created_at')->value('lote');
+        $exactitudUltimoConteo = $ultimoLote
+            ? round(\App\Models\ConteoFisico::where('lote', $ultimoLote)->get()->avg('exactitud'), 1)
+            : null;
+
+        return view('reportes.index', compact(
+            'insumosStockBajo', 'productosStockBajo', 'movimientosHoy', 'exactitudUltimoConteo'
+        ));
+    }
+
     // ══════════════════════════ REPORTE DE STOCK ══════════════════════════
 
     /**
@@ -86,6 +113,16 @@ class ReportesController extends Controller
         $tipoItem = $request->get('tipo_item');
         $idItem   = $request->get('id_item');
 
+        // Si el almacenero no especifica un rango de fechas, mostramos
+        // automáticamente los últimos 30 días en vez de todo el historial
+        // (más rápido de leer) o nada (confuso la primera vez que se usa).
+        $sinFiltroFecha = !$request->filled('fecha_desde') && !$request->filled('fecha_hasta');
+        $fechaDesde = $request->get('fecha_desde');
+        $fechaHasta = $request->get('fecha_hasta');
+        if ($sinFiltroFecha) {
+            $fechaDesde = now()->subDays(30)->format('Y-m-d');
+        }
+
         if ($tipoItem && $idItem) {
             if ($tipoItem === 'materia') {
                 $item = MateriaPrima::with('unidad')->find($idItem);
@@ -102,8 +139,8 @@ class ReportesController extends Controller
             }
 
             if ($item) {
-                if ($request->filled('fecha_desde')) $query->whereDate('created_at', '>=', $request->fecha_desde);
-                if ($request->filled('fecha_hasta')) $query->whereDate('created_at', '<=', $request->fecha_hasta);
+                if ($fechaDesde) $query->whereDate('created_at', '>=', $fechaDesde);
+                if ($fechaHasta) $query->whereDate('created_at', '<=', $fechaHasta);
                 $movimientos = $query->get();
             }
         }
@@ -112,7 +149,14 @@ class ReportesController extends Controller
             ? ($tipoItem === 'materia' ? ($item->unidad->abreviatura ?? '') : 'uds')
             : '';
 
-        return compact('materias', 'productos', 'item', 'movimientos', 'tipoItem', 'idItem', 'unidad');
+        // Aviso de stock bajo: útil para que el almacenero vea de un vistazo,
+        // justo en la ficha del kardex, si este ítem necesita reposición.
+        $stockBajo = $item ? ($item->stock_actual <= $item->stock_minimo) : false;
+
+        return compact(
+            'materias', 'productos', 'item', 'movimientos', 'tipoItem', 'idItem', 'unidad',
+            'sinFiltroFecha', 'fechaDesde', 'fechaHasta', 'stockBajo'
+        );
     }
 
     public function kardex(Request $request)

@@ -114,6 +114,7 @@ Route::middleware(['auth'])->group(function () {
         Route::post('tiempos-operacion/baseline', [TiemposOperacionController::class, 'actualizarBaseline'])->name('tiempos-operacion.baseline');
         Route::get('tiempos-operacion/exportar-pdf', [TiemposOperacionController::class, 'exportarPdf'])->name('tiempos-operacion.exportar-pdf');
 
+        Route::get('reportes', [ReportesController::class, 'index'])->name('reportes.index');
         Route::get('reportes/stock',        [ReportesController::class, 'stock'])->name('reportes.stock');
         Route::get('reportes/stock/pdf',    [ReportesController::class, 'stockPdf'])->name('reportes.stock.pdf');
         Route::get('reportes/stock/excel',  [ReportesController::class, 'stockExcel'])->name('reportes.stock.excel');

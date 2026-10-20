@@ -101,6 +101,9 @@
                     </button>
                 </form>
                 <div class="btn-icon-group">
+                    <a href="{{ route('reportes.kardex', ['tipo_item' => 'materia', 'id_item' => $m->id]) }}" class="btn btn-icon btn-secondary" title="Ver Kardex">
+                        <i class="fas fa-file-invoice"></i>
+                    </a>
                     <a href="{{ route('materia-prima.ajuste', $m) }}" class="btn btn-icon btn-info" title="Ajustar inventario">
                         <i class="fas fa-balance-scale"></i>
                     </a>

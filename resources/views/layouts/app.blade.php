@@ -649,6 +649,11 @@
                         </a>
                         <ul class="nav-section-body" style="{{ $abierta ? '' : 'display:none;' }}">
                             <li class="nav-item">
+                                <a href="{{ route('reportes.index') }}" class="nav-link {{ request()->routeIs('reportes.index') ? 'active' : '' }}">
+                                    <i class="nav-icon fas fa-chart-pie"></i><p>Resumen de Reportes</p>
+                                </a>
+                            </li>
+                            <li class="nav-item">
                                 <a href="{{ route('reportes.stock') }}" class="nav-link {{ request()->routeIs('reportes.stock*') ? 'active' : '' }}">
                                     <i class="nav-icon fas fa-warehouse"></i><p>Reporte de Stock</p>
                                 </a>

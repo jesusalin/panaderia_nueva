@@ -39,13 +39,14 @@
         <p>Ficha cronológica de entradas, salidas y saldo</p>
     </div>
 
-    @if(request('fecha_desde') || request('fecha_hasta'))
     <div class="rango">
-        Periodo: {{ request('fecha_desde') ? \Carbon\Carbon::parse(request('fecha_desde'))->format('d/m/Y') : 'inicio' }}
+        Periodo: {{ $fechaDesde ? \Carbon\Carbon::parse($fechaDesde)->format('d/m/Y') : 'inicio' }}
         &nbsp;—&nbsp;
-        {{ request('fecha_hasta') ? \Carbon\Carbon::parse(request('fecha_hasta'))->format('d/m/Y') : 'hoy' }}
+        {{ $fechaHasta ? \Carbon\Carbon::parse($fechaHasta)->format('d/m/Y') : 'hoy' }}
+        @if($stockBajo)
+            &nbsp;·&nbsp;<strong style="color:#c0392b;">⚠ Stock bajo</strong>
+        @endif
     </div>
-    @endif
 
     @php
         $totalEntradas = $movimientos->where('tipo', 'entrada')->sum('cantidad');
