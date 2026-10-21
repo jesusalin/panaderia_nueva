@@ -40,24 +40,24 @@
     </div>
 
     <div class="rango">
-        Periodo: {{ $fechaDesde ? \Carbon\Carbon::parse($fechaDesde)->format('d/m/Y') : 'inicio' }}
-        &nbsp;—&nbsp;
-        {{ $fechaHasta ? \Carbon\Carbon::parse($fechaHasta)->format('d/m/Y') : 'hoy' }}
+        Periodo:
+        @if($periodo === 'personalizado')
+            {{ $desde ? $desde->format('d/m/Y') : 'inicio' }} &nbsp;—&nbsp; {{ $hasta ? $hasta->format('d/m/Y') : 'hoy' }}
+        @else
+            {{ \App\Http\Controllers\ReportesController::PERIODOS[$periodo] ?? 'Últimos 30 días' }}
+        @endif
+        &nbsp;·&nbsp; {{ $cuadra ? 'El kardex cuadra' : 'Atención: el kardex no cuadra en este periodo' }}
         @if($stockBajo)
             &nbsp;·&nbsp;<strong style="color:#c0392b;">⚠ Stock bajo</strong>
         @endif
     </div>
 
-    @php
-        $totalEntradas = $movimientos->where('tipo', 'entrada')->sum('cantidad');
-        $totalSalidas  = $movimientos->where('tipo', 'salida')->sum('cantidad');
-    @endphp
-
     <table class="resumen" width="100%">
         <tr>
-            <td width="33%"><div class="caja"><div class="lbl">Total Entradas</div><div class="val">{{ number_format($totalEntradas, 2) }} {{ $unidad }}</div></div></td>
-            <td width="33%"><div class="caja"><div class="lbl">Total Salidas</div><div class="val">{{ number_format($totalSalidas, 2) }} {{ $unidad }}</div></div></td>
-            <td width="33%"><div class="caja"><div class="lbl">Saldo Actual</div><div class="val">{{ number_format($item->stock_actual, 2) }} {{ $unidad }}</div></div></td>
+            <td width="25%"><div class="caja"><div class="lbl">Saldo inicial</div><div class="val">{{ number_format($saldoInicial, 2) }} {{ $unidad }}</div></div></td>
+            <td width="25%"><div class="caja"><div class="lbl">Entradas</div><div class="val">+{{ number_format($totalEntradas, 2) }} {{ $unidad }}</div></div></td>
+            <td width="25%"><div class="caja"><div class="lbl">Salidas</div><div class="val">-{{ number_format($totalSalidas, 2) }} {{ $unidad }}</div></div></td>
+            <td width="25%"><div class="caja"><div class="lbl">Saldo actual</div><div class="val">{{ number_format($item->stock_actual, 2) }} {{ $unidad }}</div></div></td>
         </tr>
     </table>
 
@@ -69,13 +69,20 @@
             </tr>
         </thead>
         <tbody>
+            @if($movimientos->isNotEmpty())
+            <tr style="background:#f4f1ee;font-style:italic;font-weight:bold;">
+                <td colspan="5">Saldo inicial</td>
+                <td class="num">{{ number_format($saldoInicial, 2) }}</td>
+                <td></td>
+            </tr>
+            @endif
             @forelse($movimientos as $mov)
             <tr>
                 <td>{{ $mov->created_at->format('d/m/Y H:i') }}</td>
-                <td>{{ ucfirst($mov->tipo) }}</td>
+                <td>{{ $mov->es_ajuste ? 'Ajuste' : ucfirst($mov->tipo) }}</td>
                 <td>{{ ucfirst(str_replace('_', ' ', $mov->motivo)) }}</td>
-                <td class="num">{{ $mov->tipo === 'entrada' ? number_format($mov->cantidad, 2) : '' }}</td>
-                <td class="num">{{ $mov->tipo === 'salida' ? number_format($mov->cantidad, 2) : '' }}</td>
+                <td class="num">{{ $mov->entrada > 0 ? number_format($mov->entrada, 2) : '' }}</td>
+                <td class="num">{{ $mov->salida > 0 ? number_format($mov->salida, 2) : '' }}</td>
                 <td class="num">{{ number_format($mov->stock_despues, 2) }}</td>
                 <td>{{ $mov->usuario->apodo ?? $mov->usuario->nombre ?? '—' }}</td>
             </tr>

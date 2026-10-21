@@ -36,7 +36,8 @@ class StockExport implements FromCollection, WithHeadings, WithMapping, WithStyl
                 'minimo'     => $m->stock_minimo,
                 'costo'      => $m->costo_unitario,
                 'valor'      => $m->stock_actual * $m->costo_unitario,
-                'estado'     => $m->stock_actual <= $m->stock_minimo ? 'Stock bajo' : 'Normal',
+                'estado'     => ['agotado' => 'Agotado', 'bajo' => 'Stock bajo', 'ok' => 'Normal'][$m->nivel] ?? 'Normal',
+                'reponer'    => $m->reponer ?? 0,
             ]);
         }
 
@@ -50,7 +51,8 @@ class StockExport implements FromCollection, WithHeadings, WithMapping, WithStyl
                 'minimo'     => $p->stock_minimo,
                 'costo'      => $p->costo_produccion ?? 0,
                 'valor'      => $p->stock_actual * ($p->costo_produccion ?? 0),
-                'estado'     => $p->stock_actual <= $p->stock_minimo ? 'Stock bajo' : 'Normal',
+                'estado'     => ['agotado' => 'Agotado', 'bajo' => 'Stock bajo', 'ok' => 'Normal'][$p->nivel] ?? 'Normal',
+                'reponer'    => $p->reponer ?? 0,
             ]);
         }
 
@@ -59,7 +61,7 @@ class StockExport implements FromCollection, WithHeadings, WithMapping, WithStyl
 
     public function headings(): array
     {
-        return ['Tipo', 'Nombre', 'Proveedor / Categoría', 'Stock', 'Unidad', 'Stock Mínimo', 'Costo Unitario', 'Valor Total', 'Estado'];
+        return ['Tipo', 'Nombre', 'Proveedor / Categoría', 'Stock', 'Unidad', 'Stock Mínimo', 'Costo Unitario', 'Valor Total', 'Estado', 'Cantidad a reponer'];
     }
 
     public function map($fila): array
@@ -74,12 +76,13 @@ class StockExport implements FromCollection, WithHeadings, WithMapping, WithStyl
             round($fila->costo, 2),
             round($fila->valor, 2),
             $fila->estado,
+            $fila->reponer > 0 ? round($fila->reponer, 2) : '',
         ];
     }
 
     public function columnWidths(): array
     {
-        return ['A' => 14, 'B' => 28, 'C' => 22, 'D' => 10, 'E' => 10, 'F' => 12, 'G' => 14, 'H' => 14, 'I' => 12];
+        return ['A' => 14, 'B' => 28, 'C' => 22, 'D' => 10, 'E' => 10, 'F' => 12, 'G' => 14, 'H' => 14, 'I' => 12, 'J' => 18];
     }
 
     public function styles(Worksheet $sheet)

@@ -61,6 +61,27 @@
     .alert-banner .ab-text strong { display: block; font-size: .95rem; }
     .alert-banner .ab-text span { font-size: .82rem; opacity: .85; }
     .alert-banner .ab-action { margin-left: auto; white-space: nowrap; }
+    /* Panel del almacén */
+    .almacen-panel { border: none; border-radius: 14px; box-shadow: 0 2px 12px rgba(0,0,0,.05); overflow: hidden; }
+    .almacen-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: .6rem; padding: .9rem 1.3rem; border-bottom: 1px solid #f0ece6; }
+    .almacen-acciones { display: flex; flex-wrap: wrap; gap: .4rem; }
+    .almacen-lista { padding: .4rem 1.3rem .8rem; }
+    .almacen-item { display: grid; grid-template-columns: minmax(150px, 1.4fr) 1.2fr auto auto; gap: 1rem; align-items: center; padding: .55rem 0; border-bottom: 1px dashed #eee; font-size: .88rem; }
+    .almacen-item:last-child { border-bottom: none; }
+    .ai-nombre { font-weight: 700; color: #1a1a2e; }
+    .ai-barra { height: 8px; border-radius: 6px; background: #eef0f3; overflow: hidden; }
+    .ai-fill { height: 100%; border-radius: 6px; }
+    .ai-fill.rojo { background: #e74c3c; } .ai-fill.ambar { background: #f39c12; }
+    .ai-dato { color: #6c757d; font-size: .8rem; white-space: nowrap; }
+    .ai-links a { color: #8a8a9d; margin-left: .6rem; } .ai-links a:hover { color: #b5451b; }
+    .almacen-vacio { padding: 1rem 1.3rem; color: #8a8a9d; }
+    body.dark-mode .almacen-panel { background: #1f1f33; }
+    body.dark-mode .almacen-head { border-bottom-color: #33334d; color: #f0f0f7; }
+    body.dark-mode .almacen-item { border-bottom-color: #33334d; }
+    body.dark-mode .ai-nombre { color: #f0f0f7; }
+    body.dark-mode .ai-barra { background: #33334d; }
+    @media (max-width: 700px) { .almacen-item { grid-template-columns: 1fr auto; } .ai-barra { grid-column: 1 / -1; } }
+
 
     /* KPI cards (indicadores de tesis) */
     .kpi-card {
@@ -216,6 +237,42 @@
             <span>Ningún producto ni insumo está por debajo de su stock mínimo.</span>
         </div>
     </div>
+@endif
+
+{{-- Panel del almacenero: qué reponer ya + accesos directos --}}
+@if($u->hasModulo('inventario'))
+<div class="card almacen-panel mt-3">
+    <div class="almacen-head">
+        <strong><i class="fas fa-boxes-stacked mr-2"></i>Panel del almacén</strong>
+        <div class="almacen-acciones">
+            <a href="{{ route('conteo-fisico.index') }}" class="btn btn-sm btn-outline-secondary"><i class="fas fa-clipboard-check mr-1"></i>Conteo físico</a>
+            @if($u->hasModulo('compras'))<a href="{{ route('compras.create') }}" class="btn btn-sm btn-outline-secondary"><i class="fas fa-cart-plus mr-1"></i>Registrar compra</a>@endif
+            @if($u->hasModulo('reportes'))<a href="{{ route('reportes.stock', ['stock' => 'bajo']) }}" class="btn btn-sm btn-outline-secondary"><i class="fas fa-warehouse mr-1"></i>Reporte de stock</a>@endif
+            @if($u->hasModulo('reportes'))<a href="{{ route('reportes.kardex') }}" class="btn btn-sm btn-outline-secondary"><i class="fas fa-file-invoice mr-1"></i>Kardex</a>@endif
+        </div>
+    </div>
+    @if($stockCritico->isNotEmpty())
+    <div class="almacen-lista">
+        @foreach($stockCritico as $c)
+            @php $pct = $c->minimo > 0 ? min(100, round(($c->stock / $c->minimo) * 100)) : 0; @endphp
+            <div class="almacen-item">
+                <div class="ai-nombre">
+                    {{ $c->nombre }}
+                    @if($c->stock <= 0)<span class="badge-soft badge-soft-danger ml-1">Agotado</span>@else<span class="badge-soft badge-soft-warning ml-1">Bajo</span>@endif
+                </div>
+                <div class="ai-barra"><div class="ai-fill {{ $c->stock <= 0 ? 'rojo' : 'ambar' }}" style="width: {{ max($pct, 3) }}%"></div></div>
+                <div class="ai-dato">{{ rtrim(rtrim(number_format($c->stock, 2), '0'), '.') ?: '0' }} / {{ rtrim(rtrim(number_format($c->minimo, 2), '0'), '.') ?: '0' }} {{ $c->unidad }}</div>
+                <div class="ai-links">
+                    <a href="{{ route('reportes.kardex', ['item' => $c->tipo.'-'.$c->id]) }}" title="Ver kardex"><i class="fas fa-file-invoice"></i></a>
+                    @if($c->tipo === 'materia')<a href="{{ route('materia-prima.ajuste', $c->id) }}" title="Ajustar stock"><i class="fas fa-balance-scale"></i></a>@endif
+                </div>
+            </div>
+        @endforeach
+    </div>
+    @else
+    <div class="almacen-vacio"><i class="fas fa-check-circle text-success mr-1"></i>No hay nada urgente por reponer.</div>
+    @endif
+</div>
 @endif
 @endif
 

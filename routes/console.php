@@ -15,3 +15,11 @@ Schedule::command('backup:run')
     ->dailyAt('03:00')
     ->withoutOverlapping()
     ->onOneServer();
+
+// Revisión automática de stock bajo: cada mañana deja generadas las órdenes
+// de reposición de los insumos que estén por debajo de su mínimo, para que
+// el almacenero las encuentre listas en "Órdenes Automáticas".
+// (Requiere el mismo scheduler/cron que el respaldo — ver CAMBIOS-FALTANTES.md.)
+Schedule::command('inventario:revisar-stock')
+    ->dailyAt('06:30')
+    ->withoutOverlapping();

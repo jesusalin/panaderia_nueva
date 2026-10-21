@@ -1,81 +1,105 @@
 # Cambios faltantes — Kardex y Gestión de Reportes (enfoque Almacenero)
 
-Este documento resume lo que se mejoró en esta vuelta y lo que todavía queda
-pendiente, para que no se pierda el hilo si se retoma después.
+Resumen de lo que ya está hecho y de lo que todavía queda pendiente, para no
+perder el hilo si se retoma después. Este archivo reúne **dos vueltas de trabajo**
+(la primera y la segunda, que se fusionaron).
 
-## ✅ Lo que se hizo en esta vuelta
+## ✅ Vuelta 1 (ya estaba en tu ZIP)
 
-1. **Accesos directos al Kardex** — en los listados de **Materia Prima** y
-   **Productos**, cada fila ahora tiene un botón "Ver Kardex" que lleva
-   directo a la ficha de ese ítem ya filtrada (antes había que entrar a
-   Reportes → Kardex y volver a buscar el ítem en el desplegable).
-2. **Rango de fechas automático** — al abrir el Kardex de un ítem sin
-   especificar fechas, el sistema muestra automáticamente los **últimos 30
-   días** en vez de dejar la pantalla vacía o cargar todo el historial de
-   una. Incluye un enlace "Ver historial completo" para cuando sí se necesite
-   todo.
-3. **Aviso de stock bajo en el Kardex** — si el ítem que se está revisando
-   está en stock bajo (≤ stock mínimo), se muestra una alerta directamente en
-   la ficha y en el PDF exportado, para que salte a la vista sin tener que
-   cruzarlo con el reporte de Stock.
-4. **Nuevo "Resumen de Reportes"** (`/reportes`) — página de entrada que
-   reúne en un solo lugar, con una cifra clave visible en cada tarjeta:
-   - Reporte de Stock (cuántos ítems están en stock bajo ahora mismo)
-   - Kardex (movimientos registrados hoy)
-   - Tiempos por Operación (OE3)
-   - Conteo Físico (exactitud del último conteo, si existe)
-   - Historial de Ventas → Excel (solo si el usuario tiene el módulo Ventas)
+1. **Accesos directos al Kardex** — botón "Ver Kardex" en los listados de
+   Materia Prima y Productos.
+2. **Rango de fechas automático** — el Kardex abre con los últimos 30 días.
+3. **Aviso de stock bajo en el Kardex** (pantalla y PDF).
+4. **"Resumen de Reportes"** (`/reportes`) como primer ítem del menú REPORTES,
+   con una cifra clave por tarjeta.
 
-   Se agregó como primer ítem del menú "REPORTES" en el sidebar
-   ("Resumen de Reportes").
+## ✅ Vuelta 2 (esta entrega)
 
-## 🔲 Lo que falta (no se alcanzó a hacer esta vuelta)
+### Kardex (`Reportes → Kardex`)
+- 🐞 **Bug corregido:** los **ajustes de inventario y conteos físicos** salían en
+  blanco (ni entrada ni salida) y **no sumaban en los totales**. Ahora la
+  entrada/salida se calcula con la variación real del stock
+  (`stock_después − stock_antes`), así que todo movimiento queda contado.
+- **Saldo inicial** del periodo (fila propia en la tabla, PDF y Excel).
+- **Verificación "el kardex cuadra"**: saldo inicial + entradas − salidas = saldo
+  final. Si no cuadra, avisa y sugiere un conteo físico (útil para el OE2).
+- **Valor del saldo en S/** (stock × costo) junto al saldo actual y el mínimo.
+- **Desglose por motivo** (compra, producción, venta, merma, ajuste…).
+- **Un solo selector** de ítem (insumos y productos juntos) que carga solo al
+  elegir, y **periodos rápidos** (Hoy / 7 días / 30 días / Este mes / Todo) más
+  fechas exactas opcionales.
+- Atajo **"Ajustar stock"** desde el kardex de un insumo.
+- Se mantiene compatible con los enlaces "Ver Kardex" de la vuelta 1
+  (`tipo_item` / `id_item`).
 
-1. **Unificar el Kardex "ficha por ítem" con los listados existentes.**
-   Hoy conviven dos cosas distintas y no se tocaron para no romper nada:
-   - `Reportes → Kardex` (`reportes.kardex`): ficha de UN ítem con saldo
-     corrido — esta es la que se mejoró hoy.
-   - `kardex.index` y `movimientos.index`: listados generales de
-     movimientos de **productos** y de **materia prima** por separado (con
-     sus propios filtros y stats), que NO recibieron las mismas mejoras
-     (rango de 30 días automático, aviso de stock bajo).
+### Reporte de Stock (`Reportes → Stock`)
+- **Semáforo** por ítem: Agotado / Stock bajo / Normal.
+- **Cantidad sugerida a reponer / producir** (la configurada o el doble del mínimo).
+- Los ítems **críticos salen primero**; filtro "necesitan reposición" y "solo agotados".
+- **Búsqueda automática** (filtra sola al dejar de escribir).
+- Acciones directas por fila: ver kardex, ajustar stock, registrar compra,
+  registrar producción (según los permisos del usuario).
+- Botón **"Generar órdenes de reposición"** (llama a Órdenes Automáticas).
+- El **Excel** ahora incluye el estado detallado y la columna "Cantidad a reponer".
 
-   Recomendación: decidir si estas dos vistas generales siguen o si todo se
-   consolida dentro de "Reportes", para no mantener dos caminos distintos
-   para ver lo mismo.
+### Dashboard — Panel del almacén (solo usuarios con módulo Inventario)
+- Los **6 ítems más críticos** con barra de nivel, y accesos directos a Conteo
+  físico, Registrar compra, Reporte de stock y Kardex.
 
-2. **Selector de ítem más rápido en el Kardex.** El desplegable de insumos y
-   productos es una lista plana; si el catálogo crece, buscar un ítem a mano
-   se vuelve lento. Falta agregarle un buscador en vivo (por ejemplo con
-   Choices.js o Select2) en vez del `<select>` normal.
+### Automático
+- Nuevo comando `php artisan inventario:revisar-stock`, **programado todos los
+  días a las 6:30 a.m.**: deja creadas las órdenes de reposición de los insumos
+  con stock bajo (sin duplicar las pendientes). El almacenero las encuentra
+  listas en *Órdenes Automáticas*.
 
-3. **Reportes automáticos de verdad (programados).** "Automático" por ahora
-   significa que el sistema pre-completa fechas y avisos por sí solo al
-   entrar — pero no hay nada que se genere y envíe solo (por ejemplo, un
-   correo semanal con el reporte de stock bajo, o un PDF de cierre de mes
-   generado por el programador de tareas de Laravel). Si la idea de
-   "automático" apuntaba a esto, es una tarea aparte: requeriría configurar
-   el *scheduler* de Laravel y, si se quiere enviar por correo, un driver de
-   mail real (hoy el `.env.example` trae `MAIL_MAILER` de prueba).
+## 🔲 Lo que falta
 
-4. **Gráfico de evolución del Kardex.** Hoy la ficha es solo tabla. Un
-   gráfico de línea con el saldo a través del tiempo (ya hay Chart.js
-   cargado en el proyecto, se usa en Tiempos de Operación) ayudaría a leer
-   de un vistazo si un insumo tiende a agotarse rápido.
+1. **Activar el scheduler en el servidor.** El comando automático y el respaldo
+   diario solo corren si Laravel tiene quien lo dispare. En XAMPP/local no corre
+   solo: usar `php artisan schedule:work` (ventana abierta) para probarlo; en
+   hosting hace falta un cron cada minuto:
+   `* * * * * cd /ruta/proyecto && php artisan schedule:run >> /dev/null 2>&1`
+2. **Envío por correo** (alerta de stock bajo / reporte semanal de stock): el
+   sistema ya detecta y genera, pero no envía correos. Requiere configurar un
+   `MAIL_MAILER` real (hoy el `.env` usa `log`).
+3. **Selector de ítem con buscador en vivo** (Select2 / Choices.js). Con muchos
+   insumos el desplegable agrupado se hace largo.
+4. **Gráfico de evolución del saldo** en el Kardex (Chart.js ya está en el proyecto).
+5. **Enlace al Conteo Físico desde el Kardex** cuando un ítem esté en stock bajo
+   o el kardex no cuadre ("Registrar conteo de este insumo").
+6. **Unificar los listados generales** (`kardex.index` = Movimientos de Productos,
+   `movimientos.index` = Movimientos de Materia Prima) con *Reportes → Kardex*:
+   hoy son dos caminos para ver cosas parecidas. Falta decidir si se consolidan.
+7. **PDF de Stock**: mostrar también "Agotado" y la columna "Reponer" (hoy el PDF
+   conserva su columna Estado original; la pantalla y el Excel ya la tienen).
+8. **Prueba automática del kardex** (que saldo inicial + entradas − salidas =
+   saldo final, incluyendo ajustes), al estilo de `tests/Unit/ConteoFisicoExactitudTest.php`.
+9. **Pre-test / Post-test** (pedido del jurado): documentar en la metodología
+   (Cap. III) cómo se midieron los 28 + 28 registros. No es código.
 
-5. **Conteo Físico no quedó enlazado desde el Kardex.** Sería útil que, si
-   un ítem muestra "stock bajo" o una exactitud mala en su último conteo, el
-   Kardex tenga un enlace directo a "Registrar conteo de este insumo" en vez
-   de solo mostrar la alerta.
+## 🧪 Cómo probar esta entrega (5 minutos)
 
-## Archivos tocados en esta vuelta
+1. `php artisan serve`, entrar como `almacenero` / `almacenero123`.
+2. **Dashboard** → ver el "Panel del almacén".
+3. **Reportes → Stock** → ver semáforo, "Reponer ≈" y exportar Excel/PDF.
+4. **Reportes → Kardex** → elegir un insumo con un ajuste o conteo físico y
+   comprobar que el ajuste aparece como entrada/salida y que dice "El kardex cuadra".
+5. `php artisan inventario:revisar-stock` → debe crear órdenes (o decir que no hay).
 
-- `app/Http/Controllers/ReportesController.php` (nuevo método `index()`,
-  fechas automáticas y aviso de stock bajo en `datosKardex()`)
-- `routes/web.php` (ruta `reportes.index`)
-- `resources/views/reportes/index.blade.php` (nuevo)
-- `resources/views/reportes/kardex.blade.php` (rango automático + aviso stock bajo)
-- `resources/views/reportes/kardex-pdf.blade.php` (rango real + aviso stock bajo)
-- `resources/views/materia_prima/index.blade.php` (botón "Ver Kardex")
-- `resources/views/productos/index.blade.php` (botón "Ver Kardex")
-- `resources/views/layouts/app.blade.php` (ítem "Resumen de Reportes" en el menú)
+> Nota: los cambios se validaron por sintaxis (PHP/Blade) pero no se ejecutaron
+> contra tu base de datos; si algo falla al probar, pásame el mensaje exacto.
+
+## Archivos tocados en la vuelta 2
+
+- `app/Http/Controllers/ReportesController.php` — kardex normalizado, periodos,
+  stock con semáforo (se conserva el `index()` del Resumen de Reportes)
+- `app/Http/Controllers/DashboardController.php` — datos del panel del almacén
+- `app/Exports/KardexExport.php` — saldo inicial y ajustes
+- `app/Exports/StockExport.php` — estado y cantidad a reponer
+- `app/Console/Commands/RevisarStockBajo.php` — **nuevo**
+- `routes/console.php` — programación diaria del comando
+- `resources/views/reportes/kardex.blade.php`
+- `resources/views/reportes/kardex-pdf.blade.php`
+- `resources/views/reportes/stock.blade.php`
+- `resources/views/dashboard/index.blade.php`
+- `CAMBIOS-FALTANTES.md`

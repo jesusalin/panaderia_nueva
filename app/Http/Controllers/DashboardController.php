@@ -50,6 +50,27 @@ class DashboardController extends Controller
         $materiaStockBaja = MateriaPrima::where('estado', 'activo')
             ->whereColumn('stock_actual', '<=', 'stock_minimo')->count();
 
+        // ── Panel del almacenero: lo más urgente de reponer ───
+        // Se ordena por qué tan vacío está cada ítem respecto a su mínimo
+        // (agotados primero) y se muestran solo los 6 más críticos.
+        $criticosMateria = MateriaPrima::with('unidad')->where('estado', 'activo')
+            ->whereColumn('stock_actual', '<=', 'stock_minimo')->get()
+            ->map(fn($m) => (object) [
+                'tipo' => 'materia', 'id' => $m->id, 'nombre' => $m->nombre,
+                'stock' => (float) $m->stock_actual, 'minimo' => (float) $m->stock_minimo,
+                'unidad' => $m->unidad->abreviatura ?? '',
+            ]);
+        $criticosProducto = Producto::where('estado', 'activo')
+            ->whereColumn('stock_actual', '<=', 'stock_minimo')->get()
+            ->map(fn($p) => (object) [
+                'tipo' => 'producto', 'id' => $p->id, 'nombre' => $p->nombre,
+                'stock' => (float) $p->stock_actual, 'minimo' => (float) $p->stock_minimo,
+                'unidad' => 'uds',
+            ]);
+        $stockCritico = $criticosMateria->concat($criticosProducto)
+            ->sortBy(fn($i) => $i->minimo > 0 ? $i->stock / $i->minimo : 0)
+            ->take(6)->values();
+
         // ── Exactitud del inventario (OE2 de tesis) ──────────
         // Fórmula real: promedio de exactitud del último conteo físico
         // registrado (stock físico vs. stock del sistema). Si todavía no
@@ -139,7 +160,7 @@ class DashboardController extends Controller
 
         return view('dashboard.index', compact(
             'ventasHoy', 'ventasAyer', 'variacionVentas', 'ventasMes', 'comprasMes', 'gananciaMes',
-            'productosStockBajo', 'materiaStockBaja',
+            'productosStockBajo', 'materiaStockBaja', 'stockCritico',
             'exactitudInventario', 'exactitudEsReal', 'fechaUltimoConteo', 'registrosHoy', 'reduccionTiemposMuertos',
             'ultimasVentas', 'topProductos', 'ventasSemana', 'rotacionStock'
         ));

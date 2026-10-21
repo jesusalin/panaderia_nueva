@@ -4,23 +4,60 @@
 
 @push('styles')
 <style>
-    .rp-stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1.5rem; }
-    .rp-stat { background: #fff; border-radius: 14px; padding: 1.1rem 1.3rem; box-shadow: 0 2px 12px rgba(0,0,0,.05); border-left: 4px solid #dee2e6; }
+    .rp-stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 1rem; margin-bottom: 1.2rem; }
+    .rp-stat { background: #fff; border-radius: 14px; padding: 1rem 1.2rem; box-shadow: 0 2px 12px rgba(0,0,0,.05); border-left: 4px solid #dee2e6; }
     .rp-stat.acc-info    { border-left-color: #3498db; }
     .rp-stat.acc-success { border-left-color: #2ecc71; }
     .rp-stat.acc-danger  { border-left-color: #e74c3c; }
-    .rp-stat .rp-label { font-size: .74rem; font-weight: 700; color: #8a8a9d; text-transform: uppercase; letter-spacing: .03em; }
-    .rp-stat .rp-value { font-size: 1.4rem; font-weight: 800; color: #1a1a2e; margin-top: .2rem; }
+    .rp-stat.acc-warn    { border-left-color: #f39c12; }
+    .rp-stat .rp-label { font-size: .72rem; font-weight: 700; color: #8a8a9d; text-transform: uppercase; letter-spacing: .03em; }
+    .rp-stat .rp-value { font-size: 1.3rem; font-weight: 800; color: #1a1a2e; margin-top: .2rem; }
+    .rp-stat .rp-sub { font-size: .74rem; color: #8a8a9d; }
     body.dark-mode .rp-stat { background: #1f1f33; }
     body.dark-mode .rp-stat .rp-value { color: #f0f0f7; }
 
-    .rp-filter { border: none; border-radius: 14px; box-shadow: 0 2px 12px rgba(0,0,0,.05); padding: 1rem 1.3rem; margin-bottom: 1.3rem; }
+    .rp-filter { border: none; border-radius: 14px; box-shadow: 0 2px 12px rgba(0,0,0,.05); padding: 1rem 1.3rem; margin-bottom: 1.2rem; }
     .rp-filter .form-control { border-radius: 10px; border: 1.5px solid #e9ecef; }
     body.dark-mode .rp-filter .form-control { background: #24243b; border-color: #33334d; color: #e4e4ef; }
+
+    .kd-chips { display: flex; flex-wrap: wrap; gap: .4rem; margin-top: .8rem; align-items: center; }
+    .kd-chip {
+        padding: .3rem .8rem; border-radius: 20px; font-size: .8rem; font-weight: 700; text-decoration: none;
+        background: #f1f1f4; color: #6c757d; border: 1.5px solid transparent; transition: all .15s;
+    }
+    .kd-chip:hover { background: #e7e7ec; color: #1a1a2e; text-decoration: none; }
+    .kd-chip.active { background: rgba(181,69,27,.12); color: #b5451b; border-color: rgba(181,69,27,.35); }
+    body.dark-mode .kd-chip { background: #2c2c44; color: #b0b0cc; }
+    body.dark-mode .kd-chip:hover { background: #33334d; color: #fff; }
+    body.dark-mode .kd-chip.active { background: rgba(181,69,27,.25); color: #ff9d6e; border-color: rgba(255,157,110,.4); }
+
+    .kd-estado { display: inline-flex; align-items: center; gap: .4rem; font-size: .8rem; font-weight: 700; padding: .3rem .75rem; border-radius: 20px; }
+    .kd-estado.ok   { background: rgba(46,204,113,.14); color: #1e8e5a; }
+    .kd-estado.warn { background: rgba(243,156,18,.16); color: #a5680d; }
+    body.dark-mode .kd-estado.ok   { color: #6ee7a5; }
+    body.dark-mode .kd-estado.warn { color: #ffc673; }
+
+    .kd-motivos { display: flex; flex-wrap: wrap; gap: .5rem; margin-bottom: 1.2rem; }
+    .kd-motivo { background: #fff; border-radius: 10px; padding: .45rem .8rem; font-size: .8rem; box-shadow: 0 1px 6px rgba(0,0,0,.05); }
+    .kd-motivo b { color: #1a1a2e; }
+    body.dark-mode .kd-motivo { background: #1f1f33; color: #b0b0cc; }
+    body.dark-mode .kd-motivo b { color: #f0f0f7; }
+
+    .kd-row-inicial td { background: #f7f5f3; font-style: italic; font-weight: 700; }
+    body.dark-mode .kd-row-inicial td { background: #24243b; }
 </style>
 @endpush
 
 @section('content')
+
+@php
+    $motivos = [
+        'compra' => 'Compra', 'produccion' => 'Producción', 'venta' => 'Venta', 'merma' => 'Merma',
+        'ajuste_manual' => 'Ajuste de inventario', 'devolucion' => 'Devolución',
+    ];
+    $queryBase = request()->except(['periodo', 'fecha_desde', 'fecha_hasta']);
+    $itemActual = $tipoItem && $idItem ? $tipoItem . '-' . $idItem : '';
+@endphp
 
 <div class="page-toolbar">
     <div>
@@ -29,6 +66,11 @@
     </div>
     @if($item)
     <div class="toolbar-actions">
+        @if($tipoItem === 'materia')
+        <a href="{{ route('materia-prima.ajuste', $item) }}" class="btn btn-outline-warning">
+            <i class="fas fa-balance-scale mr-1"></i>Ajustar stock
+        </a>
+        @endif
         <a href="{{ route('reportes.kardex.pdf', request()->query()) }}" target="_blank" class="btn btn-outline-secondary">
             <i class="fas fa-file-pdf mr-1"></i>PDF
         </a>
@@ -40,76 +82,102 @@
 </div>
 
 <div class="card rp-filter">
-    <form method="GET" class="form-inline flex-wrap" style="gap:.6rem;">
-        <select name="tipo_item" id="selTipoItem" class="form-control" onchange="cambiarTipoItem()">
-            <option value="">-- Tipo de ítem --</option>
-            <option value="materia"  {{ $tipoItem === 'materia'  ? 'selected' : '' }}>Materia Prima</option>
-            <option value="producto" {{ $tipoItem === 'producto' ? 'selected' : '' }}>Producto</option>
+    <form method="GET" id="formKardex" class="form-inline flex-wrap" style="gap:.6rem;">
+        <input type="hidden" name="periodo" value="{{ $periodo !== 'personalizado' ? $periodo : '' }}">
+
+        <select name="item" class="form-control" style="min-width:260px;" onchange="this.form.submit()">
+            <option value="">— Elige un insumo o producto —</option>
+            <optgroup label="Materia Prima">
+                @foreach($materias as $m)
+                    <option value="materia-{{ $m->id }}" {{ $itemActual === 'materia-'.$m->id ? 'selected' : '' }}>{{ $m->nombre }}</option>
+                @endforeach
+            </optgroup>
+            <optgroup label="Productos terminados">
+                @foreach($productos as $p)
+                    <option value="producto-{{ $p->id }}" {{ $itemActual === 'producto-'.$p->id ? 'selected' : '' }}>{{ $p->nombre }}</option>
+                @endforeach
+            </optgroup>
         </select>
 
-        <select name="id_item" id="selMateria" class="form-control"
-            style="display:{{ $tipoItem === 'materia' ? 'inline-block' : 'none' }};"
-            {{ $tipoItem !== 'materia' ? 'disabled' : '' }}>
-            <option value="">-- Seleccionar insumo --</option>
-            @foreach($materias as $m)
-                <option value="{{ $m->id }}" {{ $idItem == $m->id && $tipoItem === 'materia' ? 'selected' : '' }}>{{ $m->nombre }}</option>
-            @endforeach
-        </select>
-
-        <select name="id_item" id="selProducto" class="form-control"
-            style="display:{{ $tipoItem === 'producto' ? 'inline-block' : 'none' }};"
-            {{ $tipoItem !== 'producto' ? 'disabled' : '' }}>
-            <option value="">-- Seleccionar producto --</option>
-            @foreach($productos as $p)
-                <option value="{{ $p->id }}" {{ $idItem == $p->id && $tipoItem === 'producto' ? 'selected' : '' }}>{{ $p->nombre }}</option>
-            @endforeach
-        </select>
-
-        <input type="date" name="fecha_desde" class="form-control" value="{{ $fechaDesde }}" title="Desde">
-        <input type="date" name="fecha_hasta" class="form-control" value="{{ $fechaHasta }}" title="Hasta">
-
-        <button class="btn btn-primary"><i class="fas fa-search mr-1"></i>Ver Kardex</button>
+        <details class="ml-1" {{ $periodo === 'personalizado' ? 'open' : '' }}>
+            <summary class="text-muted small" style="cursor:pointer;">Fechas exactas</summary>
+            <div class="form-inline mt-2" style="gap:.4rem;">
+                <input type="date" name="fecha_desde" class="form-control" value="{{ request('fecha_desde') }}" title="Desde">
+                <input type="date" name="fecha_hasta" class="form-control" value="{{ request('fecha_hasta') }}" title="Hasta">
+                <button class="btn btn-primary"><i class="fas fa-search mr-1"></i>Aplicar</button>
+            </div>
+        </details>
     </form>
-    @if($item && $sinFiltroFecha)
-    <p class="text-muted small mt-2 mb-0">
-        <i class="fas fa-circle-info mr-1"></i>Mostrando los últimos 30 días automáticamente.
-        <a href="{{ route('reportes.kardex', array_merge(request()->except(['fecha_desde','fecha_hasta']), ['fecha_desde' => '2000-01-01'])) }}">Ver historial completo</a>
-    </p>
+
+    @if($item)
+    <div class="kd-chips">
+        <span class="small text-muted mr-1"><i class="far fa-calendar-alt mr-1"></i>Periodo:</span>
+        @foreach(\App\Http\Controllers\ReportesController::PERIODOS as $clave => $etiqueta)
+            <a class="kd-chip {{ $periodo === (string)$clave ? 'active' : '' }}"
+               href="{{ route('reportes.kardex', array_merge($queryBase, ['periodo' => $clave])) }}">{{ $etiqueta }}</a>
+        @endforeach
+        @if($periodo === 'personalizado')
+            <span class="kd-chip active">
+                {{ $desde ? $desde->format('d/m/Y') : 'inicio' }} — {{ $hasta ? $hasta->format('d/m/Y') : 'hoy' }}
+            </span>
+        @endif
+    </div>
     @endif
 </div>
 
 @if($item)
-    @php
-        $totalEntradas = $movimientos->where('tipo', 'entrada')->sum('cantidad');
-        $totalSalidas  = $movimientos->where('tipo', 'salida')->sum('cantidad');
-        $saldoActual   = $item->stock_actual;
-    @endphp
-
     <div class="rp-stat-grid">
+        <div class="rp-stat">
+            <div class="rp-label">Saldo inicial</div>
+            <div class="rp-value">{{ number_format($saldoInicial, 2) }} {{ $unidad }}</div>
+            <div class="rp-sub">al empezar el periodo</div>
+        </div>
+        <div class="rp-stat acc-success">
+            <div class="rp-label">Entradas</div>
+            <div class="rp-value">+ {{ number_format($totalEntradas, 2) }} {{ $unidad }}</div>
+        </div>
+        <div class="rp-stat acc-danger">
+            <div class="rp-label">Salidas</div>
+            <div class="rp-value">− {{ number_format($totalSalidas, 2) }} {{ $unidad }}</div>
+        </div>
         <div class="rp-stat {{ $stockBajo ? 'acc-danger' : 'acc-info' }}">
-            <div class="rp-label">Ítem</div>
-            <div class="rp-value" style="font-size:1.05rem;">
-                {{ $item->nombre }}
+            <div class="rp-label">Saldo actual
                 @if($stockBajo)
-                    <span class="badge-soft badge-soft-danger ml-1" style="font-size:.65rem;vertical-align:middle;">
+                    <span class="badge-soft badge-soft-danger ml-1" style="font-size:.62rem;vertical-align:middle;">
                         <i class="fas fa-triangle-exclamation mr-1"></i>Stock bajo
                     </span>
                 @endif
             </div>
+            <div class="rp-value">{{ number_format($item->stock_actual, 2) }} {{ $unidad }}</div>
+            <div class="rp-sub">mínimo: {{ number_format($item->stock_minimo, 2) }} {{ $unidad }}</div>
         </div>
-        <div class="rp-stat acc-success">
-            <div class="rp-label">Total Entradas (periodo)</div>
-            <div class="rp-value">{{ number_format($totalEntradas, 2) }} {{ $unidad }}</div>
-        </div>
-        <div class="rp-stat acc-danger">
-            <div class="rp-label">Total Salidas (periodo)</div>
-            <div class="rp-value">{{ number_format($totalSalidas, 2) }} {{ $unidad }}</div>
-        </div>
-        <div class="rp-stat">
-            <div class="rp-label">Saldo Actual</div>
-            <div class="rp-value">{{ number_format($saldoActual, 2) }} {{ $unidad }}</div>
+        <div class="rp-stat acc-warn">
+            <div class="rp-label">Valor del saldo</div>
+            <div class="rp-value">S/ {{ number_format($item->stock_actual * $costo, 2) }}</div>
+            <div class="rp-sub">a S/ {{ number_format($costo, 2) }} c/u</div>
         </div>
     </div>
+
+    <div class="mb-3">
+        @if($cuadra)
+            <span class="kd-estado ok"><i class="fas fa-check-circle"></i>El kardex cuadra: saldo inicial + entradas − salidas = saldo final</span>
+        @else
+            <span class="kd-estado warn"><i class="fas fa-exclamation-triangle"></i>No cuadra: hay una diferencia en el periodo. Revisa los movimientos o haz un conteo físico.</span>
+        @endif
+    </div>
+
+    @if($porMotivo->isNotEmpty())
+    <div class="kd-motivos">
+        @foreach($porMotivo as $motivo => $d)
+            <div class="kd-motivo">
+                {{ $motivos[$motivo] ?? ucfirst(str_replace('_', ' ', $motivo)) }}:
+                @if($d['entrada'] > 0)<b class="text-success">+{{ number_format($d['entrada'], 2) }}</b>@endif
+                @if($d['salida'] > 0)<b class="text-danger">−{{ number_format($d['salida'], 2) }}</b>@endif
+                <span class="text-muted">({{ $d['cuenta'] }})</span>
+            </div>
+        @endforeach
+    </div>
+    @endif
 
     @if($movimientos->count() > 0)
     <div class="table-card">
@@ -118,23 +186,29 @@
                 <tr>
                     <th>Fecha</th><th>Tipo</th><th>Motivo</th>
                     <th class="text-right">Entrada</th><th class="text-right">Salida</th>
-                    <th class="text-right">Saldo</th><th>Usuario</th>
+                    <th class="text-right">Saldo</th><th>Usuario</th><th>Detalle</th>
                 </tr>
             </thead>
             <tbody>
+                <tr class="kd-row-inicial">
+                    <td colspan="5">Saldo inicial</td>
+                    <td class="text-right">{{ number_format($saldoInicial, 2) }} {{ $unidad }}</td>
+                    <td colspan="2"></td>
+                </tr>
                 @foreach($movimientos as $mov)
                 <tr>
                     <td>{{ $mov->created_at->format('d/m/Y H:i') }}</td>
                     <td>
-                        <span class="badge-soft {{ $mov->tipo === 'entrada' ? 'badge-soft-success' : ($mov->tipo === 'salida' ? 'badge-soft-danger' : 'badge-soft-secondary') }}">
-                            {{ ucfirst($mov->tipo) }}
+                        <span class="badge-soft {{ $mov->es_ajuste ? 'badge-soft-warning' : ($mov->entrada > 0 ? 'badge-soft-success' : 'badge-soft-danger') }}">
+                            {{ $mov->es_ajuste ? 'Ajuste' : ucfirst($mov->tipo) }}
                         </span>
                     </td>
-                    <td class="text-muted small">{{ ucfirst(str_replace('_', ' ', $mov->motivo)) }}</td>
-                    <td class="text-right text-success font-weight-bold">{{ $mov->tipo === 'entrada' ? number_format($mov->cantidad, 2) : '' }}</td>
-                    <td class="text-right text-danger font-weight-bold">{{ $mov->tipo === 'salida' ? number_format($mov->cantidad, 2) : '' }}</td>
+                    <td class="text-muted small">{{ $motivos[$mov->motivo] ?? ucfirst(str_replace('_', ' ', $mov->motivo)) }}</td>
+                    <td class="text-right text-success font-weight-bold">{{ $mov->entrada > 0 ? '+'.number_format($mov->entrada, 2) : '' }}</td>
+                    <td class="text-right text-danger font-weight-bold">{{ $mov->salida > 0 ? '−'.number_format($mov->salida, 2) : '' }}</td>
                     <td class="text-right font-weight-bold">{{ number_format($mov->stock_despues, 2) }} {{ $unidad }}</td>
                     <td class="text-muted small">{{ $mov->usuario->apodo ?? $mov->usuario->nombre ?? '—' }}</td>
+                    <td class="text-muted small">{{ $mov->observacion }}</td>
                 </tr>
                 @endforeach
             </tbody>
@@ -143,32 +217,15 @@
     @else
     <div class="empty-state">
         <i class="fas fa-file-invoice"></i>
-        <p>Este ítem no tiene movimientos registrados en el periodo seleccionado.</p>
+        <p>Este ítem no tiene movimientos en el periodo seleccionado.<br>
+           <a href="{{ route('reportes.kardex', array_merge($queryBase, ['periodo' => 'todo'])) }}">Ver todo el historial</a></p>
     </div>
     @endif
 @else
 <div class="empty-state">
     <i class="fas fa-hand-pointer"></i>
-    <p>Selecciona un insumo o producto arriba para ver su ficha kardex.</p>
+    <p>Elige un insumo o producto arriba y su kardex aparece al instante.</p>
 </div>
 @endif
 
 @endsection
-
-@push('scripts')
-<script>
-    function cambiarTipoItem() {
-        const tipo = document.getElementById('selTipoItem').value;
-        const selMateria = document.getElementById('selMateria');
-        const selProducto = document.getElementById('selProducto');
-
-        selMateria.style.display  = tipo === 'materia'  ? 'inline-block' : 'none';
-        selProducto.style.display = tipo === 'producto' ? 'inline-block' : 'none';
-        selMateria.disabled  = tipo !== 'materia';
-        selProducto.disabled = tipo !== 'producto';
-
-        if (tipo !== 'materia')  selMateria.selectedIndex = 0;
-        if (tipo !== 'producto') selProducto.selectedIndex = 0;
-    }
-</script>
-@endpush
