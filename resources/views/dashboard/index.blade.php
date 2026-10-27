@@ -141,78 +141,6 @@
     <p>{{ \Carbon\Carbon::now()->locale('es')->translatedFormat('l, d \d\e F \d\e Y') }}</p>
 </div>
 
-{{-- ══════════ TU NEGOCIO HOY ══════════ --}}
-@if($vePonderadoNegocio)
-<div class="section-heading">
-    <span class="sh-icon"><i class="fas fa-store"></i></span> Tu negocio hoy
-</div>
-<div class="row">
-    @if($u->hasModulo('ventas'))
-    <div class="col-lg-4 col-md-6 mb-3">
-        <div class="stat-hero">
-            <i class="fas fa-cash-register bg-icon"></i>
-            <div class="label">Ventas de hoy</div>
-            <div class="value">S/ {{ number_format($ventasHoy, 2) }}</div>
-            @if($variacionVentas !== null)
-                <span class="delta {{ $variacionVentas > 0 ? 'up' : ($variacionVentas < 0 ? 'down' : 'flat') }}">
-                    <i class="fas fa-{{ $variacionVentas >= 0 ? 'arrow-up' : 'arrow-down' }}"></i>
-                    {{ abs($variacionVentas) }}% vs. ayer
-                </span>
-            @else
-                <span class="delta flat">Sin ventas ayer para comparar</span>
-            @endif
-            <a href="{{ route('ventas.index') }}" class="foot-link">Ver todas las ventas →</a>
-        </div>
-    </div>
-    <div class="col-lg-2 col-md-6 col-6 mb-3">
-        <div class="stat-card acc-info">
-            <div>
-                <div class="label">Ventas del mes</div>
-                <div class="value">S/ {{ number_format($ventasMes, 0) }}</div>
-            </div>
-            <a href="{{ route('ventas.index') }}" class="foot-link">Ver detalle →</a>
-        </div>
-    </div>
-    @endif
-
-    @if($u->hasModulo('compras'))
-    <div class="col-lg-2 col-md-6 col-6 mb-3">
-        <div class="stat-card acc-warn">
-            <div>
-                <div class="label">Compras del mes</div>
-                <div class="value">S/ {{ number_format($comprasMes, 0) }}</div>
-            </div>
-            <a href="{{ route('compras.index') }}" class="foot-link">Ver compras →</a>
-        </div>
-    </div>
-    @endif
-
-    @if($u->isAdmin())
-    <div class="col-lg-2 col-md-6 col-6 mb-3">
-        <div class="stat-card {{ $gananciaMes >= 0 ? 'acc-success' : 'acc-danger' }}">
-            <div>
-                <div class="label">Ganancia del mes</div>
-                <div class="value">S/ {{ number_format($gananciaMes, 0) }}</div>
-            </div>
-            <span class="foot-link" style="color:#8a8a9d;cursor:default;">Ventas − Compras</span>
-        </div>
-    </div>
-    @endif
-
-    @if($u->hasModulo('reportes') || $u->isAdmin())
-    <div class="col-lg-2 col-md-6 col-6 mb-3">
-        <div class="stat-card acc-info">
-            <div>
-                <div class="label">Registros hoy</div>
-                <div class="value">{{ $registrosHoy }}</div>
-            </div>
-            <a href="{{ route('movimientos.index') }}" class="foot-link">Ver movimientos →</a>
-        </div>
-    </div>
-    @endif
-</div>
-@endif
-
 {{-- ══════════ ALERTAS ══════════ --}}
 @if($veAlertas)
 <div class="section-heading">
@@ -301,6 +229,78 @@
             @endif
         </div>
     </div>
+</div>
+@endif
+
+{{-- ══════════ TU NEGOCIO HOY ══════════ --}}
+@if($vePonderadoNegocio)
+<div class="section-heading">
+    <span class="sh-icon"><i class="fas fa-store"></i></span> Tu negocio hoy
+</div>
+<div class="row">
+    @if($u->hasModulo('ventas'))
+    <div class="col-lg-4 col-md-6 mb-3">
+        <div class="stat-hero">
+            <i class="fas fa-cash-register bg-icon"></i>
+            <div class="label">Ventas de hoy</div>
+            <div class="value">S/ {{ number_format($ventasHoy, 2) }}</div>
+            @if($variacionVentas !== null)
+                <span class="delta {{ $variacionVentas > 0 ? 'up' : ($variacionVentas < 0 ? 'down' : 'flat') }}">
+                    <i class="fas fa-{{ $variacionVentas >= 0 ? 'arrow-up' : 'arrow-down' }}"></i>
+                    {{ abs($variacionVentas) }}% vs. ayer
+                </span>
+            @else
+                <span class="delta flat">Sin ventas ayer para comparar</span>
+            @endif
+            <a href="{{ route('ventas.index') }}" class="foot-link">Ver todas las ventas →</a>
+        </div>
+    </div>
+    <div class="col-lg-2 col-md-6 col-6 mb-3">
+        <div class="stat-card acc-info">
+            <div>
+                <div class="label">Ventas del mes</div>
+                <div class="value">S/ {{ number_format($ventasMes, 0) }}</div>
+            </div>
+            <a href="{{ route('ventas.index') }}" class="foot-link">Ver detalle →</a>
+        </div>
+    </div>
+    @endif
+
+    @if($u->hasModulo('compras'))
+    <div class="col-lg-2 col-md-6 col-6 mb-3">
+        <div class="stat-card acc-warn">
+            <div>
+                <div class="label">Compras del mes</div>
+                <div class="value">S/ {{ number_format($comprasMes, 0) }}</div>
+            </div>
+            <a href="{{ route('compras.index') }}" class="foot-link">Ver compras →</a>
+        </div>
+    </div>
+    @endif
+
+    @if($u->isAdmin())
+    <div class="col-lg-2 col-md-6 col-6 mb-3">
+        <div class="stat-card {{ $gananciaMes >= 0 ? 'acc-success' : 'acc-danger' }}">
+            <div>
+                <div class="label">Ganancia del mes</div>
+                <div class="value">S/ {{ number_format($gananciaMes, 0) }}</div>
+            </div>
+            <span class="foot-link" style="color:#8a8a9d;cursor:default;">Ventas − Compras</span>
+        </div>
+    </div>
+    @endif
+
+    @if($u->hasModulo('reportes') || $u->isAdmin())
+    <div class="col-lg-2 col-md-6 col-6 mb-3">
+        <div class="stat-card acc-info">
+            <div>
+                <div class="label">Registros hoy</div>
+                <div class="value">{{ $registrosHoy }}</div>
+            </div>
+            <a href="{{ route('movimientos.index') }}" class="foot-link">Ver movimientos →</a>
+        </div>
+    </div>
+    @endif
 </div>
 @endif
 

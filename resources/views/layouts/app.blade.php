@@ -547,35 +547,6 @@
                         </a>
                     </li>
 
-                    @if(auth()->user()->hasModulo('catalogo'))
-                    <li class="nav-item">
-                        <a href="{{ route('categorias.index') }}" class="nav-link {{ request()->routeIs('categorias.*') ? 'active' : '' }}">
-                            <i class="nav-icon fas fa-tags"></i><p>Categorías</p>
-                        </a>
-                    </li>
-                    @endif
-
-                    @if(auth()->user()->hasModulo('catalogo') || auth()->user()->hasModulo('produccion'))
-                    @php
-                        // El módulo "Productos" agrupa Productos, Producción y Recetas.
-                        // En vez de un desplegable con sub-ítems, es un único link: al entrar,
-                        // la propia pantalla muestra pestañas para moverse entre esas secciones
-                        // (ver partials/tabs-productos.blade.php).
-                        $enProductos = request()->routeIs('productos.*', 'produccion.*');
-                        $rutaProductos = auth()->user()->hasModulo('catalogo') ? 'productos.index' : 'produccion.index';
-                    @endphp
-                    <li class="nav-item">
-                        <a href="{{ route($rutaProductos) }}" class="nav-link {{ $enProductos ? 'active' : '' }}">
-                            <i class="nav-icon fas fa-bread-slice"></i><p>
-                                Productos
-                                @if($stockBajoProductosCount > 0)
-                                    <span class="badge badge-danger right">{{ $stockBajoProductosCount }}</span>
-                                @endif
-                            </p>
-                        </a>
-                    </li>
-                    @endif
-
                     @if(auth()->user()->hasModulo('inventario'))
                     @php $abierta = request()->routeIs('materia-prima.*') || request()->routeIs('movimientos.*') || request()->routeIs('kardex.*') || request()->routeIs('conteo-fisico.*'); @endphp
                     <li class="nav-section {{ $abierta ? 'open' : '' }}">
@@ -600,13 +571,13 @@
                                 </a>
                             </li>
                             <li class="nav-item">
-                                <a href="{{ route('kardex.index') }}" class="nav-link {{ request()->routeIs('kardex.*') ? 'active' : '' }}">
-                                    <i class="nav-icon fas fa-book-open"></i><p>Movimientos de Productos</p>
+                                <a href="{{ route('conteo-fisico.index') }}" class="nav-link {{ request()->routeIs('conteo-fisico.*') ? 'active' : '' }}">
+                                    <i class="nav-icon fas fa-clipboard-check"></i><p>Conteo Físico</p>
                                 </a>
                             </li>
                             <li class="nav-item">
-                                <a href="{{ route('conteo-fisico.index') }}" class="nav-link {{ request()->routeIs('conteo-fisico.*') ? 'active' : '' }}">
-                                    <i class="nav-icon fas fa-clipboard-check"></i><p>Conteo Físico</p>
+                                <a href="{{ route('kardex.index') }}" class="nav-link {{ request()->routeIs('kardex.*') ? 'active' : '' }}">
+                                    <i class="nav-icon fas fa-book-open"></i><p>Movimientos de Productos</p>
                                 </a>
                             </li>
                         </ul>
@@ -640,6 +611,41 @@
                     </li>
                     @endif
 
+@if(auth()->user()->hasModulo('catalogo') || auth()->user()->hasModulo('produccion'))
+                    @php
+                        // Una sola sección para todo lo que tiene que ver con lo que se fabrica:
+                        // Productos, Producción y Recetas (pestañas dentro de la pantalla, ver
+                        // partials/tabs-productos.blade.php) y Categorías.
+                        $abierta = request()->routeIs('productos.*', 'produccion.*', 'categorias.*');
+                        $rutaProductos = auth()->user()->hasModulo('catalogo') ? 'productos.index' : 'produccion.index';
+                    @endphp
+                    <li class="nav-section {{ $abierta ? 'open' : '' }}">
+                        <a href="#" class="nav-header-toggle">
+                            <span>PRODUCTOS Y PRODUCCIÓN</span>
+                            <i class="fas fa-chevron-right chevron"></i>
+                        </a>
+                        <ul class="nav-section-body" style="{{ $abierta ? '' : 'display:none;' }}">
+                            <li class="nav-item">
+                                <a href="{{ route($rutaProductos) }}" class="nav-link {{ request()->routeIs('productos.*', 'produccion.*') ? 'active' : '' }}">
+                                    <i class="nav-icon fas fa-bread-slice"></i><p>
+                                        Productos
+                                        @if($stockBajoProductosCount > 0)
+                                            <span class="badge badge-danger right">{{ $stockBajoProductosCount }}</span>
+                                        @endif
+                                    </p>
+                                </a>
+                            </li>
+                            @if(auth()->user()->hasModulo('catalogo'))
+                            <li class="nav-item">
+                                <a href="{{ route('categorias.index') }}" class="nav-link {{ request()->routeIs('categorias.*') ? 'active' : '' }}">
+                                    <i class="nav-icon fas fa-tags"></i><p>Categorías</p>
+                                </a>
+                            </li>
+                            @endif
+                        </ul>
+                    </li>
+                    @endif
+
                     @if(auth()->user()->hasModulo('reportes'))
                     @php $abierta = request()->routeIs('reportes.*'); @endphp
                     <li class="nav-section {{ $abierta ? 'open' : '' }}">
@@ -667,36 +673,28 @@
                     </li>
                     @endif
 
-                    @if(auth()->user()->hasModulo('clientes'))
-                    @php $abierta = request()->routeIs('clientes.*'); @endphp
+@if(auth()->user()->hasModulo('ventas') || auth()->user()->hasModulo('clientes'))
+                    @php $abierta = request()->routeIs('ventas.*', 'clientes.*'); @endphp
                     <li class="nav-section {{ $abierta ? 'open' : '' }}">
                         <a href="#" class="nav-header-toggle">
-                            <span>CLIENTES</span>
+                            <span>VENTAS Y CLIENTES</span>
                             <i class="fas fa-chevron-right chevron"></i>
                         </a>
                         <ul class="nav-section-body" style="{{ $abierta ? '' : 'display:none;' }}">
-                            <li class="nav-item">
-                                <a href="{{ route('clientes.index') }}" class="nav-link {{ request()->routeIs('clientes.*') ? 'active' : '' }}">
-                                    <i class="nav-icon fas fa-users"></i><p>Clientes</p>
-                                </a>
-                            </li>
-                        </ul>
-                    </li>
-                    @endif
-
-                    @if(auth()->user()->hasModulo('ventas'))
-                    @php $abierta = request()->routeIs('ventas.*'); @endphp
-                    <li class="nav-section {{ $abierta ? 'open' : '' }}">
-                        <a href="#" class="nav-header-toggle">
-                            <span>VENTAS</span>
-                            <i class="fas fa-chevron-right chevron"></i>
-                        </a>
-                        <ul class="nav-section-body" style="{{ $abierta ? '' : 'display:none;' }}">
+                            @if(auth()->user()->hasModulo('ventas'))
                             <li class="nav-item">
                                 <a href="{{ route('ventas.index') }}" class="nav-link {{ request()->routeIs('ventas.*') ? 'active' : '' }}">
                                     <i class="nav-icon fas fa-cash-register"></i><p>Ventas</p>
                                 </a>
                             </li>
+                            @endif
+                            @if(auth()->user()->hasModulo('clientes'))
+                            <li class="nav-item">
+                                <a href="{{ route('clientes.index') }}" class="nav-link {{ request()->routeIs('clientes.*') ? 'active' : '' }}">
+                                    <i class="nav-icon fas fa-users"></i><p>Clientes</p>
+                                </a>
+                            </li>
+                            @endif
                         </ul>
                     </li>
                     @endif
