@@ -17,6 +17,7 @@ use App\Http\Controllers\ProduccionController;
 use App\Http\Controllers\KardexController;
 use App\Http\Controllers\OrdenesAutomaticasController;
 use App\Http\Controllers\ReportesController;
+use App\Http\Controllers\MenuController;
 
 // Redirigir raíz al dashboard
 Route::get('/', fn() => redirect()->route('dashboard'));
@@ -26,6 +27,10 @@ Route::middleware(['auth'])->group(function () {
 
     // Dashboard: visible para cualquier usuario autenticado, sin importar sus permisos
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+
+    // Orden personalizado del menú lateral (cualquier usuario, solo afecta a su propio menú)
+    Route::post('menu/orden',   [MenuController::class, 'guardar'])->name('menu.orden.guardar');
+    Route::delete('menu/orden', [MenuController::class, 'restablecer'])->name('menu.orden.restablecer');
 
     // ── Reservado solo para ADMIN (gestión de usuarios y accesos) ──
     Route::middleware(['modulo:usuarios'])->group(function () {

@@ -95,6 +95,23 @@ Se quitó del sistema lo que ya no forma parte de la investigación:
 - `resources/views/kardex/rotacion.blade.php`
 - carpeta `resources/views/tiempos-operacion/`
 
+## ✅ Vuelta 5 (menú ordenable)
+
+- **"Ordenar menú"** (botón arriba del menú lateral): se arrastran y sueltan las
+  secciones y los ítems dentro de cada sección, como una playlist. **Listo** guarda,
+  **Cancelar** / Esc deshace, **↺** vuelve al orden original.
+- El orden es **por usuario** y se guarda en la base de datos (`usuarios.orden_menu`),
+  así que se mantiene en cualquier PC. No cambia permisos: cada uno sigue viendo
+  solo sus módulos.
+- Correr `php artisan migrate` (migración `2025_01_01_000019_add_orden_menu_to_usuarios_table.php`).
+- Archivos: `app/Http/Controllers/MenuController.php` (**nuevo**), `routes/web.php`,
+  `app/Models/Usuario.php`, `resources/views/layouts/app.blade.php`,
+  `tests/Feature/OrdenMenuTest.php` (**nuevo**, 6 pruebas).
+- Para agregar un ítem nuevo al menú en el futuro: ponerle `data-menu-id="algo-unico"`
+  al `<li>`; si es una sección nueva, además `data-menu-lista="sec-algo"` a su
+  `<ul class="nav-section-body">`. Los ítems nuevos aparecen al final hasta que el
+  usuario los reordene.
+
 ## 🔲 Lo que falta
 
 ### A. Configuración (no es código)

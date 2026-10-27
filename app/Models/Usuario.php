@@ -8,9 +8,9 @@ class Usuario extends Authenticatable {
     use Notifiable, HasFactory;
 
     protected $table    = 'usuarios';
-    protected $fillable = ['nombre','apodo','usuario','email','password','foto_perfil','id_rol','estado','ultimo_acceso'];
+    protected $fillable = ['nombre','apodo','usuario','email','password','foto_perfil','id_rol','estado','ultimo_acceso','orden_menu'];
     protected $hidden   = ['password'];
-    protected $casts    = ['password' => 'hashed', 'ultimo_acceso' => 'datetime'];
+    protected $casts    = ['password' => 'hashed', 'ultimo_acceso' => 'datetime', 'orden_menu' => 'array'];
 
     // Minutos de inactividad tras los cuales dejamos de considerar "en línea" a un usuario.
     const MINUTOS_CONECTADO = 3;

@@ -64,6 +64,90 @@
         .nav-section.open .nav-header-toggle { color: #c8c8d4; }
         .nav-section-body { list-style: none; margin: .15rem 0 0; padding: 0; }
 
+        /* Scroll del menú lateral: hace scroll TODO el sidebar (no solo la lista), así el
+           encabezado "Muruwasi" se va hacia arriba al bajar en vez de quedarse fijo.
+           (AdminLTE fija el encabezado y deja el scroll a su plugin OverlayScrollbars,
+           que este sistema no carga.) */
+        .layout-fixed .main-sidebar {
+            overflow-y: auto; overflow-x: hidden; overscroll-behavior: contain;
+            scrollbar-width: thin; scrollbar-color: rgba(255,255,255,.18) transparent;
+        }
+        .layout-fixed .main-sidebar::-webkit-scrollbar { width: 6px; }
+        .layout-fixed .main-sidebar::-webkit-scrollbar-thumb { background: rgba(255,255,255,.18); border-radius: 3px; }
+        .layout-fixed .wrapper .main-sidebar .sidebar {
+            height: auto !important; margin-top: 0 !important; overflow: visible !important;
+            padding-bottom: 1rem;
+        }
+
+        /* ===== Ordenar menú (arrastrar y soltar) ===== */
+        .menu-orden-bar { padding: .6rem .5rem 0; }
+        .menu-orden-btn {
+            background: transparent; border: 1px solid rgba(255,255,255,.12); color: #9a9ab8;
+            font-size: .75rem; font-weight: 700; border-radius: 6px; padding: .3rem .6rem;
+            cursor: pointer; transition: background .12s ease, color .12s ease;
+        }
+        .menu-orden-btn:hover { background: rgba(255,255,255,.07); color: #fff; }
+        .menu-orden-btn:focus-visible { outline: 2px solid #ffd8c2; outline-offset: 1px; }
+        #menuOrdenEditar { width: 100%; }
+        .menu-orden-btn-ok { background: #b5451b; border-color: #b5451b; color: #fff; }
+        .menu-orden-btn-ok:hover { background: #9c3a16; }
+        .menu-orden-edicion { display: none; }
+        .menu-orden-ayuda { color: #ffd8c2; font-size: .75rem; margin-bottom: .4rem; }
+        .menu-orden-acciones { display: flex; gap: .3rem; }
+        .menu-orden-acciones .menu-orden-btn-ok { flex: 1; }
+        .menu-orden-estado { color: #7fd8a6; font-size: .72rem; min-height: 0; }
+        .menu-orden-estado:not(:empty) { margin-top: .35rem; }
+        .menu-orden-estado.error { color: #ff9b8a; }
+        /* Con el sidebar contraído (solo íconos) no hay espacio para la barra */
+        body.sidebar-collapse .main-sidebar:not(:hover) .menu-orden-bar { display: none; }
+
+        /* Modo edición: agarraderas visibles, enlaces sin navegar, todo desplegado */
+        body.menu-editando #menuOrdenEditar { display: none; }
+        body.menu-editando .menu-orden-edicion { display: block; }
+        body.menu-editando #menuLateral [data-menu-id] { position: relative; }
+        body.menu-editando #menuLateral .nav-item > .nav-link,
+        body.menu-editando #menuLateral .nav-header-toggle {
+            cursor: grab; padding-left: 1.7rem; outline: 1px dashed rgba(255,255,255,.12);
+        }
+        body.menu-editando #menuLateral .nav-item > .nav-link:hover,
+        body.menu-editando #menuLateral .nav-header-toggle:hover { outline-color: rgba(255,216,194,.5); }
+        body.menu-editando #menuLateral .nav-item > .nav-link.active { box-shadow: none; }
+        .menu-grip {
+            display: none; position: absolute; left: .55rem; top: .65rem; z-index: 1;
+            color: #6c6c8a; font-size: .8rem; pointer-events: none;
+        }
+        body.menu-editando .menu-grip { display: block; }
+        body.menu-editando .nav-section > .menu-grip { top: .6rem; }
+        /* En modo edición: todas las secciones abiertas, salvo las que se plieguen
+           ("Solo títulos" o clic en el título de una sección) */
+        body.menu-editando .nav-section > .nav-section-body { display: block !important; min-height: 6px; }
+        body.menu-editando .nav-section.editar-plegada > .nav-section-body { display: none !important; }
+        body.menu-editando .nav-section .chevron { transform: rotate(90deg); }
+        body.menu-editando .nav-section.editar-plegada .chevron { transform: none; }
+        body.menu-editando .nav-section.editar-plegada > .nav-header-toggle { color: #c8c8d4; }
+        /* La barra Listo/Cancelar queda pegada arriba mientras se ordena */
+        body.menu-editando .menu-orden-bar {
+            position: sticky; top: 0; z-index: 5; background: #1a1a2e;
+            padding-bottom: .55rem; box-shadow: 0 6px 10px -6px rgba(0,0,0,.6);
+        }
+        .menu-orden-check {
+            display: flex; align-items: center; gap: .4rem; margin: 0 0 .45rem;
+            color: #c8c8d4; font-size: .78rem; font-weight: 600; cursor: pointer; user-select: none;
+        }
+        .menu-orden-check input { accent-color: #b5451b; width: 15px; height: 15px; cursor: pointer; }
+        /* Cómo se ve el ítem mientras se arrastra */
+        .menu-arrastrando-fantasma { opacity: .35; }
+        .menu-arrastrando-fantasma > .nav-link,
+        .menu-arrastrando-fantasma > .nav-header-toggle { background: rgba(181,69,27,.35) !important; }
+        .menu-arrastrando, .menu-arrastrando * { cursor: grabbing !important; }
+        .menu-arrastrando-clon { opacity: .95 !important; z-index: 2000; list-style: none; }
+        .menu-arrastrando-clon > .nav-link,
+        .menu-arrastrando-clon > .nav-header-toggle {
+            background: #2a2a44 !important; color: #fff !important; box-shadow: 0 6px 18px rgba(0,0,0,.45);
+        }
+        .menu-arrastrando-clon .nav-section-body { display: none !important; } /* al mover una sección, solo se ve su título */
+        body.menu-arrastrando { user-select: none; }
+
         .card { border: none; box-shadow: 0 2px 10px rgba(0,0,0,.08); border-radius: 12px; }
 
         /* ===== Modal "Ver detalle": sin el borde duro de Bootstrap, con sombra suave
@@ -537,10 +621,29 @@
             <span class="brand-text font-weight-bold">Muruwasi</span>
         </a>
         <div class="sidebar">
+            {{-- Ordenar menú: arrastrar y soltar secciones e ítems (como una playlist).
+                 El orden se guarda por usuario en usuarios.orden_menu (MenuController). --}}
+            <div class="menu-orden-bar" id="menuOrdenBar">
+                <button type="button" class="menu-orden-btn" id="menuOrdenEditar" title="Arrastra secciones e ítems para cambiar su orden">
+                    <i class="fas fa-sort"></i> Ordenar menú
+                </button>
+                <div class="menu-orden-edicion">
+                    <div class="menu-orden-ayuda"><i class="fas fa-hand-pointer mr-1"></i>Arrastra para ordenar</div>
+                    <label class="menu-orden-check" title="Oculta los ítems para mover las secciones más fácil. Clic en un título para abrir o cerrar solo esa sección.">
+                        <input type="checkbox" id="menuOrdenCompacto"> Solo títulos
+                    </label>
+                    <div class="menu-orden-acciones">
+                        <button type="button" class="menu-orden-btn menu-orden-btn-ok" id="menuOrdenGuardar"><i class="fas fa-check"></i> Listo</button>
+                        <button type="button" class="menu-orden-btn" id="menuOrdenCancelar">Cancelar</button>
+                        <button type="button" class="menu-orden-btn" id="menuOrdenReset" title="Volver al orden original del sistema"><i class="fas fa-undo"></i></button>
+                    </div>
+                </div>
+                <div class="menu-orden-estado" id="menuOrdenEstado" role="status" aria-live="polite"></div>
+            </div>
             <nav class="mt-2">
-                <ul class="nav nav-pills nav-sidebar flex-column" role="menu">
+                <ul class="nav nav-pills nav-sidebar flex-column" role="menu" id="menuLateral">
 
-                    <li class="nav-item">
+                    <li class="nav-item" data-menu-id="dashboard">
                         <a href="{{ route('dashboard') }}" class="nav-link {{ request()->routeIs('dashboard') ? 'active' : '' }}">
                             <i class="nav-icon fas fa-tachometer-alt"></i>
                             <p>Dashboard</p>
@@ -549,13 +652,13 @@
 
                     @if(auth()->user()->hasModulo('inventario'))
                     @php $abierta = request()->routeIs('materia-prima.*') || request()->routeIs('movimientos.*') || request()->routeIs('kardex.*') || request()->routeIs('conteo-fisico.*'); @endphp
-                    <li class="nav-section {{ $abierta ? 'open' : '' }}">
+                    <li data-menu-id="sec-inventario" class="nav-section {{ $abierta ? 'open' : '' }}">
                         <a href="#" class="nav-header-toggle">
                             <span>INVENTARIO</span>
                             <i class="fas fa-chevron-right chevron"></i>
                         </a>
-                        <ul class="nav-section-body" style="{{ $abierta ? '' : 'display:none;' }}">
-                            <li class="nav-item">
+                        <ul class="nav-section-body" data-menu-lista="sec-inventario" style="{{ $abierta ? '' : 'display:none;' }}">
+                            <li class="nav-item" data-menu-id="materia-prima">
                                 <a href="{{ route('materia-prima.index') }}" class="nav-link {{ request()->routeIs('materia-prima.*') ? 'active' : '' }}">
                                     <i class="nav-icon fas fa-boxes"></i><p>
                                         Materia Prima
@@ -565,17 +668,17 @@
                                     </p>
                                 </a>
                             </li>
-                            <li class="nav-item">
+                            <li class="nav-item" data-menu-id="movimientos-mp">
                                 <a href="{{ route('movimientos.index') }}" class="nav-link {{ request()->routeIs('movimientos.*') ? 'active' : '' }}">
                                     <i class="nav-icon fas fa-exchange-alt"></i><p>Movimientos de Materia Prima</p>
                                 </a>
                             </li>
-                            <li class="nav-item">
+                            <li class="nav-item" data-menu-id="conteo-fisico">
                                 <a href="{{ route('conteo-fisico.index') }}" class="nav-link {{ request()->routeIs('conteo-fisico.*') ? 'active' : '' }}">
                                     <i class="nav-icon fas fa-clipboard-check"></i><p>Conteo Físico</p>
                                 </a>
                             </li>
-                            <li class="nav-item">
+                            <li class="nav-item" data-menu-id="movimientos-productos">
                                 <a href="{{ route('kardex.index') }}" class="nav-link {{ request()->routeIs('kardex.*') ? 'active' : '' }}">
                                     <i class="nav-icon fas fa-book-open"></i><p>Movimientos de Productos</p>
                                 </a>
@@ -586,23 +689,23 @@
 
                     @if(auth()->user()->hasModulo('compras'))
                     @php $abierta = request()->routeIs('proveedores.*') || request()->routeIs('compras.*') || request()->routeIs('ordenes-automaticas.*'); @endphp
-                    <li class="nav-section {{ $abierta ? 'open' : '' }}">
+                    <li data-menu-id="sec-compras" class="nav-section {{ $abierta ? 'open' : '' }}">
                         <a href="#" class="nav-header-toggle">
                             <span>COMPRAS</span>
                             <i class="fas fa-chevron-right chevron"></i>
                         </a>
-                        <ul class="nav-section-body" style="{{ $abierta ? '' : 'display:none;' }}">
-                            <li class="nav-item">
+                        <ul class="nav-section-body" data-menu-lista="sec-compras" style="{{ $abierta ? '' : 'display:none;' }}">
+                            <li class="nav-item" data-menu-id="proveedores">
                                 <a href="{{ route('proveedores.index') }}" class="nav-link {{ request()->routeIs('proveedores.*') ? 'active' : '' }}">
                                     <i class="nav-icon fas fa-truck"></i><p>Proveedores</p>
                                 </a>
                             </li>
-                            <li class="nav-item">
+                            <li class="nav-item" data-menu-id="compras">
                                 <a href="{{ route('compras.index') }}" class="nav-link {{ request()->routeIs('compras.*') ? 'active' : '' }}">
                                     <i class="nav-icon fas fa-shopping-cart"></i><p>Compras</p>
                                 </a>
                             </li>
-                            <li class="nav-item">
+                            <li class="nav-item" data-menu-id="ordenes-automaticas">
                                 <a href="{{ route('ordenes-automaticas.index') }}" class="nav-link {{ request()->routeIs('ordenes-automaticas.*') ? 'active' : '' }}">
                                     <i class="nav-icon fas fa-robot"></i><p>Órdenes Automáticas</p>
                                 </a>
@@ -619,13 +722,13 @@
                         $abierta = request()->routeIs('productos.*', 'produccion.*', 'categorias.*');
                         $rutaProductos = auth()->user()->hasModulo('catalogo') ? 'productos.index' : 'produccion.index';
                     @endphp
-                    <li class="nav-section {{ $abierta ? 'open' : '' }}">
+                    <li data-menu-id="sec-productos" class="nav-section {{ $abierta ? 'open' : '' }}">
                         <a href="#" class="nav-header-toggle">
                             <span>PRODUCTOS Y PRODUCCIÓN</span>
                             <i class="fas fa-chevron-right chevron"></i>
                         </a>
-                        <ul class="nav-section-body" style="{{ $abierta ? '' : 'display:none;' }}">
-                            <li class="nav-item">
+                        <ul class="nav-section-body" data-menu-lista="sec-productos" style="{{ $abierta ? '' : 'display:none;' }}">
+                            <li class="nav-item" data-menu-id="productos">
                                 <a href="{{ route($rutaProductos) }}" class="nav-link {{ request()->routeIs('productos.*', 'produccion.*') ? 'active' : '' }}">
                                     <i class="nav-icon fas fa-bread-slice"></i><p>
                                         Productos
@@ -636,7 +739,7 @@
                                 </a>
                             </li>
                             @if(auth()->user()->hasModulo('catalogo'))
-                            <li class="nav-item">
+                            <li class="nav-item" data-menu-id="categorias">
                                 <a href="{{ route('categorias.index') }}" class="nav-link {{ request()->routeIs('categorias.*') ? 'active' : '' }}">
                                     <i class="nav-icon fas fa-tags"></i><p>Categorías</p>
                                 </a>
@@ -648,23 +751,23 @@
 
                     @if(auth()->user()->hasModulo('reportes'))
                     @php $abierta = request()->routeIs('reportes.*'); @endphp
-                    <li class="nav-section {{ $abierta ? 'open' : '' }}">
+                    <li data-menu-id="sec-reportes" class="nav-section {{ $abierta ? 'open' : '' }}">
                         <a href="#" class="nav-header-toggle">
                             <span>REPORTES</span>
                             <i class="fas fa-chevron-right chevron"></i>
                         </a>
-                        <ul class="nav-section-body" style="{{ $abierta ? '' : 'display:none;' }}">
-                            <li class="nav-item">
+                        <ul class="nav-section-body" data-menu-lista="sec-reportes" style="{{ $abierta ? '' : 'display:none;' }}">
+                            <li class="nav-item" data-menu-id="reportes-resumen">
                                 <a href="{{ route('reportes.index') }}" class="nav-link {{ request()->routeIs('reportes.index') ? 'active' : '' }}">
                                     <i class="nav-icon fas fa-chart-pie"></i><p>Resumen de Reportes</p>
                                 </a>
                             </li>
-                            <li class="nav-item">
+                            <li class="nav-item" data-menu-id="reportes-stock">
                                 <a href="{{ route('reportes.stock') }}" class="nav-link {{ request()->routeIs('reportes.stock*') ? 'active' : '' }}">
                                     <i class="nav-icon fas fa-warehouse"></i><p>Reporte de Stock</p>
                                 </a>
                             </li>
-                            <li class="nav-item">
+                            <li class="nav-item" data-menu-id="reportes-kardex">
                                 <a href="{{ route('reportes.kardex') }}" class="nav-link {{ request()->routeIs('reportes.kardex*') ? 'active' : '' }}">
                                     <i class="nav-icon fas fa-file-invoice"></i><p>Reporte de Kardex</p>
                                 </a>
@@ -675,21 +778,21 @@
 
 @if(auth()->user()->hasModulo('ventas') || auth()->user()->hasModulo('clientes'))
                     @php $abierta = request()->routeIs('ventas.*', 'clientes.*'); @endphp
-                    <li class="nav-section {{ $abierta ? 'open' : '' }}">
+                    <li data-menu-id="sec-ventas" class="nav-section {{ $abierta ? 'open' : '' }}">
                         <a href="#" class="nav-header-toggle">
                             <span>VENTAS Y CLIENTES</span>
                             <i class="fas fa-chevron-right chevron"></i>
                         </a>
-                        <ul class="nav-section-body" style="{{ $abierta ? '' : 'display:none;' }}">
+                        <ul class="nav-section-body" data-menu-lista="sec-ventas" style="{{ $abierta ? '' : 'display:none;' }}">
                             @if(auth()->user()->hasModulo('ventas'))
-                            <li class="nav-item">
+                            <li class="nav-item" data-menu-id="ventas">
                                 <a href="{{ route('ventas.index') }}" class="nav-link {{ request()->routeIs('ventas.*') ? 'active' : '' }}">
                                     <i class="nav-icon fas fa-cash-register"></i><p>Ventas</p>
                                 </a>
                             </li>
                             @endif
                             @if(auth()->user()->hasModulo('clientes'))
-                            <li class="nav-item">
+                            <li class="nav-item" data-menu-id="clientes">
                                 <a href="{{ route('clientes.index') }}" class="nav-link {{ request()->routeIs('clientes.*') ? 'active' : '' }}">
                                     <i class="nav-icon fas fa-users"></i><p>Clientes</p>
                                 </a>
@@ -701,18 +804,18 @@
 
                     @if(auth()->user()->isAdmin())
                     @php $abierta = request()->routeIs('usuarios.*') || request()->routeIs('backups.*'); @endphp
-                    <li class="nav-section {{ $abierta ? 'open' : '' }}">
+                    <li data-menu-id="sec-administracion" class="nav-section {{ $abierta ? 'open' : '' }}">
                         <a href="#" class="nav-header-toggle">
                             <span>ADMINISTRACIÓN</span>
                             <i class="fas fa-chevron-right chevron"></i>
                         </a>
-                        <ul class="nav-section-body" style="{{ $abierta ? '' : 'display:none;' }}">
-                            <li class="nav-item">
+                        <ul class="nav-section-body" data-menu-lista="sec-administracion" style="{{ $abierta ? '' : 'display:none;' }}">
+                            <li class="nav-item" data-menu-id="usuarios">
                                 <a href="{{ route('usuarios.index') }}" class="nav-link {{ request()->routeIs('usuarios.*') ? 'active' : '' }}">
                                     <i class="nav-icon fas fa-users"></i><p>Usuarios</p>
                                 </a>
                             </li>
-                            <li class="nav-item">
+                            <li class="nav-item" data-menu-id="respaldos">
                                 <a href="{{ route('backups.index') }}" class="nav-link {{ request()->routeIs('backups.*') ? 'active' : '' }}">
                                     <i class="nav-icon fas fa-database"></i><p>Respaldos</p>
                                 </a>
@@ -722,6 +825,57 @@
                     @endif
 
                 </ul>
+                {{-- Aplica el orden guardado del usuario ANTES de que se pinte la página
+                     (script en línea, justo después del menú), así no se ve "saltar". --}}
+                <script>
+                    window.MenuOrden = (function () {
+                        var raiz = document.getElementById('menuLateral');
+                        function listas() {
+                            var r = [{ id: null, ul: raiz }];
+                            raiz.querySelectorAll('[data-menu-lista]').forEach(function (ul) {
+                                r.push({ id: ul.getAttribute('data-menu-lista'), ul: ul });
+                            });
+                            return r;
+                        }
+                        function hijos(ul) {
+                            return Array.prototype.filter.call(ul.children, function (li) { return li.hasAttribute('data-menu-id'); });
+                        }
+                        // Ordena los <li> de una lista según "ids". Los que no estén en la lista
+                        // guardada (p. ej. un módulo nuevo) quedan al final en su orden original.
+                        function ordenarLista(ul, ids) {
+                            ids = Array.isArray(ids) ? ids : [];
+                            hijos(ul).map(function (li) {
+                                var i = ids.indexOf(li.getAttribute('data-menu-id'));
+                                return { li: li, clave: i >= 0 ? i : ids.length + Number(li.getAttribute('data-orden-base')) };
+                            }).sort(function (a, b) { return a.clave - b.clave; })
+                              .forEach(function (x) { ul.appendChild(x.li); });
+                        }
+                        function aplicar(orden) {
+                            listas().forEach(function (l) {
+                                if (!orden) {
+                                    ordenarLista(l.ul, []); // sin orden guardado = orden original
+                                } else {
+                                    ordenarLista(l.ul, l.id === null ? orden.secciones : (orden.items || {})[l.id]);
+                                }
+                            });
+                        }
+                        function leer() {
+                            var orden = { secciones: [], items: {} };
+                            listas().forEach(function (l) {
+                                var ids = hijos(l.ul).map(function (li) { return li.getAttribute('data-menu-id'); });
+                                if (l.id === null) orden.secciones = ids; else orden.items[l.id] = ids;
+                            });
+                            return orden;
+                        }
+                        // Recordar el orden original (el del código) para poder restablecerlo.
+                        listas().forEach(function (l) {
+                            hijos(l.ul).forEach(function (li, i) { li.setAttribute('data-orden-base', i); });
+                        });
+                        var guardado = @json(auth()->user()->orden_menu);
+                        if (guardado) aplicar(guardado);
+                        return { aplicar: aplicar, leer: leer, listas: listas };
+                    })();
+                </script>
             </nav>
         </div>
     </aside>
@@ -824,6 +978,183 @@
 <script src="https://cdn.jsdelivr.net/npm/jquery@3.6/dist/jquery.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/js/adminlte.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
+
+<script>
+    // "Ordenar menú": modo edición con arrastrar y soltar (SortableJS).
+    //  - Las secciones se ordenan entre sí, y los ítems dentro de su sección.
+    //  - "Listo" guarda el orden en la base de datos (por usuario).
+    //  - "Cancelar" (o Esc) deshace lo que se movió; el botón ↺ vuelve al orden original.
+    (function () {
+        const menu      = document.getElementById('menuLateral');
+        const btnEditar = document.getElementById('menuOrdenEditar');
+        if (!menu || !btnEditar || !window.MenuOrden) return;
+
+        const btnGuardar  = document.getElementById('menuOrdenGuardar');
+        const btnCancelar = document.getElementById('menuOrdenCancelar');
+        const btnReset    = document.getElementById('menuOrdenReset');
+        const estado      = document.getElementById('menuOrdenEstado');
+        const csrf        = document.querySelector('meta[name="csrf-token"]').content;
+        const URL_ORDEN   = @json(route('menu.orden.guardar'));
+        const zonaScroll  = document.querySelector('.main-sidebar') || true;
+        const chkCompacto = document.getElementById('menuOrdenCompacto');
+        const KEY_COMPACTO = 'panaderia_menu_solo_titulos';
+        let recienArrastrado = false;
+
+        function secciones() { return menu.querySelectorAll('.nav-section[data-menu-id]'); }
+
+        // "Solo títulos": pliega o despliega todas las secciones a la vez
+        function plegarTodas(plegar) {
+            secciones().forEach(function (s) { s.classList.toggle('editar-plegada', plegar); });
+            actualizarCheck();
+        }
+        // El check refleja el estado: marcado si todas están plegadas, a medias si solo algunas
+        function actualizarCheck() {
+            const total = secciones().length;
+            const plegadas = menu.querySelectorAll('.nav-section.editar-plegada').length;
+            chkCompacto.checked = total > 0 && plegadas === total;
+            chkCompacto.indeterminate = plegadas > 0 && plegadas < total;
+        }
+        chkCompacto.addEventListener('change', function () {
+            plegarTodas(chkCompacto.checked);
+            try { localStorage.setItem(KEY_COMPACTO, chkCompacto.checked ? '1' : '0'); } catch (e) {}
+        });
+
+        let instancias = [];
+        let ordenAntes = null;
+        let timerEstado = null;
+
+        function avisar(texto, esError) {
+            clearTimeout(timerEstado);
+            estado.textContent = texto;
+            estado.classList.toggle('error', !!esError);
+            if (!esError) timerEstado = setTimeout(function () { estado.textContent = ''; }, 2500);
+        }
+
+        function crearSortables() {
+            if (instancias.length || typeof Sortable === 'undefined') return;
+            // Agarradera visual en cada sección e ítem
+            menu.querySelectorAll('[data-menu-id]').forEach(function (li) {
+                const grip = document.createElement('span');
+                grip.className = 'menu-grip';
+                grip.innerHTML = '<i class="fas fa-grip-vertical"></i>';
+                li.insertBefore(grip, li.firstChild);
+            });
+            window.MenuOrden.listas().forEach(function (l) {
+                instancias.push(Sortable.create(l.ul, {
+                    group: 'menu-' + (l.id || 'raiz'), // cada lista con su propio grupo: no se mezclan
+                    draggable: '[data-menu-id]',
+                    animation: 150,
+                    // Arrastre propio de Sortable (no el nativo del navegador): permite
+                    // que el menú haga scroll solo al acercarse al borde y también con
+                    // la rueda del mouse mientras se arrastra.
+                    forceFallback: true,
+                    fallbackOnBody: false, // la copia flotante queda dentro del menú y conserva su estilo
+                    fallbackClass: 'menu-arrastrando-clon',
+                    fallbackTolerance: 3,
+                    scroll: zonaScroll,
+                    forceAutoScrollFallback: true,
+                    scrollSensitivity: 90, // px desde el borde donde empieza a bajar/subir
+                    scrollSpeed: 14,
+                    bubbleScroll: true,
+                    swapThreshold: 0.65,
+                    delay: 150, delayOnTouchOnly: true, // en celular: mantener presionado para arrastrar
+                    ghostClass: 'menu-arrastrando-fantasma',
+                    disabled: true,
+                    onStart: function () { document.body.classList.add('menu-arrastrando'); },
+                    onEnd:   function () {
+                        document.body.classList.remove('menu-arrastrando');
+                        // Al soltar, el navegador puede disparar un "clic" sobre el título:
+                        // lo ignoramos para que no se abra/cierre la sección sin querer.
+                        recienArrastrado = true;
+                        setTimeout(function () { recienArrastrado = false; }, 80);
+                    },
+                }));
+            });
+        }
+
+        function modoEdicion(activo) {
+            document.body.classList.toggle('menu-editando', activo);
+            instancias.forEach(function (s) { s.option('disabled', !activo); });
+            if (activo) {
+                // Por defecto entra con "Solo títulos" (se recuerda la última elección)
+                let soloTitulos = true;
+                try { soloTitulos = localStorage.getItem(KEY_COMPACTO) !== '0'; } catch (e) {}
+                plegarTodas(soloTitulos);
+            } else {
+                secciones().forEach(function (s) { s.classList.remove('editar-plegada'); });
+            }
+        }
+
+        btnEditar.addEventListener('click', function () {
+            if (typeof Sortable === 'undefined') {
+                avisar('No se pudo cargar la librería para ordenar (¿sin internet?).', true);
+                return;
+            }
+            crearSortables();
+            ordenAntes = window.MenuOrden.leer();
+            estado.textContent = '';
+            modoEdicion(true);
+        });
+
+        function cancelar() {
+            if (ordenAntes) window.MenuOrden.aplicar(ordenAntes);
+            modoEdicion(false);
+        }
+        btnCancelar.addEventListener('click', cancelar);
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape' && document.body.classList.contains('menu-editando')) cancelar();
+        });
+
+        function enviar(metodo, cuerpo) {
+            return fetch(URL_ORDEN, {
+                method: metodo,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': csrf,
+                    'X-Requested-With': 'XMLHttpRequest',
+                },
+                credentials: 'same-origin',
+                body: cuerpo ? JSON.stringify(cuerpo) : null,
+            }).then(function (r) {
+                if (!r.ok) throw new Error('HTTP ' + r.status);
+                return r.json();
+            });
+        }
+
+        btnGuardar.addEventListener('click', function () {
+            btnGuardar.disabled = true;
+            enviar('POST', window.MenuOrden.leer())
+                .then(function () { modoEdicion(false); avisar('✓ Orden guardado'); })
+                .catch(function (err) { avisar('No se pudo guardar (' + err.message + '). Intenta de nuevo.', true); })
+                .finally(function () { btnGuardar.disabled = false; });
+        });
+
+        btnReset.addEventListener('click', function () {
+            btnReset.disabled = true;
+            enviar('DELETE')
+                .then(function () { window.MenuOrden.aplicar(null); modoEdicion(false); avisar('✓ Orden original restablecido'); })
+                .catch(function (err) { avisar('No se pudo restablecer (' + err.message + ').', true); })
+                .finally(function () { btnReset.disabled = false; });
+        });
+
+        // En modo edición los enlaces no navegan (así un arrastre no abre la página),
+        // y un clic en el título de una sección la abre o la cierra para ver sus ítems.
+        menu.addEventListener('click', function (e) {
+            if (!document.body.classList.contains('menu-editando')) return;
+            const enlace = e.target.closest('a');
+            if (!enlace) return;
+            e.preventDefault();
+            e.stopImmediatePropagation();
+            if (recienArrastrado) return;
+            if (enlace.classList.contains('nav-header-toggle')) {
+                enlace.closest('.nav-section').classList.toggle('editar-plegada');
+                actualizarCheck();
+            }
+        }, true);
+    })();
+</script>
 
 <script>
     (function () {
