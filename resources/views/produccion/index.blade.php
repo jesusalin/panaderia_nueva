@@ -60,9 +60,11 @@
         <p>Producciones registradas, que descuentan automáticamente los insumos de la receta</p>
     </div>
     <div class="toolbar-actions">
+        @if(auth()->user()->hasPermiso('produccion.recetas'))
         <a href="{{ route('produccion.recetas') }}" class="btn btn-outline-secondary">
             <i class="fas fa-book mr-1"></i>Recetas
         </a>
+        @endif
         <a href="{{ route('produccion.create') }}" class="btn btn-warning">
             <i class="fas fa-plus mr-1"></i>Nueva Producción
         </a>

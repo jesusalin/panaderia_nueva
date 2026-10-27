@@ -65,7 +65,10 @@ return [
     |
     */
 
-    'timezone' => 'UTC',
+    // Hora de Lima: así "hoy", las ventas del día y el cierre diario de inventario
+    // usan la hora real de la panadería (con UTC, todo lo de después de las
+    // 7 p.m. quedaba registrado como del día siguiente).
+    'timezone' => env('APP_TIMEZONE', 'America/Lima'),
 
     /*
     |--------------------------------------------------------------------------

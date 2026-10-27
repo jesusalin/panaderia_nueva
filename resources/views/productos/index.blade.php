@@ -123,9 +123,11 @@
                     </button>
                 </form>
                 <div class="btn-icon-group">
+                    @if(auth()->user()->hasPermiso('reportes.kardex'))
                     <a href="{{ route('reportes.kardex', ['tipo_item' => 'producto', 'id_item' => $p->id]) }}" class="btn btn-icon btn-secondary" title="Ver Kardex">
                         <i class="fas fa-file-invoice"></i>
                     </a>
+                    @endif
                     <a href="{{ route('productos.edit', $p) }}" class="btn btn-icon btn-warning" title="Editar">
                         <i class="fas fa-edit"></i>
                     </a>

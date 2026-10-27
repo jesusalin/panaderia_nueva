@@ -60,7 +60,7 @@
         <span class="rc-alert ok"><i class="fas fa-clock"></i>{{ $movimientosHoy }} movimiento(s) registrados hoy</span>
     </a>
 
-    @if(auth()->user()->hasModulo('inventario'))
+    @if(auth()->user()->hasPermiso('inventario.conteo'))
     <a href="{{ route('conteo-fisico.historial') }}" class="rep-card">
         <div class="rc-icon"><i class="fas fa-clipboard-check"></i></div>
         <h5>Conteo Físico</h5>

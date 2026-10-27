@@ -100,17 +100,77 @@ Se quitó del sistema lo que ya no forma parte de la investigación:
 - **"Ordenar menú"** (botón arriba del menú lateral): se arrastran y sueltan las
   secciones y los ítems dentro de cada sección, como una playlist. **Listo** guarda,
   **Cancelar** / Esc deshace, **↺** vuelve al orden original.
-- El orden es **por usuario** y se guarda en la base de datos (`usuarios.orden_menu`),
-  así que se mantiene en cualquier PC. No cambia permisos: cada uno sigue viendo
-  solo sus módulos.
-- Correr `php artisan migrate` (migración `2025_01_01_000019_add_orden_menu_to_usuarios_table.php`).
-- Archivos: `app/Http/Controllers/MenuController.php` (**nuevo**), `routes/web.php`,
-  `app/Models/Usuario.php`, `resources/views/layouts/app.blade.php`,
-  `tests/Feature/OrdenMenuTest.php` (**nuevo**, 6 pruebas).
+- **Solo el admin** ve "Ordenar menú" y el orden que guarda se aplica a **todos los
+  usuarios** (cada uno ve solo sus módulos, en ese orden). Se guarda en la tabla nueva
+  `configuraciones` (clave `orden_menu`), que también entra en los respaldos.
+- En modo ordenar: casilla **"Solo títulos"** para mover solo las secciones; clic en un
+  título abre/cierra esa sección. La barra Listo/Cancelar queda fija arriba.
+- El sidebar completo hace scroll (el encabezado "Muruwasi" ya no queda fijo) y al
+  arrastrar cerca del borde el menú baja/sube solo.
+- Correr `php artisan migrate` (migraciones `..._000019_add_orden_menu_to_usuarios_table.php`
+  y `..._000020_create_configuraciones_table.php`; la 000020 pasa el orden que el admin
+  ya tuviera a la configuración general y elimina la columna `usuarios.orden_menu`).
+- Archivos: `app/Http/Controllers/MenuController.php` (**nuevo**), `app/Models/Configuracion.php`
+  (**nuevo**), `routes/web.php`, `app/Models/Usuario.php`, `resources/views/layouts/app.blade.php`,
+  `tests/Feature/OrdenMenuTest.php` (**nuevo**, 7 pruebas).
 - Para agregar un ítem nuevo al menú en el futuro: ponerle `data-menu-id="algo-unico"`
   al `<li>`; si es una sección nueva, además `data-menu-lista="sec-algo"` a su
   `<ul class="nav-section-body">`. Los ítems nuevos aparecen al final hasta que el
   usuario los reordene.
+
+## ✅ Vuelta 6 (permisos por pantalla)
+
+- Al crear/editar un usuario, el admin elige **pantalla por pantalla** dentro de cada
+  módulo (p. ej. Inventario › Conteo Físico sí, Movimientos de Productos no). La casilla
+  del módulo marca todo y queda "a medias" si solo hay algunas. **Plantillas rápidas**:
+  Almacenero, Ventas / Caja, Marcar todo, Quitar todo.
+- Las rutas, el menú y los botones de otras pantallas (dashboard, reportes, kardex,
+  productos…) respetan cada pantalla: nadie ve un botón que lo lleve a "acceso denegado".
+- Catálogo de pantallas en `Usuario::PERMISOS`. Claves: `inventario.materia_prima`,
+  `inventario.movimientos`, `inventario.conteo`, `inventario.kardex`, `compras.proveedores`,
+  `compras.compras`, `compras.ordenes`, `catalogo.productos`, `catalogo.categorias`,
+  `produccion.produccion`, `produccion.recetas`, `reportes.resumen`, `reportes.stock`,
+  `reportes.kardex`, `ventas`, `clientes`.
+- `php artisan migrate` corre `..._000021_permisos_por_pantalla.php`: quien tenía un módulo
+  completo pasa a tener todas sus pantallas (nadie pierde acceso).
+- Seeder corregido: los permisos de ejemplo se asignan por nombre de usuario (antes,
+  con ids fijos, quedaban cruzados). María ahora tiene también Catálogo › Productos para
+  poder vender desde el carrito.
+- Pruebas: `tests/Feature/PermisosPantallaTest.php` (8 pruebas).
+- El formulario sigue la **misma estructura y orden del menú**: sección → ítem → pestañas.
+  Un ítem con pestañas adentro (Productos: Productos / Producción / Recetas) tiene su
+  casilla general y una casilla por pestaña. Para pestañas nuevas en el futuro, se
+  agregan en `'pestanas'` del ítem en `Usuario::PERMISOS` y el formulario las muestra solo.
+
+## ✅ Vuelta 7 (datos de ejemplo realistas y hora de Lima)
+
+- **Seeder nuevo** (`database/seeders/DatabaseSeeder.php`): simula 14 días de operación
+  (producción por receta, ventas, órdenes → compras → recepción, mermas, conteos físicos).
+  Todo se registra como lo hace el sistema, por eso **el kardex de los 33 insumos y 13
+  productos cuadra** (antes no cuadraba casi ninguno). Se buscan los usuarios por nombre.
+- **Zona horaria `America/Lima`** (`config/app.php`, `APP_TIMEZONE` en `.env`). Antes estaba
+  en UTC: todo lo registrado después de las 7 p.m. caía en el día siguiente, lo que
+  descuadraba "Ventas de hoy" y el futuro cierre diario (TCI).
+  Agregar `APP_TIMEZONE=America/Lima` al `.env` de cada instalación.
+
+## ✅ Vuelta 8 (dashboard del almacenero)
+
+- El dashboard ahora es primero del **almacenero** (el usuario de la tesis): accesos rápidos,
+  **Hoy en el almacén** (entradas/salidas/ajustes del día), **PER** del último conteo con la
+  fórmula de la tesis (insumos que no coinciden ÷ insumos contados × 100) y su tendencia,
+  **Por recibir** (compras pendientes y órdenes automáticas) y **lo más urgente de reponer**
+  con los días que alcanza cada insumo (consumo de los últimos 7 días).
+- Se quitó el indicador "Exactitud del inventario" (promediaba otra cosa y mostraba un
+  "Estimado" inventado si no había conteo) y el botón "Nueva venta" a la pantalla antigua.
+- Ventas queda abajo y solo para quien tiene el módulo Ventas; gráfico con los 7 días
+  completos; "Ganancia del mes" pasó a "Ventas − compras del mes".
+- **Dashboard por bloques según permisos**: cada usuario ve los bloques de sus áreas, así
+  sirve para cualquier rol que arme el admin. Accesos rápidos según sus pantallas (hasta 6);
+  bloques Almacén, Compras (por recibir), **Producción** (producido hoy y qué toca producir) y
+  Ventas (con **productos por agotarse** para quien vende). El admin ve todos los bloques.
+  Probado con admin, almacenero, vendedor, producción, solo reportes y solo compras.
+- Pendiente: cuando existan Registro rápido, Consultar stock y Cierre del día, agregarlos a
+  los accesos rápidos y mostrar si el cierre del día ya se hizo.
 
 ## 🔲 Lo que falta
 

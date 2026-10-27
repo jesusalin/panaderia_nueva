@@ -120,8 +120,11 @@ class OrdenesAutomaticasController extends Controller
             ]);
 
             DB::commit();
-            return redirect()->route('compras.show', $compra)
-                ->with('success', 'Orden convertida en compra. Recíbela cuando llegue el pedido.');
+            // Si no tiene la pantalla Compras, se queda en Órdenes Automáticas
+            $destino = auth()->user()->hasPermiso('compras.compras')
+                ? redirect()->route('compras.show', $compra)
+                : redirect()->route('ordenes-automaticas.index');
+            return $destino->with('success', 'Orden convertida en compra. Recíbela cuando llegue el pedido.');
         } catch (\Exception $e) {
             DB::rollBack();
             return back()->withErrors(['error' => $e->getMessage()]);

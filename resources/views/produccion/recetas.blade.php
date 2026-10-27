@@ -1,7 +1,9 @@
 @extends('layouts.app')
 @section('title', 'Recetas')
 @section('breadcrumb')
+    @if(auth()->user()->hasPermiso('produccion.produccion'))
     <li class="breadcrumb-item"><a href="{{ route('produccion.index') }}">Producción</a></li>
+    @endif
     <li class="breadcrumb-item active">Recetas</li>
 @endsection
 
@@ -170,7 +172,9 @@
     <div class="empty-state" style="grid-column: 1 / -1;">
         <i class="fas fa-book"></i>
         <p>No hay productos activos.</p>
+        @if(auth()->user()->hasPermiso('catalogo.productos'))
         <a href="{{ route('productos.create') }}" class="btn btn-primary"><i class="fas fa-plus mr-1"></i>Crear producto</a>
+        @endif
     </div>
     @endforelse
 </div>

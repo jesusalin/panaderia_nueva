@@ -79,6 +79,61 @@
             padding-bottom: 1rem;
         }
 
+        /* ===== Menú contraído (botón ☰) en PC: barra de solo íconos, como la de YouTube =====
+           - Encabezado: solo el ícono del pan, centrado (antes quedaba el bloque naranja vacío).
+           - Se ven los íconos de TODOS los módulos; cada sección se separa con una línea fina.
+           - El nombre aparece en una etiqueta al pasar el mouse (ver script "tooltips del menú").
+           - Las alertas de stock bajo quedan como un numerito sobre el ícono. */
+        @media (min-width: 992px) {
+            body.sidebar-collapse .main-sidebar,
+            body.sidebar-collapse .main-sidebar::before { width: 4.6rem; }
+            body.sidebar-collapse .main-sidebar { scrollbar-width: none; }
+            body.sidebar-collapse .main-sidebar::-webkit-scrollbar { display: none; }
+
+            body.sidebar-collapse .main-sidebar .brand-link {
+                width: 4.6rem; padding-left: 0; padding-right: 0; justify-content: center; gap: 0;
+            }
+            body.sidebar-collapse .main-sidebar .brand-link .brand-text { display: none; }
+            body.sidebar-collapse .main-sidebar .brand-link i { margin: 0 !important; font-size: 1.35rem; }
+
+            body.sidebar-collapse .main-sidebar .sidebar { padding-left: 0; padding-right: 0; }
+            body.sidebar-collapse #menuLateral { padding: 0 .6rem; }
+            body.sidebar-collapse #menuLateral .nav-item { width: 100%; }
+            body.sidebar-collapse #menuLateral .nav-link {
+                width: 100%; justify-content: center; align-items: center; gap: 0;
+                padding: .62rem 0; position: relative;
+            }
+            body.sidebar-collapse #menuLateral .nav-link .nav-icon {
+                margin: 0 !important; width: auto; font-size: 1.08rem;
+            }
+            /* El texto del ítem se oculta, pero su numerito (badge) sigue visible */
+            body.sidebar-collapse #menuLateral .nav-link p {
+                font-size: 0; width: 0; margin: 0; position: static; overflow: visible;
+                visibility: visible; animation: none;
+            }
+            body.sidebar-collapse #menuLateral .nav-link p .badge {
+                position: absolute; top: 3px; right: 4px; font-size: .58rem; line-height: 1;
+                padding: .18em .38em; border-radius: 8px;
+            }
+            body.sidebar-collapse #menuLateral .nav-link.active { box-shadow: none; }
+
+            /* Títulos de sección -> línea separadora; las secciones siempre desplegadas */
+            body.sidebar-collapse #menuLateral .nav-section { margin-top: 0; }
+            body.sidebar-collapse #menuLateral .nav-header-toggle {
+                display: block; height: 1px; padding: 0; margin: .5rem .35rem; overflow: hidden;
+                font-size: 0; background: rgba(255,255,255,.12); pointer-events: none;
+            }
+            body.sidebar-collapse #menuLateral .nav-header-toggle > * { display: none; }
+            body.sidebar-collapse #menuLateral .nav-section-body { display: block !important; margin: 0; }
+            body.sidebar-collapse .menu-orden-bar { display: none !important; }
+        }
+        /* Etiqueta con el nombre del ícono (menú contraído) */
+        .tooltip.menu-tip .tooltip-inner {
+            background: #2a2a44; color: #fff; font-weight: 600; font-size: .8rem;
+            padding: .35rem .65rem; border-radius: 6px; box-shadow: 0 4px 14px rgba(0,0,0,.3);
+        }
+        .tooltip.menu-tip .arrow::before { border-right-color: #2a2a44 !important; }
+
         /* ===== Ordenar menú (arrastrar y soltar) ===== */
         .menu-orden-bar { padding: .6rem .5rem 0; }
         .menu-orden-btn {
@@ -577,12 +632,21 @@
     @stack('styles')
 </head>
 <body class="hold-transition sidebar-mini layout-fixed">
+{{-- Recordar si el menú quedó contraído (botón ☰) y aplicarlo antes de pintar, sin parpadeo.
+     Solo en PC: en celular el menú siempre arranca oculto. --}}
+<script>
+    try {
+        if (window.innerWidth >= 992 && localStorage.getItem('panaderia_menu_mini') === '1') {
+            document.body.classList.add('sidebar-collapse');
+        }
+    } catch (e) {}
+</script>
 <div class="wrapper">
 
     <!-- Navbar -->
     <nav class="main-header navbar navbar-expand navbar-white navbar-light">
         <ul class="navbar-nav">
-            <li class="nav-item"><a class="nav-link" data-widget="pushmenu" href="#"><i class="fas fa-bars"></i></a></li>
+            <li class="nav-item"><a class="nav-link" data-widget="pushmenu" href="#" role="button" title="Mostrar / ocultar menú" aria-label="Mostrar u ocultar el menú"><i class="fas fa-bars"></i></a></li>
         </ul>
         <ul class="navbar-nav ml-auto">
             <li class="nav-item dropdown">
@@ -615,20 +679,24 @@
     </nav>
 
     <!-- Sidebar -->
-    <aside class="main-sidebar sidebar-dark-primary elevation-4">
+    {{-- sidebar-no-expand: contraído, el menú NO se despliega al pasar el mouse
+         (se ven solo los íconos, con su nombre en una etiqueta). --}}
+    <aside class="main-sidebar sidebar-dark-primary elevation-4 sidebar-no-expand">
         <a href="{{ route('dashboard') }}" class="brand-link text-center">
             <i class="fas fa-bread-slice mr-2"></i>
             <span class="brand-text font-weight-bold">Muruwasi</span>
         </a>
         <div class="sidebar">
             {{-- Ordenar menú: arrastrar y soltar secciones e ítems (como una playlist).
-                 El orden se guarda por usuario en usuarios.orden_menu (MenuController). --}}
+                 Solo para el admin; el orden se guarda en configuraciones ("orden_menu")
+                 y se aplica a TODOS los usuarios (MenuController). --}}
+            @if(auth()->user()->isAdmin())
             <div class="menu-orden-bar" id="menuOrdenBar">
-                <button type="button" class="menu-orden-btn" id="menuOrdenEditar" title="Arrastra secciones e ítems para cambiar su orden">
+                <button type="button" class="menu-orden-btn" id="menuOrdenEditar" title="Arrastra secciones e ítems para cambiar el orden del menú de todos los usuarios">
                     <i class="fas fa-sort"></i> Ordenar menú
                 </button>
                 <div class="menu-orden-edicion">
-                    <div class="menu-orden-ayuda"><i class="fas fa-hand-pointer mr-1"></i>Arrastra para ordenar</div>
+                    <div class="menu-orden-ayuda"><i class="fas fa-hand-pointer mr-1"></i>Arrastra para ordenar · aplica a todos los usuarios</div>
                     <label class="menu-orden-check" title="Oculta los ítems para mover las secciones más fácil. Clic en un título para abrir o cerrar solo esa sección.">
                         <input type="checkbox" id="menuOrdenCompacto"> Solo títulos
                     </label>
@@ -640,6 +708,7 @@
                 </div>
                 <div class="menu-orden-estado" id="menuOrdenEstado" role="status" aria-live="polite"></div>
             </div>
+            @endif
             <nav class="mt-2">
                 <ul class="nav nav-pills nav-sidebar flex-column" role="menu" id="menuLateral">
 
@@ -658,6 +727,7 @@
                             <i class="fas fa-chevron-right chevron"></i>
                         </a>
                         <ul class="nav-section-body" data-menu-lista="sec-inventario" style="{{ $abierta ? '' : 'display:none;' }}">
+                            @if(auth()->user()->hasPermiso('inventario.materia_prima'))
                             <li class="nav-item" data-menu-id="materia-prima">
                                 <a href="{{ route('materia-prima.index') }}" class="nav-link {{ request()->routeIs('materia-prima.*') ? 'active' : '' }}">
                                     <i class="nav-icon fas fa-boxes"></i><p>
@@ -668,21 +738,28 @@
                                     </p>
                                 </a>
                             </li>
+                            @endif
+                            @if(auth()->user()->hasPermiso('inventario.movimientos'))
                             <li class="nav-item" data-menu-id="movimientos-mp">
                                 <a href="{{ route('movimientos.index') }}" class="nav-link {{ request()->routeIs('movimientos.*') ? 'active' : '' }}">
                                     <i class="nav-icon fas fa-exchange-alt"></i><p>Movimientos de Materia Prima</p>
                                 </a>
                             </li>
+                            @endif
+                            @if(auth()->user()->hasPermiso('inventario.conteo'))
                             <li class="nav-item" data-menu-id="conteo-fisico">
                                 <a href="{{ route('conteo-fisico.index') }}" class="nav-link {{ request()->routeIs('conteo-fisico.*') ? 'active' : '' }}">
                                     <i class="nav-icon fas fa-clipboard-check"></i><p>Conteo Físico</p>
                                 </a>
                             </li>
+                            @endif
+                            @if(auth()->user()->hasPermiso('inventario.kardex'))
                             <li class="nav-item" data-menu-id="movimientos-productos">
                                 <a href="{{ route('kardex.index') }}" class="nav-link {{ request()->routeIs('kardex.*') ? 'active' : '' }}">
                                     <i class="nav-icon fas fa-book-open"></i><p>Movimientos de Productos</p>
                                 </a>
                             </li>
+                            @endif
                         </ul>
                     </li>
                     @endif
@@ -695,21 +772,27 @@
                             <i class="fas fa-chevron-right chevron"></i>
                         </a>
                         <ul class="nav-section-body" data-menu-lista="sec-compras" style="{{ $abierta ? '' : 'display:none;' }}">
+                            @if(auth()->user()->hasPermiso('compras.proveedores'))
                             <li class="nav-item" data-menu-id="proveedores">
                                 <a href="{{ route('proveedores.index') }}" class="nav-link {{ request()->routeIs('proveedores.*') ? 'active' : '' }}">
                                     <i class="nav-icon fas fa-truck"></i><p>Proveedores</p>
                                 </a>
                             </li>
+                            @endif
+                            @if(auth()->user()->hasPermiso('compras.compras'))
                             <li class="nav-item" data-menu-id="compras">
                                 <a href="{{ route('compras.index') }}" class="nav-link {{ request()->routeIs('compras.*') ? 'active' : '' }}">
                                     <i class="nav-icon fas fa-shopping-cart"></i><p>Compras</p>
                                 </a>
                             </li>
+                            @endif
+                            @if(auth()->user()->hasPermiso('compras.ordenes'))
                             <li class="nav-item" data-menu-id="ordenes-automaticas">
                                 <a href="{{ route('ordenes-automaticas.index') }}" class="nav-link {{ request()->routeIs('ordenes-automaticas.*') ? 'active' : '' }}">
                                     <i class="nav-icon fas fa-robot"></i><p>Órdenes Automáticas</p>
                                 </a>
                             </li>
+                            @endif
                         </ul>
                     </li>
                     @endif
@@ -720,7 +803,10 @@
                         // Productos, Producción y Recetas (pestañas dentro de la pantalla, ver
                         // partials/tabs-productos.blade.php) y Categorías.
                         $abierta = request()->routeIs('productos.*', 'produccion.*', 'categorias.*');
-                        $rutaProductos = auth()->user()->hasModulo('catalogo') ? 'productos.index' : 'produccion.index';
+                        // "Productos" lleva a la primera pestaña que el usuario puede ver
+                        $rutaProductos = auth()->user()->hasPermiso('catalogo.productos') ? 'productos.index'
+                            : (auth()->user()->hasPermiso('produccion.produccion') ? 'produccion.index' : 'produccion.recetas');
+                        $veProductos = auth()->user()->hasPermiso('catalogo.productos') || auth()->user()->hasModulo('produccion');
                     @endphp
                     <li data-menu-id="sec-productos" class="nav-section {{ $abierta ? 'open' : '' }}">
                         <a href="#" class="nav-header-toggle">
@@ -728,6 +814,7 @@
                             <i class="fas fa-chevron-right chevron"></i>
                         </a>
                         <ul class="nav-section-body" data-menu-lista="sec-productos" style="{{ $abierta ? '' : 'display:none;' }}">
+                            @if($veProductos)
                             <li class="nav-item" data-menu-id="productos">
                                 <a href="{{ route($rutaProductos) }}" class="nav-link {{ request()->routeIs('productos.*', 'produccion.*') ? 'active' : '' }}">
                                     <i class="nav-icon fas fa-bread-slice"></i><p>
@@ -738,7 +825,8 @@
                                     </p>
                                 </a>
                             </li>
-                            @if(auth()->user()->hasModulo('catalogo'))
+                            @endif
+                            @if(auth()->user()->hasPermiso('catalogo.categorias'))
                             <li class="nav-item" data-menu-id="categorias">
                                 <a href="{{ route('categorias.index') }}" class="nav-link {{ request()->routeIs('categorias.*') ? 'active' : '' }}">
                                     <i class="nav-icon fas fa-tags"></i><p>Categorías</p>
@@ -757,21 +845,27 @@
                             <i class="fas fa-chevron-right chevron"></i>
                         </a>
                         <ul class="nav-section-body" data-menu-lista="sec-reportes" style="{{ $abierta ? '' : 'display:none;' }}">
+                            @if(auth()->user()->hasPermiso('reportes.resumen'))
                             <li class="nav-item" data-menu-id="reportes-resumen">
                                 <a href="{{ route('reportes.index') }}" class="nav-link {{ request()->routeIs('reportes.index') ? 'active' : '' }}">
                                     <i class="nav-icon fas fa-chart-pie"></i><p>Resumen de Reportes</p>
                                 </a>
                             </li>
+                            @endif
+                            @if(auth()->user()->hasPermiso('reportes.stock'))
                             <li class="nav-item" data-menu-id="reportes-stock">
                                 <a href="{{ route('reportes.stock') }}" class="nav-link {{ request()->routeIs('reportes.stock*') ? 'active' : '' }}">
                                     <i class="nav-icon fas fa-warehouse"></i><p>Reporte de Stock</p>
                                 </a>
                             </li>
+                            @endif
+                            @if(auth()->user()->hasPermiso('reportes.kardex'))
                             <li class="nav-item" data-menu-id="reportes-kardex">
                                 <a href="{{ route('reportes.kardex') }}" class="nav-link {{ request()->routeIs('reportes.kardex*') ? 'active' : '' }}">
                                     <i class="nav-icon fas fa-file-invoice"></i><p>Reporte de Kardex</p>
                                 </a>
                             </li>
+                            @endif
                         </ul>
                     </li>
                     @endif
@@ -871,7 +965,7 @@
                         listas().forEach(function (l) {
                             hijos(l.ul).forEach(function (li, i) { li.setAttribute('data-orden-base', i); });
                         });
-                        var guardado = @json(auth()->user()->orden_menu);
+                        var guardado = @json(\App\Models\Configuracion::obtener(\App\Http\Controllers\MenuController::CLAVE));
                         if (guardado) aplicar(guardado);
                         return { aplicar: aplicar, leer: leer, listas: listas };
                     })();
@@ -978,6 +1072,43 @@
 <script src="https://cdn.jsdelivr.net/npm/jquery@3.6/dist/jquery.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/js/adminlte.min.js"></script>
+
+<script>
+    // Menú contraído (botón ☰): recordar el estado y mostrar el nombre de cada ícono
+    // en una etiqueta al pasar el mouse (solo en PC y solo con el menú contraído).
+    (function () {
+        if (typeof $ === 'undefined' || !$.fn.tooltip) return;
+        const KEY = 'panaderia_menu_mini';
+        const esMini = function () {
+            return document.body.classList.contains('sidebar-collapse') && window.innerWidth >= 992;
+        };
+        // Nombre del ítem = texto del <p> sin el numerito del badge
+        function nombre(enlace) {
+            const p = enlace.querySelector('p');
+            if (!p) return '';
+            return Array.prototype.filter.call(p.childNodes, function (n) { return n.nodeType === 3; })
+                .map(function (n) { return n.textContent; }).join(' ').replace(/\s+/g, ' ').trim();
+        }
+        $('#menuLateral .nav-item > .nav-link').each(function () {
+            $(this).tooltip({
+                title: nombre(this), placement: 'right', trigger: 'hover focus',
+                container: 'body', boundary: 'window', template:
+                    '<div class="tooltip menu-tip" role="tooltip"><div class="arrow"></div><div class="tooltip-inner"></div></div>',
+            });
+        }).on('show.bs.tooltip', function (e) {
+            if (!esMini()) e.preventDefault(); // con el menú abierto no hace falta etiqueta
+        });
+
+        $(document).on('collapsed.lte.pushmenu shown.lte.pushmenu', function (e) {
+            $('#menuLateral .nav-link').tooltip('hide');
+            if (window.innerWidth >= 992) {
+                try { localStorage.setItem(KEY, e.type === 'collapsed' ? '1' : '0'); } catch (err) {}
+            }
+        });
+    })();
+</script>
+@if(auth()->user()->isAdmin())
+{{-- Solo el admin ordena el menú: los demás usuarios no cargan esta librería ni este script --}}
 <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
 
 <script>
@@ -1102,6 +1233,12 @@
             modoEdicion(false);
         }
         btnCancelar.addEventListener('click', cancelar);
+        // Si se contrae el menú (☰) a mitad de ordenar, se cancela (la barra no se ve contraída)
+        if (typeof $ !== 'undefined') {
+            $(document).on('collapsed.lte.pushmenu', function () {
+                if (document.body.classList.contains('menu-editando')) cancelar();
+            });
+        }
         document.addEventListener('keydown', function (e) {
             if (e.key === 'Escape' && document.body.classList.contains('menu-editando')) cancelar();
         });
@@ -1155,6 +1292,7 @@
         }, true);
     })();
 </script>
+@endif
 
 <script>
     (function () {

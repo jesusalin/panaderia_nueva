@@ -66,16 +66,18 @@
     </div>
     @if($item)
     <div class="toolbar-actions">
-        @if($tipoItem === 'materia' && auth()->user()->hasModulo('inventario'))
-            @if($stockBajo || !$cuadra)
+        @if($tipoItem === 'materia')
+            @if(($stockBajo || !$cuadra) && auth()->user()->hasPermiso('inventario.conteo'))
             <a href="{{ route('conteo-fisico.index') }}" class="btn btn-warning"
                title="{{ !$cuadra ? 'El kardex no cuadra: verifica con un conteo físico' : 'Stock bajo: confirma cuánto hay realmente' }}">
                 <i class="fas fa-clipboard-check mr-1"></i>Registrar conteo físico
             </a>
             @endif
+            @if(auth()->user()->hasPermiso('inventario.materia_prima'))
             <a href="{{ route('materia-prima.ajuste', $item) }}" class="btn btn-outline-warning">
                 <i class="fas fa-balance-scale mr-1"></i>Ajustar stock
             </a>
+            @endif
         @endif
         <a href="{{ route('reportes.kardex.pdf', request()->query()) }}" target="_blank" class="btn btn-outline-secondary">
             <i class="fas fa-file-pdf mr-1"></i>PDF

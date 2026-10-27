@@ -10,6 +10,7 @@ php artisan key:generate
 ```
 Configura tu `.env`:
 ```
+APP_TIMEZONE=America/Lima
 DB_DATABASE=panaderia_nueva
 DB_USERNAME=root
 DB_PASSWORD=
@@ -23,19 +24,34 @@ php artisan serve
 ## ¿Cómo entrar?
 URL: `http://127.0.0.1:8000/login`
 
-El usuario **admin / admin123** se crea automáticamente al correr las migraciones
-(no depende del seeder). Con `migrate:fresh --seed` además se agregan 2 usuarios
-de ejemplo para probar los permisos:
+Los usuarios **admin / admin123** y **almacenero / almacenero123** se crean al correr
+las migraciones (no dependen del seeder). Con `migrate:fresh --seed` además se agregan
+2 usuarios de ejemplo:
 
-| Usuario | Contraseña | Rol | Apodo | Módulos asignados |
-|---------|-----------|-----|-------|--------------------|
-| admin | admin123 | Admin | — | Todos (acceso total) |
-| mquispe | ventas123 | Usuario | Ventas | Ventas, Clientes |
-| cmamani | almacen123 | Usuario | Almacén | Inventario, Compras, Producción, Reportes |
+| Usuario | Contraseña | Rol | Apodo | Pantallas asignadas |
+|---------|-----------|-----|-------|---------------------|
+| admin | admin123 | Admin | — | Todas (acceso total) |
+| **almacenero** | almacenero123 | Usuario | Almacén | Inventario, Compras, Producción y Reportes (usuario de la tesis) |
+| mquispe | ventas123 | Usuario | Ventas | Ventas, Clientes y Productos (para vender desde el carrito) |
+| cmamani | almacen123 | Usuario | Almacén | Inventario, Compras, Producción y Reportes |
 
 Ya no existe registro público (`/register`): solo el admin puede crear usuarios,
 desde **Usuarios → Nuevo Usuario**, donde además le pone un **apodo** (ej. "Almacén",
-"Caja 1") y marca con checkboxes a qué módulos tiene acceso.
+"Caja 1") y marca, pantalla por pantalla, qué puede usar.
+
+### Datos de ejemplo (`--seed`)
+El seeder simula **las últimas 2 semanas de operación** de la panadería, día por día:
+33 insumos reales con sus proveedores y presentaciones de compra, 13 productos con su
+receta, producción diaria, ventas de mostrador y pedidos fijos (bodega, colegio,
+restaurante), órdenes automáticas convertidas en compras, mermas y dos conteos físicos
+de los 10 insumos de control. Cada operación se registra igual que en el sistema, así
+que **el kardex de todos los insumos y productos cuadra**. Las fechas son relativas al
+día en que se ejecuta, así que siempre hay datos de "hoy" y de los últimos días.
+
+Para la demostración siempre quedan: una orden automática pendiente con proveedor
+(Mantequilla) y una sin proveedor (Esencia de vainilla), una orden descartada, una
+compra registrada que aún no llega, insumos en stock bajo y la Torta tres leches
+agotada.
 
 ---
 

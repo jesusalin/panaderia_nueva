@@ -5,11 +5,13 @@
 --}}
 @php
     $tabsProductos = [];
-    if (auth()->user()->hasModulo('catalogo')) {
+    if (auth()->user()->hasPermiso('catalogo.productos')) {
         $tabsProductos[] = ['ruta' => 'productos.index',  'activo' => request()->routeIs('productos.*'),   'icono' => 'fa-bread-slice', 'label' => 'Productos'];
     }
-    if (auth()->user()->hasModulo('produccion')) {
+    if (auth()->user()->hasPermiso('produccion.produccion')) {
         $tabsProductos[] = ['ruta' => 'produccion.index',   'activo' => request()->routeIs('produccion.index','produccion.create','produccion.store','produccion.show','produccion.ingredientes'), 'icono' => 'fa-industry', 'label' => 'Producción'];
+    }
+    if (auth()->user()->hasPermiso('produccion.recetas')) {
         $tabsProductos[] = ['ruta' => 'produccion.recetas', 'activo' => request()->routeIs('produccion.recetas','produccion.guardar-receta'), 'icono' => 'fa-book', 'label' => 'Recetas'];
     }
 @endphp

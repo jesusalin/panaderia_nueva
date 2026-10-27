@@ -58,7 +58,7 @@ class UsuariosController extends Controller
             'id_rol'=>'required|exists:roles,id',
             'estado'=>'required|in:activo,inactivo',
             'permisos'=>'array',
-            'permisos.*'=>'in:'.implode(',', array_keys(Usuario::MODULOS)),
+            'permisos.*'=>'in:'.implode(',', Usuario::clavesPermiso()),
         ]);
 
         $usuario = Usuario::create([
@@ -97,7 +97,7 @@ class UsuariosController extends Controller
             'estado'=>'required|in:activo,inactivo',
             'password'=>'nullable|min:6|confirmed',
             'permisos'=>'array',
-            'permisos.*'=>'in:'.implode(',', array_keys(Usuario::MODULOS)),
+            'permisos.*'=>'in:'.implode(',', Usuario::clavesPermiso()),
         ], [
             'usuario.alpha_dash' => 'El usuario solo puede tener letras, números, guiones y guiones bajos.',
             'usuario.unique'     => 'Ese nombre de usuario ya está en uso por otra persona.',
@@ -160,12 +160,12 @@ class UsuariosController extends Controller
     }
 
     /**
-     * Reemplaza los módulos asignados al usuario por la lista recibida del formulario.
-     * Si el usuario es admin, no necesita permisos guardados (ya tiene acceso a todo).
+     * Reemplaza los permisos del usuario por la lista recibida del formulario
+     * (una clave por pantalla: "inventario.conteo", "ventas", ...).
      */
     private function sincronizarPermisos(Usuario $usuario, array $modulos): void
     {
-        $modulos = array_values(array_intersect($modulos, array_keys(Usuario::MODULOS)));
+        $modulos = Usuario::expandirPermisos($modulos);
 
         PermisoUsuario::where('id_usuario', $usuario->id)->delete();
 

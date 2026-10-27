@@ -245,7 +245,7 @@ function actualizarPanel() {
             if (!data) {
                 panel.innerHTML = `<div class="prod-banner bad" style="margin-top:0;">
                     <i class="fas fa-exclamation-triangle"></i>
-                    Este producto no tiene receta. <a href="{{ route('produccion.recetas') }}">Crear receta</a>
+                    Este producto no tiene receta.@if(auth()->user()->hasPermiso('produccion.recetas')) <a href="{{ route('produccion.recetas') }}">Crear receta</a>@else Pide al administrador que la registre.@endif
                 </div>`;
                 document.getElementById('btnGuardar').disabled = true;
                 return;

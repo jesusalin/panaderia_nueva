@@ -49,9 +49,7 @@
         <a href="{{ route('ventas.exportar-excel') }}" class="btn btn-outline-secondary">
             <i class="fas fa-file-excel mr-1"></i>Exportar Excel
         </a>
-        <a href="{{ route('ventas.create') }}" class="btn btn-success">
-            <i class="fas fa-plus mr-1"></i>Nueva Venta
-        </a>
+        {{-- Sin botón "Nueva Venta": las ventas se registran desde el carrito de Productos. --}}
     </div>
 </div>
 
@@ -135,7 +133,9 @@
 <div class="empty-state">
     <i class="fas fa-cash-register"></i>
     <p>Todavía no tienes ventas registradas</p>
-    <a href="{{ route('ventas.create') }}" class="btn btn-success"><i class="fas fa-plus mr-1"></i>Registrar la primera</a>
+    @if(auth()->user()->hasPermiso('catalogo.productos'))
+        <a href="{{ route('productos.index') }}" class="btn btn-outline-success"><i class="fas fa-bread-slice mr-1"></i>Ir a Productos para vender</a>
+    @endif
 </div>
 @endif
 

@@ -2,13 +2,16 @@
 
 namespace Tests\Feature;
 
+use App\Http\Controllers\MenuController;
+use App\Models\Configuracion;
+use App\Models\PermisoUsuario;
 use App\Models\Usuario;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 /**
- * "Ordenar menú": cada usuario puede reordenar el menú lateral arrastrando y
- * soltando, y ese orden se guarda solo para él.
+ * "Ordenar menú": solo el admin reordena el menú lateral (arrastrar y soltar)
+ * y ese orden se aplica a todos los usuarios.
  */
 class OrdenMenuTest extends TestCase
 {
@@ -31,68 +34,93 @@ class OrdenMenuTest extends TestCase
         ];
     }
 
+    private function ordenGuardado(): ?array
+    {
+        return Configuracion::obtener(MenuController::CLAVE);
+    }
+
     public function test_un_invitado_no_puede_guardar_el_orden(): void
     {
         $this->postJson(route('menu.orden.guardar'), $this->ordenEjemplo())
              ->assertUnauthorized();
     }
 
-    public function test_el_usuario_guarda_su_orden_y_queda_en_la_base_de_datos(): void
+    public function test_un_usuario_que_no_es_admin_no_puede_guardar_ni_restablecer(): void
     {
         $usuario = Usuario::factory()->create();
+        Configuracion::guardar(MenuController::CLAVE, $this->ordenEjemplo());
 
         $this->actingAs($usuario)
+             ->postJson(route('menu.orden.guardar'), ['secciones' => ['dashboard'], 'items' => []])
+             ->assertForbidden();
+        $this->actingAs($usuario)
+             ->deleteJson(route('menu.orden.restablecer'))
+             ->assertForbidden();
+
+        $this->assertSame($this->ordenEjemplo(), $this->ordenGuardado());
+    }
+
+    public function test_el_admin_guarda_el_orden_general(): void
+    {
+        $admin = Usuario::factory()->admin()->create();
+
+        $this->actingAs($admin)
              ->postJson(route('menu.orden.guardar'), $this->ordenEjemplo())
              ->assertOk()
              ->assertJson(['ok' => true]);
 
-        $this->assertSame($this->ordenEjemplo(), $usuario->fresh()->orden_menu);
-    }
-
-    public function test_el_orden_es_personal_y_no_afecta_a_otros_usuarios(): void
-    {
-        $uno  = Usuario::factory()->create();
-        $otro = Usuario::factory()->create();
-
-        $this->actingAs($uno)->postJson(route('menu.orden.guardar'), $this->ordenEjemplo())->assertOk();
-
-        $this->assertNull($otro->fresh()->orden_menu);
+        $this->assertSame($this->ordenEjemplo(), $this->ordenGuardado());
     }
 
     public function test_rechaza_identificadores_con_caracteres_raros(): void
     {
-        $usuario = Usuario::factory()->create();
+        $admin = Usuario::factory()->admin()->create();
 
-        $this->actingAs($usuario)
+        $this->actingAs($admin)
              ->postJson(route('menu.orden.guardar'), [
                  'secciones' => ['<script>alert(1)</script>'],
                  'items'     => [],
              ])
              ->assertStatus(422);
 
-        $this->assertNull($usuario->fresh()->orden_menu);
+        $this->assertNull($this->ordenGuardado());
     }
 
     public function test_restablecer_vuelve_al_orden_original(): void
     {
-        $usuario = Usuario::factory()->create(['orden_menu' => $this->ordenEjemplo()]);
+        $admin = Usuario::factory()->admin()->create();
+        Configuracion::guardar(MenuController::CLAVE, $this->ordenEjemplo());
 
-        $this->actingAs($usuario)
+        $this->actingAs($admin)
              ->deleteJson(route('menu.orden.restablecer'))
              ->assertOk();
 
-        $this->assertNull($usuario->fresh()->orden_menu);
+        $this->assertNull($this->ordenGuardado());
     }
 
-    public function test_el_menu_muestra_el_boton_y_carga_el_orden_guardado(): void
+    public function test_el_admin_ve_el_boton_ordenar_menu(): void
     {
-        $admin = Usuario::factory()->admin()->create(['orden_menu' => $this->ordenEjemplo()]);
+        $admin = Usuario::factory()->admin()->create();
 
         $this->actingAs($admin)
              ->get(route('dashboard'))
              ->assertOk()
-             ->assertSee('Ordenar menú')
-             ->assertSee('data-menu-id="sec-inventario"', false)
-             ->assertSee('"sec-ventas","dashboard","sec-inventario"', false);
+             ->assertSee('id="menuOrdenEditar"', false)
+             ->assertSee('Sortable.min.js', false);
+    }
+
+    public function test_un_usuario_normal_no_ve_el_boton_pero_recibe_el_orden_del_admin(): void
+    {
+        Configuracion::guardar(MenuController::CLAVE, $this->ordenEjemplo());
+        $usuario = Usuario::factory()->create();
+        PermisoUsuario::create(['id_usuario' => $usuario->id, 'modulo' => 'ventas']);
+
+        $this->actingAs($usuario)
+             ->get(route('dashboard'))
+             ->assertOk()
+             ->assertDontSee('id="menuOrdenEditar"', false)
+             ->assertDontSee('Sortable.min.js', false)
+             ->assertSee('"sec-ventas","dashboard","sec-inventario"', false)
+             ->assertSee('data-menu-id="sec-ventas"', false);
     }
 }

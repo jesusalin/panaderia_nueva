@@ -28,7 +28,7 @@ Route::middleware(['auth'])->group(function () {
     // Dashboard: visible para cualquier usuario autenticado, sin importar sus permisos
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
-    // Orden personalizado del menú lateral (cualquier usuario, solo afecta a su propio menú)
+    // Orden del menú lateral: solo el admin lo cambia (el controlador lo verifica) y aplica a todos
     Route::post('menu/orden',   [MenuController::class, 'guardar'])->name('menu.orden.guardar');
     Route::delete('menu/orden', [MenuController::class, 'restablecer'])->name('menu.orden.restablecer');
 
@@ -44,23 +44,31 @@ Route::middleware(['auth'])->group(function () {
         Route::post('backups/{archivo}/restaurar', [BackupController::class, 'restore'])->name('backups.restore');
     });
 
+    // Cada pantalla tiene su propio permiso ("modulo.pantalla"), así el admin elige
+    // exactamente qué puede usar cada usuario (ver Usuario::PERMISOS).
+
     // ── Módulo: Catálogo ─────────────────────────────────────────
-    Route::middleware(['modulo:catalogo'])->group(function () {
+    Route::middleware(['modulo:catalogo.categorias'])->group(function () {
         Route::resource('categorias', CategoriasController::class);
         Route::put('categorias/{categoria}/toggle-estado', [CategoriasController::class, 'toggleEstado'])->name('categorias.toggle-estado');
+    });
+    Route::middleware(['modulo:catalogo.productos'])->group(function () {
         Route::resource('productos',  ProductosController::class);
         Route::put('productos/{producto}/toggle-estado', [ProductosController::class, 'toggleEstado'])->name('productos.toggle-estado');
     });
 
     // ── Módulo: Inventario ───────────────────────────────────────
-    Route::middleware(['modulo:inventario'])->group(function () {
+    Route::middleware(['modulo:inventario.materia_prima'])->group(function () {
         Route::resource('materia-prima', MateriaPrimaController::class);
         Route::put('materia-prima/{materiaPrima}/toggle-estado', [MateriaPrimaController::class, 'toggleEstado'])->name('materia-prima.toggle-estado');
         Route::get('materia-prima/{materiaPrima}/ajuste',  [MateriaPrimaController::class, 'ajusteForm'])->name('materia-prima.ajuste');
         Route::post('materia-prima/{materiaPrima}/ajuste', [MateriaPrimaController::class, 'ajusteStore'])->name('materia-prima.ajuste.store');
-        Route::get('movimientos_materia_prima', [MovimientosController::class, 'index'])->name('movimientos.index');
-        Route::get('movimientos_productos', [KardexController::class, 'index'])->name('kardex.index');
-
+    });
+    Route::get('movimientos_materia_prima', [MovimientosController::class, 'index'])->name('movimientos.index')
+        ->middleware('modulo:inventario.movimientos');
+    Route::get('movimientos_productos', [KardexController::class, 'index'])->name('kardex.index')
+        ->middleware('modulo:inventario.kardex');
+    Route::middleware(['modulo:inventario.conteo'])->group(function () {
         Route::get('conteo-fisico',            [ConteoFisicoController::class, 'index'])->name('conteo-fisico.index');
         Route::post('conteo-fisico',           [ConteoFisicoController::class, 'store'])->name('conteo-fisico.store');
         Route::get('conteo-fisico/historial',  [ConteoFisicoController::class, 'historial'])->name('conteo-fisico.historial');
@@ -68,26 +76,35 @@ Route::middleware(['auth'])->group(function () {
     });
 
     // ── Módulo: Producción ───────────────────────────────────────
-    Route::middleware(['modulo:produccion'])->group(function () {
+    Route::middleware(['modulo:produccion.produccion'])->group(function () {
         Route::get('produccion',                  [ProduccionController::class, 'index'])->name('produccion.index');
         Route::get('produccion/crear',            [ProduccionController::class, 'create'])->name('produccion.create');
         Route::post('produccion',                 [ProduccionController::class, 'store'])->name('produccion.store');
-        Route::get('produccion/{produccion}',     [ProduccionController::class, 'show'])->name('produccion.show');
-        Route::delete('produccion/{produccion}',  [ProduccionController::class, 'destroy'])->name('produccion.destroy');
+    });
+    Route::middleware(['modulo:produccion.recetas'])->group(function () {
         Route::get('produccion/recetas/listado',  [ProduccionController::class, 'recetas'])->name('produccion.recetas');
         Route::post('produccion/recetas/guardar', [ProduccionController::class, 'crearReceta'])->name('produccion.guardar-receta');
-        Route::get('produccion/ingredientes/{producto}', [ProduccionController::class, 'ingredientes'])->name('produccion.ingredientes');
+    });
+    // Los ingredientes de una receta los usan las dos pantallas
+    Route::get('produccion/ingredientes/{producto}', [ProduccionController::class, 'ingredientes'])->name('produccion.ingredientes')
+        ->middleware('modulo:produccion.produccion,produccion.recetas');
+    Route::middleware(['modulo:produccion.produccion'])->group(function () {
+        Route::get('produccion/{produccion}',     [ProduccionController::class, 'show'])->name('produccion.show');
+        Route::delete('produccion/{produccion}',  [ProduccionController::class, 'destroy'])->name('produccion.destroy');
     });
 
     // ── Módulo: Compras ──────────────────────────────────────────
-    Route::middleware(['modulo:compras'])->group(function () {
+    Route::middleware(['modulo:compras.proveedores'])->group(function () {
         Route::put('proveedores/{proveedor}/toggle-estado', [ProveedoresController::class, 'toggleEstado'])->name('proveedores.toggle-estado');
         Route::resource('proveedores', ProveedoresController::class)
             ->parameters(['proveedores' => 'proveedor']);
+    });
+    Route::middleware(['modulo:compras.compras'])->group(function () {
         Route::resource('compras', ComprasController::class)->only(['index', 'create', 'store', 'show']);
         Route::put('compras/{compra}/recibir', [ComprasController::class, 'recibir'])->name('compras.recibir');
         Route::put('compras/{compra}/anular',  [ComprasController::class, 'anular'])->name('compras.anular');
-
+    });
+    Route::middleware(['modulo:compras.ordenes'])->group(function () {
         Route::get('ordenes-automaticas',  [OrdenesAutomaticasController::class, 'index'])->name('ordenes-automaticas.index');
         Route::post('ordenes-automaticas/generar', [OrdenesAutomaticasController::class, 'generar'])->name('ordenes-automaticas.generar');
         Route::post('ordenes-automaticas/{ordenAutomatica}/convertir', [OrdenesAutomaticasController::class, 'convertir'])->name('ordenes-automaticas.convertir');
@@ -108,12 +125,14 @@ Route::middleware(['auth'])->group(function () {
     });
 
     // ── Módulo: Reportes ─────────────────────────────────────────
-    Route::middleware(['modulo:reportes'])->group(function () {
-        Route::get('reportes', [ReportesController::class, 'index'])->name('reportes.index');
+    Route::get('reportes', [ReportesController::class, 'index'])->name('reportes.index')
+        ->middleware('modulo:reportes.resumen');
+    Route::middleware(['modulo:reportes.stock'])->group(function () {
         Route::get('reportes/stock',        [ReportesController::class, 'stock'])->name('reportes.stock');
         Route::get('reportes/stock/pdf',    [ReportesController::class, 'stockPdf'])->name('reportes.stock.pdf');
         Route::get('reportes/stock/excel',  [ReportesController::class, 'stockExcel'])->name('reportes.stock.excel');
-
+    });
+    Route::middleware(['modulo:reportes.kardex'])->group(function () {
         Route::get('reportes/kardex',       [ReportesController::class, 'kardex'])->name('reportes.kardex');
         Route::get('reportes/kardex/pdf',   [ReportesController::class, 'kardexPdf'])->name('reportes.kardex.pdf');
         Route::get('reportes/kardex/excel', [ReportesController::class, 'kardexExcel'])->name('reportes.kardex.excel');

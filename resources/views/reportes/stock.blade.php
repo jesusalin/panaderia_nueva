@@ -45,8 +45,11 @@
     $totalItems     = $todos->count();
     $totalAgotados  = $todos->where('nivel', 'agotado')->count();
     $totalBajos     = $todos->where('nivel', 'bajo')->count();
-    $puedeAjustar   = auth()->user()->hasModulo('inventario');
-    $puedeComprar   = auth()->user()->hasModulo('compras');
+    $puedeAjustar   = auth()->user()->hasPermiso('inventario.materia_prima');
+    $puedeComprar   = auth()->user()->hasPermiso('compras.compras');
+    $puedeOrdenes   = auth()->user()->hasPermiso('compras.ordenes');
+    $puedeProducir  = auth()->user()->hasPermiso('produccion.produccion');
+    $puedeKardex    = auth()->user()->hasPermiso('reportes.kardex');
     $etiquetaNivel  = ['agotado' => 'Agotado', 'bajo' => 'Stock bajo', 'ok' => 'Normal'];
 @endphp
 
@@ -56,7 +59,7 @@
         <p>Qué hay, qué falta y cuánto reponer — materia prima y productos terminados</p>
     </div>
     <div class="toolbar-actions">
-        @if($puedeComprar && $materias->whereIn('nivel', ['agotado','bajo'])->count() > 0)
+        @if($puedeOrdenes && $materias->whereIn('nivel', ['agotado','bajo'])->count() > 0)
         <form action="{{ route('ordenes-automaticas.generar') }}" method="POST" class="d-inline">
             @csrf
             <button class="btn btn-warning" title="Crea una orden de compra sugerida por cada insumo con stock bajo">
@@ -132,7 +135,7 @@
                     <div class="reponer-hint">Reponer ≈ {{ number_format($m->reponer, 2) }} {{ $m->unidad->abreviatura }}</div>
                 @endif
                 <div class="sk-acciones">
-                    <a href="{{ route('reportes.kardex', ['item' => 'materia-'.$m->id]) }}" class="btn btn-outline-info" title="Ver su kardex"><i class="fas fa-file-invoice"></i></a>
+                    @if($puedeKardex)<a href="{{ route('reportes.kardex', ['item' => 'materia-'.$m->id]) }}" class="btn btn-outline-info" title="Ver su kardex"><i class="fas fa-file-invoice"></i></a>@endif
                     @if($puedeAjustar)<a href="{{ route('materia-prima.ajuste', $m) }}" class="btn btn-outline-warning" title="Ajustar stock"><i class="fas fa-balance-scale"></i></a>@endif
                     @if($puedeComprar && $m->nivel !== 'ok')<a href="{{ route('compras.create') }}" class="btn btn-outline-primary" title="Registrar compra"><i class="fas fa-cart-plus"></i></a>@endif
                 </div>
@@ -163,8 +166,8 @@
                     <div class="reponer-hint">Producir ≈ {{ number_format($p->reponer, 0) }} uds</div>
                 @endif
                 <div class="sk-acciones">
-                    <a href="{{ route('reportes.kardex', ['item' => 'producto-'.$p->id]) }}" class="btn btn-outline-info" title="Ver su kardex"><i class="fas fa-file-invoice"></i></a>
-                    @if(auth()->user()->hasModulo('produccion') && $p->nivel !== 'ok')<a href="{{ route('produccion.create') }}" class="btn btn-outline-primary" title="Registrar producción"><i class="fas fa-industry"></i></a>@endif
+                    @if($puedeKardex)<a href="{{ route('reportes.kardex', ['item' => 'producto-'.$p->id]) }}" class="btn btn-outline-info" title="Ver su kardex"><i class="fas fa-file-invoice"></i></a>@endif
+                    @if($puedeProducir && $p->nivel !== 'ok')<a href="{{ route('produccion.create') }}" class="btn btn-outline-primary" title="Registrar producción"><i class="fas fa-industry"></i></a>@endif
                 </div>
             </div>
         </div>

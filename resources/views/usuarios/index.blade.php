@@ -160,11 +160,13 @@
                     @if($esAdmin)
                         <span class="usr-card-row" style="padding:0;"><i class="fas fa-infinity"></i>Acceso total al sistema</span>
                     @elseif($u->permisos->isEmpty())
-                        <span class="usr-card-row" style="padding:0;color:#ced4da;font-style:italic;">Sin módulos asignados</span>
+                        <span class="usr-card-row" style="padding:0;color:#ced4da;font-style:italic;">Sin permisos asignados</span>
                     @else
                         <div class="usr-badges">
-                            @foreach($u->permisos as $p)
-                                <span class="badge-soft badge-soft-info">{{ \App\Models\Usuario::MODULOS[$p->modulo] ?? $p->modulo }}</span>
+                            @foreach($u->resumenPermisos() as $r)
+                                <span class="badge-soft badge-soft-info" title="{{ implode(', ', $r['pantallas']) }}">
+                                    {{ $r['etiqueta'] }}@if($r['total'] > 1) · {{ $r['marcadas'] }}/{{ $r['total'] }}@endif
+                                </span>
                             @endforeach
                         </div>
                     @endif
