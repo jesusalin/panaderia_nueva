@@ -66,10 +66,16 @@
     </div>
     @if($item)
     <div class="toolbar-actions">
-        @if($tipoItem === 'materia')
-        <a href="{{ route('materia-prima.ajuste', $item) }}" class="btn btn-outline-warning">
-            <i class="fas fa-balance-scale mr-1"></i>Ajustar stock
-        </a>
+        @if($tipoItem === 'materia' && auth()->user()->hasModulo('inventario'))
+            @if($stockBajo || !$cuadra)
+            <a href="{{ route('conteo-fisico.index') }}" class="btn btn-warning"
+               title="{{ !$cuadra ? 'El kardex no cuadra: verifica con un conteo físico' : 'Stock bajo: confirma cuánto hay realmente' }}">
+                <i class="fas fa-clipboard-check mr-1"></i>Registrar conteo físico
+            </a>
+            @endif
+            <a href="{{ route('materia-prima.ajuste', $item) }}" class="btn btn-outline-warning">
+                <i class="fas fa-balance-scale mr-1"></i>Ajustar stock
+            </a>
         @endif
         <a href="{{ route('reportes.kardex.pdf', request()->query()) }}" target="_blank" class="btn btn-outline-secondary">
             <i class="fas fa-file-pdf mr-1"></i>PDF
@@ -85,19 +91,20 @@
     <form method="GET" id="formKardex" class="form-inline flex-wrap" style="gap:.6rem;">
         <input type="hidden" name="periodo" value="{{ $periodo !== 'personalizado' ? $periodo : '' }}">
 
-        <select name="item" class="form-control" style="min-width:260px;" onchange="this.form.submit()">
-            <option value="">— Elige un insumo o producto —</option>
-            <optgroup label="Materia Prima">
-                @foreach($materias as $m)
-                    <option value="materia-{{ $m->id }}" {{ $itemActual === 'materia-'.$m->id ? 'selected' : '' }}>{{ $m->nombre }}</option>
-                @endforeach
-            </optgroup>
-            <optgroup label="Productos terminados">
-                @foreach($productos as $p)
-                    <option value="producto-{{ $p->id }}" {{ $itemActual === 'producto-'.$p->id ? 'selected' : '' }}>{{ $p->nombre }}</option>
-                @endforeach
-            </optgroup>
-        </select>
+        {{-- Buscador en vivo: escribe parte del nombre y elige. Funciona con un datalist
+             nativo (sin librerías externas); el valor real viaja en el campo oculto "item". --}}
+        <input type="hidden" name="item" id="itemValor" value="{{ $itemActual }}">
+        <input type="text" id="itemBuscar" class="form-control" style="min-width:300px;" list="listaItems"
+               placeholder="Escribe para buscar un insumo o producto…" autocomplete="off"
+               value="{{ $item ? $item->nombre . ' · ' . ($tipoItem === 'materia' ? 'Insumo' : 'Producto') : '' }}">
+        <datalist id="listaItems">
+            @foreach($materias as $m)
+                <option value="{{ $m->nombre }} · Insumo" data-valor="materia-{{ $m->id }}"></option>
+            @endforeach
+            @foreach($productos as $p)
+                <option value="{{ $p->nombre }} · Producto" data-valor="producto-{{ $p->id }}"></option>
+            @endforeach
+        </datalist>
 
         <details class="ml-1" {{ $periodo === 'personalizado' ? 'open' : '' }}>
             <summary class="text-muted small" style="cursor:pointer;">Fechas exactas</summary>
@@ -179,6 +186,19 @@
     </div>
     @endif
 
+    @if($movimientos->count() >= 2)
+    @php
+        $chartLabels = collect(['Inicio'])->concat($movimientos->map(fn($m) => $m->created_at->format('d/m H:i')))->all();
+        $chartSaldos = collect([(float) $saldoInicial])->concat($movimientos->map(fn($m) => (float) $m->stock_despues))->all();
+    @endphp
+    <div class="card rp-filter" style="padding:1rem 1.3rem;">
+        <div class="rp-label mb-2" style="font-size:.72rem;font-weight:700;color:#8a8a9d;text-transform:uppercase;letter-spacing:.03em;">
+            Evolución del saldo ({{ $unidad }}) — la línea punteada es el stock mínimo
+        </div>
+        <div style="height:220px;"><canvas id="chartSaldo"></canvas></div>
+    </div>
+    @endif
+
     @if($movimientos->count() > 0)
     <div class="table-card">
         <table class="table table-modern mb-0">
@@ -229,3 +249,64 @@
 @endif
 
 @endsection
+
+@push('scripts')
+<script>
+    // Buscador en vivo del ítem: al elegir una opción del listado, carga el kardex solo.
+    (function () {
+        const buscar = document.getElementById('itemBuscar');
+        const valor  = document.getElementById('itemValor');
+        const form   = document.getElementById('formKardex');
+        const opciones = Array.from(document.querySelectorAll('#listaItems option'));
+
+        buscar.addEventListener('focus', () => buscar.select()); // para reemplazar el texto al escribir
+        buscar.addEventListener('change', function () {
+            const texto = buscar.value.trim();
+            if (texto === '') { valor.value = ''; form.submit(); return; }
+
+            let hallada = opciones.find(o => o.value.toLowerCase() === texto.toLowerCase());
+            if (!hallada) { // si lo escrito coincide con una sola opción, se toma esa
+                const parecidas = opciones.filter(o => o.value.toLowerCase().includes(texto.toLowerCase()));
+                if (parecidas.length === 1) hallada = parecidas[0];
+            }
+            if (hallada) { valor.value = hallada.dataset.valor; form.submit(); }
+        });
+        // Enter dentro del buscador no debe enviar el formulario con un ítem a medias
+        buscar.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); buscar.dispatchEvent(new Event('change')); } });
+    })();
+</script>
+@if($item && $movimientos->count() >= 2)
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
+<script>
+    (function () {
+        const oscuro = document.body.classList.contains('dark-mode');
+        const texto  = oscuro ? '#b0b0cc' : '#6c757d';
+        const rejilla = oscuro ? 'rgba(255,255,255,.08)' : 'rgba(0,0,0,.06)';
+        const etiquetas = @json($chartLabels);
+        const saldos    = @json($chartSaldos);
+        const minimo    = {{ (float) $item->stock_minimo }};
+
+        new Chart(document.getElementById('chartSaldo'), {
+            type: 'line',
+            data: {
+                labels: etiquetas,
+                datasets: [
+                    { label: 'Saldo', data: saldos, borderColor: '#b5451b', backgroundColor: 'rgba(181,69,27,.12)',
+                      fill: true, tension: .25, stepped: false, pointRadius: 3 },
+                    { label: 'Stock mínimo', data: etiquetas.map(() => minimo), borderColor: '#e74c3c',
+                      borderDash: [6, 5], pointRadius: 0, fill: false }
+                ]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                plugins: { legend: { labels: { color: texto } } },
+                scales: {
+                    x: { ticks: { color: texto, maxRotation: 0, autoSkip: true }, grid: { color: rejilla } },
+                    y: { beginAtZero: true, ticks: { color: texto }, grid: { color: rejilla } }
+                }
+            }
+        });
+    })();
+</script>
+@endif
+@endpush

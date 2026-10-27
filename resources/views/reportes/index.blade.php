@@ -60,13 +60,6 @@
         <span class="rc-alert ok"><i class="fas fa-clock"></i>{{ $movimientosHoy }} movimiento(s) registrados hoy</span>
     </a>
 
-    <a href="{{ route('tiempos-operacion.index') }}" class="rep-card">
-        <div class="rc-icon"><i class="fas fa-stopwatch"></i></div>
-        <h5>Tiempos por Operación</h5>
-        <p>Compara el tiempo manual (antes) contra el tiempo real del sistema (ahora).</p>
-        <span class="rc-alert ok"><i class="fas fa-chart-line"></i>Indicador OE3</span>
-    </a>
-
     @if(auth()->user()->hasModulo('inventario'))
     <a href="{{ route('conteo-fisico.historial') }}" class="rep-card">
         <div class="rc-icon"><i class="fas fa-clipboard-check"></i></div>

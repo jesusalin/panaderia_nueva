@@ -7,8 +7,6 @@ use App\Models\Venta;
 use App\Models\Compra;
 use App\Models\KardexProducto;
 use App\Models\MovimientoInventario;
-use App\Models\TiempoOperacion;
-use App\Models\TiempoBaseline;
 use App\Models\ConteoFisico;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
@@ -71,7 +69,7 @@ class DashboardController extends Controller
             ->sortBy(fn($i) => $i->minimo > 0 ? $i->stock / $i->minimo : 0)
             ->take(6)->values();
 
-        // ── Exactitud del inventario (OE2 de tesis) ──────────
+        // ── Exactitud del inventario ──────────
         // Fórmula real: promedio de exactitud del último conteo físico
         // registrado (stock físico vs. stock del sistema). Si todavía no
         // se ha hecho ningún conteo, se usa un proxy como respaldo.
@@ -98,27 +96,11 @@ class DashboardController extends Controller
             $fechaUltimoConteo = null;
         }
 
-        // ── Registros procesados hoy (KPI tesis) ─────────────
+        // ── Registros procesados hoy ─────────────
         $registrosHoy = KardexProducto::whereDate('created_at', $hoy)->count()
             + MovimientoInventario::whereDate('created_at', $hoy)->count()
             + Venta::whereDate('created_at', $hoy)->count()
             + Compra::whereDate('created_at', $hoy)->count();
-
-        // ── Reducción de tiempos muertos (OE3 de tesis) ──────
-        // Promedio de reducción % entre las 3 operaciones cronometradas
-        $promediosTiempo = TiempoOperacion::select('tipo_operacion', DB::raw('AVG(duracion_ms) as promedio_ms'))
-            ->groupBy('tipo_operacion')->get()->keyBy('tipo_operacion');
-        $baselinesTiempo = TiempoBaseline::all()->keyBy('tipo_operacion');
-
-        $reducciones = [];
-        foreach (TiempoOperacion::TIPOS as $tipo => $etiqueta) {
-            $finalSeg   = isset($promediosTiempo[$tipo]) ? $promediosTiempo[$tipo]->promedio_ms / 1000 : null;
-            $inicialSeg = isset($baselinesTiempo[$tipo]) ? (float) $baselinesTiempo[$tipo]->segundos_manual : 0;
-            if ($finalSeg && $finalSeg > 0 && $inicialSeg > 0) {
-                $reducciones[] = (($inicialSeg - $finalSeg) / $finalSeg) * 100;
-            }
-        }
-        $reduccionTiemposMuertos = count($reducciones) > 0 ? round(array_sum($reducciones) / count($reducciones), 1) : null;
 
         // ── Últimas 5 ventas ────────────────────────────────
         $ultimasVentas = Venta::with(['usuario', 'cliente'])
@@ -142,27 +124,12 @@ class DashboardController extends Controller
             ->select(DB::raw('DATE(fecha_venta) as fecha'), DB::raw('SUM(total) as total'))
             ->groupBy('fecha')->orderBy('fecha')->get();
 
-        // ── Rotación de stock (top 5 este mes) ───────────────
-        $rotacionStock = DB::table('venta_detalles')
-            ->join('ventas',   'ventas.id',   '=', 'venta_detalles.id_venta')
-            ->join('productos','productos.id','=', 'venta_detalles.id_producto')
-            ->whereYear('ventas.fecha_venta',  $hoy->year)
-            ->whereMonth('ventas.fecha_venta', $hoy->month)
-            ->where('ventas.estado', 'completada')
-            ->select(
-                'productos.nombre',
-                'productos.stock_actual',
-                DB::raw('SUM(venta_detalles.cantidad) as total_vendido')
-            )
-            ->groupBy('productos.id', 'productos.nombre', 'productos.stock_actual')
-            ->orderByDesc('total_vendido')
-            ->take(5)->get();
 
         return view('dashboard.index', compact(
             'ventasHoy', 'ventasAyer', 'variacionVentas', 'ventasMes', 'comprasMes', 'gananciaMes',
             'productosStockBajo', 'materiaStockBaja', 'stockCritico',
-            'exactitudInventario', 'exactitudEsReal', 'fechaUltimoConteo', 'registrosHoy', 'reduccionTiemposMuertos',
-            'ultimasVentas', 'topProductos', 'ventasSemana', 'rotacionStock'
+            'exactitudInventario', 'exactitudEsReal', 'fechaUltimoConteo', 'registrosHoy',
+            'ultimasVentas', 'topProductos', 'ventasSemana'
         ));
     }
 }

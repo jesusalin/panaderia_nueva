@@ -52,30 +52,105 @@ perder el hilo si se retoma después. Este archivo reúne **dos vueltas de traba
   con stock bajo (sin duplicar las pendientes). El almacenero las encuentra
   listas en *Órdenes Automáticas*.
 
+## ✅ Vuelta 3 (pendientes de la vuelta 2 que ya se cerraron)
+
+- **Buscador en vivo en el Kardex**: se escribe parte del nombre del insumo o
+  producto y se elige del listado; carga solo (sin librerías externas).
+- **Gráfico de evolución del saldo** en el Kardex (Chart.js) con la línea
+  punteada del stock mínimo (aparece con 2 o más movimientos).
+- **Enlace al Conteo Físico** desde el Kardex de un insumo cuando está en stock
+  bajo o el kardex no cuadra (solo para usuarios con módulo Inventario).
+- **PDF de Stock**: ahora distingue *Agotado* / *Stock bajo* / *Normal* y trae la
+  columna *Reponer*.
+- **Prueba automática del kardex** (`tests/Unit/KardexCalculoTest.php`, 8 pruebas):
+  ajustes como entrada/salida, saldo inicial, "cuadra / no cuadra". Para esto el
+  cálculo se movió a `app/Support/KardexCalculo.php` (clase sin base de datos).
+- **Alerta de stock bajo por correo**: el comando diario `inventario:revisar-stock`
+  envía un resumen si hay un correo configurado (ver "Activar el correo" abajo).
+  Sin correo configurado no envía nada y todo lo demás funciona igual.
+
+## ✅ Vuelta 4 (limpieza del sistema según la tesis nueva)
+
+Los objetivos de la tesis pasaron a ser TPR, TCS, TCI y PER, medidos por observación.
+Se quitó del sistema lo que ya no forma parte de la investigación:
+
+- **Módulo Tiempos de Operación** completo (pantalla, PDF, cronómetros en Ventas,
+  Kardex y Movimientos, controlador, modelos y su opción del menú).
+- **Reporte de Rotación de Stock** y su tarjeta del Dashboard.
+- **Indicadores del Dashboard** ligados a los objetivos viejos: Capacidad de
+  Procesamiento, Rotación y Reducción de Tiempos Muertos. Se conserva *Exactitud del
+  inventario* (viene del conteo físico).
+- **Datos de ejemplo inventados** que el seeder insertaba (línea base manual de 45, 30 y
+  90 segundos y mediciones "simuladas" del sistema). Ya no se crean.
+- Referencias a "OE1–OE4" en textos del sistema.
+- Las tablas `tiempos_operacion` y `tiempos_baseline` se eliminan con la migración
+  `2025_01_01_000018_drop_tiempos_tables.php` (corre con `php artisan migrate`).
+
+**Archivos a ELIMINAR a mano** (un ZIP no puede borrar archivos; ver también
+`ARCHIVOS_A_ELIMINAR.txt`):
+- `app/Http/Controllers/TiemposOperacionController.php`
+- `app/Models/TiempoOperacion.php`
+- `app/Models/TiempoBaseline.php`
+- `public/js/tiempos-operacion.js`
+- `resources/views/kardex/rotacion.blade.php`
+- carpeta `resources/views/tiempos-operacion/`
+
 ## 🔲 Lo que falta
 
+### A. Configuración (no es código)
 1. **Activar el scheduler en el servidor.** El comando automático y el respaldo
-   diario solo corren si Laravel tiene quien lo dispare. En XAMPP/local no corre
-   solo: usar `php artisan schedule:work` (ventana abierta) para probarlo; en
-   hosting hace falta un cron cada minuto:
+   diario solo corren si Laravel tiene quien lo dispare. En local usar
+   `php artisan schedule:work` (ventana abierta) para probarlo; en hosting hace
+   falta un cron cada minuto:
    `* * * * * cd /ruta/proyecto && php artisan schedule:run >> /dev/null 2>&1`
-2. **Envío por correo** (alerta de stock bajo / reporte semanal de stock): el
-   sistema ya detecta y genera, pero no envía correos. Requiere configurar un
-   `MAIL_MAILER` real (hoy el `.env` usa `log`).
-3. **Selector de ítem con buscador en vivo** (Select2 / Choices.js). Con muchos
-   insumos el desplegable agrupado se hace largo.
-4. **Gráfico de evolución del saldo** en el Kardex (Chart.js ya está en el proyecto).
-5. **Enlace al Conteo Físico desde el Kardex** cuando un ítem esté en stock bajo
-   o el kardex no cuadre ("Registrar conteo de este insumo").
-6. **Unificar los listados generales** (`kardex.index` = Movimientos de Productos,
+2. **Activar el correo.** En el `.env`: `ALERTA_STOCK_CORREO=correo@ejemplo.com` y
+   un `MAIL_MAILER=smtp` real con sus `MAIL_HOST`, `MAIL_PORT`, `MAIL_USERNAME`,
+   `MAIL_PASSWORD` (en Gmail hace falta una *contraseña de aplicación*). Hoy el
+   `.env` usa `MAIL_MAILER=log`, que solo escribe el correo en `storage/logs`.
+   Probar con: `php artisan inventario:revisar-stock`.
+3. **Correr la prueba del kardex** con PHPUnit real:
+   `php artisan test --filter=KardexCalculoTest` (aquí se validó con un runner
+   propio porque no hay `vendor` disponible).
+
+### B. Decisiones pendientes
+4. **Unificar los listados generales** (`kardex.index` = Movimientos de Productos,
    `movimientos.index` = Movimientos de Materia Prima) con *Reportes → Kardex*:
-   hoy son dos caminos para ver cosas parecidas. Falta decidir si se consolidan.
-7. **PDF de Stock**: mostrar también "Agotado" y la columna "Reponer" (hoy el PDF
-   conserva su columna Estado original; la pantalla y el Excel ya la tienen).
-8. **Prueba automática del kardex** (que saldo inicial + entradas − salidas =
-   saldo final, incluyendo ajustes), al estilo de `tests/Unit/ConteoFisicoExactitudTest.php`.
-9. **Pre-test / Post-test** (pedido del jurado): documentar en la metodología
-   (Cap. III) cómo se midieron los 28 + 28 registros. No es código.
+   hoy son dos caminos para ver cosas parecidas.
+5. **Reportes por correo** (resumen semanal de stock, no solo alerta diaria).
+
+### C. Lo que falta para el POSTEST de la tesis (prioridad alta)
+Según el Capítulo III: pretest manual del **19 oct al 1 nov**, implementación y
+capacitación del **2 al 15 nov**, postest con el sistema del **16 al 29 nov**. Los
+indicadores los mide un observador con cronómetro (ficha del Anexo 3), así que el
+sistema no los calcula: tiene que permitir hacer rápido las cuatro tareas medidas.
+
+| Indicador | Tarea medida | Qué falta en el sistema |
+|---|---|---|
+| **TPR** | Primeros 10 movimientos de la jornada | **Registro rápido** de entrada o salida de un insumo (insumo, tipo, cantidad, motivo) en una sola pantalla. Hoy solo hay compra completa o ajuste. |
+| **TCS** | 5 consultas de insumos distintos | **Buscador de stock** en el menú superior, disponible en cualquier pantalla. |
+| **TCI** | Cierre diario de inventario | **Cierre diario**: todos los insumos con saldo inicial, entradas, salidas y saldo final, exportable. |
+| **PER** | Mismos 10 insumos fijos, stock registrado vs. contado | **Conteo físico de 10 insumos fijos** con "¿Coincide? Sí/No" y el PER calculado. |
+
+7. **Registro rápido de movimientos** (TPR).
+8. **Buscador rápido de stock** (TCS).
+9. **Cierre de inventario diario** (TCI).
+10. **Conteo físico de 10 insumos fijos y PER** (PER).
+11. **Carga inicial** de los 30+ insumos reales con su stock antes del 2 de noviembre
+    (sirve una importación desde Excel).
+12. **Puesta en marcha y capacitación** (2–15 nov): decidir dónde se instala (hosting
+    o PC de la panadería), activar el scheduler/cron (respaldo diario y revisión de
+    stock) y preparar un manual corto para el almacenero.
+
+### D. Documento de tesis (no es código)
+13. **Capítulo II vs. sistema:** el Capítulo II menciona Tailwind CSS, pero la interfaz
+    usa Bootstrap 4 y AdminLTE 3 (Tailwind solo aparece en las vistas de perfil).
+    Alinear uno de los dos.
+14. **Carátula:** dice "Ciclo IV"; verificar que sea el correcto.
+15. **Pegar las capturas** en `Capitulo_IV_Desarrollo_del_Sistema_Muruwasi.docx` (18
+    recuadros pendientes) y completar Resumen, Abstract y Capítulo V cuando termine
+    el postest.
+16. **Pre-test / Post-test** (pedido del jurado): ya está descrito en el Capítulo III;
+    revisar que el texto coincida con la ficha del Anexo 3.
 
 ## 🧪 Cómo probar esta entrega (5 minutos)
 
@@ -85,11 +160,15 @@ perder el hilo si se retoma después. Este archivo reúne **dos vueltas de traba
 4. **Reportes → Kardex** → elegir un insumo con un ajuste o conteo físico y
    comprobar que el ajuste aparece como entrada/salida y que dice "El kardex cuadra".
 5. `php artisan inventario:revisar-stock` → debe crear órdenes (o decir que no hay).
+6. **Kardex**: escribir parte de un nombre en el buscador, ver el gráfico del saldo y,
+   con un insumo en stock bajo, el botón "Registrar conteo físico".
+7. **PDF de Stock**: comprobar *Agotado / Stock bajo* y la columna *Reponer*.
+8. `php artisan test --filter=KardexCalculoTest` → 8 pruebas en verde.
 
 > Nota: los cambios se validaron por sintaxis (PHP/Blade) pero no se ejecutaron
 > contra tu base de datos; si algo falla al probar, pásame el mensaje exacto.
 
-## Archivos tocados en la vuelta 2
+## Archivos tocados (vueltas 2, 3 y 4)
 
 - `app/Http/Controllers/ReportesController.php` — kardex normalizado, periodos,
   stock con semáforo (se conserva el `index()` del Resumen de Reportes)
@@ -102,4 +181,16 @@ perder el hilo si se retoma después. Este archivo reúne **dos vueltas de traba
 - `resources/views/reportes/kardex-pdf.blade.php`
 - `resources/views/reportes/stock.blade.php`
 - `resources/views/dashboard/index.blade.php`
+- `app/Support/KardexCalculo.php` — **nuevo** (vuelta 3)
+- `tests/Unit/KardexCalculoTest.php` — **nuevo** (vuelta 3)
+- `config/inventario.php` — **nuevo** (vuelta 3)
+- `resources/views/emails/stock-bajo.blade.php` — **nuevo** (vuelta 3)
+- `resources/views/reportes/stock-pdf.blade.php` (vuelta 3)
+- `.env.example` — variable `ALERTA_STOCK_CORREO` (vuelta 3)
+- `routes/web.php`, `resources/views/layouts/app.blade.php`, `resources/views/kardex/index.blade.php`,
+  `resources/views/movimientos/index.blade.php`, `resources/views/ventas/create.blade.php`,
+  `resources/views/usuarios/index.blade.php`, `resources/views/conteo-fisico/historial.blade.php`,
+  `app/Http/Controllers/KardexController.php`, `app/Http/Controllers/UsuariosController.php`,
+  `app/Models/Usuario.php`, `database/seeders/DatabaseSeeder.php` (vuelta 4: limpieza)
+- `database/migrations/2025_01_01_000018_drop_tiempos_tables.php` — **nuevo** (vuelta 4)
 - `CAMBIOS-FALTANTES.md`

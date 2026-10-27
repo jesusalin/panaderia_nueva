@@ -10,7 +10,7 @@ class UsuariosController extends Controller
 {
     public function index() {
         $query = Usuario::with(['rol', 'permisos'])
-            ->withCount(['ventas', 'compras', 'producciones', 'movimientos', 'kardex', 'tiempos'])
+            ->withCount(['ventas', 'compras', 'producciones', 'movimientos', 'kardex'])
             ->withMax('ventas', 'fecha_venta');
 
         if (request('buscar')) {
@@ -145,7 +145,6 @@ class UsuariosController extends Controller
         if ($usuario->producciones()->exists())$usos[] = 'tiene producciones registradas';
         if ($usuario->movimientos()->exists()) $usos[] = 'tiene movimientos de inventario registrados';
         if ($usuario->kardex()->exists())      $usos[] = 'tiene movimientos de productos (kardex) registrados';
-        if ($usuario->tiempos()->exists())     $usos[] = 'tiene registros de tiempos de operación';
 
         if (!empty($usos)) {
             return back()->withErrors([

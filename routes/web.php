@@ -16,7 +16,6 @@ use App\Http\Controllers\MovimientosController;
 use App\Http\Controllers\ProduccionController;
 use App\Http\Controllers\KardexController;
 use App\Http\Controllers\OrdenesAutomaticasController;
-use App\Http\Controllers\TiemposOperacionController;
 use App\Http\Controllers\ReportesController;
 
 // Redirigir raíz al dashboard
@@ -27,10 +26,6 @@ Route::middleware(['auth'])->group(function () {
 
     // Dashboard: visible para cualquier usuario autenticado, sin importar sus permisos
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
-
-    // El cronómetro de tiempos de operación corre en pantallas de distintos
-    // módulos por igual, así que el registro queda abierto a cualquier usuario.
-    Route::post('tiempos-operacion/registrar', [TiemposOperacionController::class, 'store'])->name('tiempos-operacion.store');
 
     // ── Reservado solo para ADMIN (gestión de usuarios y accesos) ──
     Route::middleware(['modulo:usuarios'])->group(function () {
@@ -60,7 +55,6 @@ Route::middleware(['auth'])->group(function () {
         Route::post('materia-prima/{materiaPrima}/ajuste', [MateriaPrimaController::class, 'ajusteStore'])->name('materia-prima.ajuste.store');
         Route::get('movimientos_materia_prima', [MovimientosController::class, 'index'])->name('movimientos.index');
         Route::get('movimientos_productos', [KardexController::class, 'index'])->name('kardex.index');
-        Route::get('movimientos_productos/rotacion', [KardexController::class, 'rotacion'])->name('kardex.rotacion');
 
         Route::get('conteo-fisico',            [ConteoFisicoController::class, 'index'])->name('conteo-fisico.index');
         Route::post('conteo-fisico',           [ConteoFisicoController::class, 'store'])->name('conteo-fisico.store');
@@ -110,10 +104,6 @@ Route::middleware(['auth'])->group(function () {
 
     // ── Módulo: Reportes ─────────────────────────────────────────
     Route::middleware(['modulo:reportes'])->group(function () {
-        Route::get('tiempos-operacion', [TiemposOperacionController::class, 'index'])->name('tiempos-operacion.index');
-        Route::post('tiempos-operacion/baseline', [TiemposOperacionController::class, 'actualizarBaseline'])->name('tiempos-operacion.baseline');
-        Route::get('tiempos-operacion/exportar-pdf', [TiemposOperacionController::class, 'exportarPdf'])->name('tiempos-operacion.exportar-pdf');
-
         Route::get('reportes', [ReportesController::class, 'index'])->name('reportes.index');
         Route::get('reportes/stock',        [ReportesController::class, 'stock'])->name('reportes.stock');
         Route::get('reportes/stock/pdf',    [ReportesController::class, 'stockPdf'])->name('reportes.stock.pdf');

@@ -36,7 +36,6 @@ class Usuario extends Authenticatable {
     public function permisos()     { return $this->hasMany(PermisoUsuario::class, 'id_usuario'); }
     public function producciones() { return $this->hasMany(Produccion::class, 'id_usuario'); }
     public function kardex()       { return $this->hasMany(KardexProducto::class, 'id_usuario'); }
-    public function tiempos()      { return $this->hasMany(TiempoOperacion::class, 'id_usuario'); }
 
     /**
      * true si el usuario es administrador (acceso total, sin importar permisos_usuario).

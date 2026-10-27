@@ -65,11 +65,6 @@
         <h2><i class="fas fa-book mr-2 text-primary"></i>Movimientos de Productos</h2>
         <p>Historial de entradas y salidas de productos terminados (Kardex)</p>
     </div>
-    <div class="toolbar-actions">
-        <a href="{{ route('kardex.rotacion') }}" class="btn btn-success">
-            <i class="fas fa-chart-bar mr-1"></i>Rotación de Stock
-        </a>
-    </div>
 </div>
 
 <div class="kdx-stats">
@@ -91,7 +86,7 @@
     </div>
 </div>
 
-<form method="GET" action="{{ route('kardex.index') }}" class="filter-bar flex-wrap" style="gap:.6rem" onsubmit="TiempoOperacion.marcarInicio('verificacion_stock')">
+<form method="GET" action="{{ route('kardex.index') }}" class="filter-bar flex-wrap" style="gap:.6rem">
     <label class="fb-label mb-0">Producto</label>
     <select name="id_producto" class="form-control" style="width:auto;" onchange="this.form.submit()">
         <option value="">Todos los productos</option>
@@ -211,10 +206,3 @@
 @endif
 
 @endsection
-
-@push('scripts')
-<script>
-// Si venimos de aplicar un filtro (búsqueda de stock), registrar el tiempo que tomó
-TiempoOperacion.registrarFin('verificacion_stock');
-</script>
-@endpush

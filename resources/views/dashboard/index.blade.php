@@ -301,37 +301,6 @@
             @endif
         </div>
     </div>
-    <div class="col-lg-3 col-6 mb-3">
-        <div class="kpi-card">
-            <div class="kpi-ring neutral">{{ $registrosHoy }}</div>
-            <div class="kpi-title">Capacidad de Procesamiento</div>
-            <div class="kpi-desc">Operaciones registradas hoy en todo el sistema</div>
-        </div>
-    </div>
-    <div class="col-lg-3 col-6 mb-3">
-        <div class="kpi-card">
-            <div class="kpi-ring neutral">{{ $rotacionStock->count() }}</div>
-            <div class="kpi-title">Rotación de Stock</div>
-            <div class="kpi-desc">Productos distintos vendidos este mes</div>
-        </div>
-    </div>
-    <div class="col-lg-3 col-6 mb-3">
-        <div class="kpi-card">
-            @if($reduccionTiemposMuertos !== null)
-                @php $estadoTiempo = $reduccionTiemposMuertos >= 30 ? 'good' : ($reduccionTiemposMuertos >= 10 ? 'mid' : 'bad'); @endphp
-                <div class="kpi-ring {{ $estadoTiempo }}">{{ $reduccionTiemposMuertos > 0 ? '−' : '' }}{{ abs($reduccionTiemposMuertos) }}%</div>
-                <div class="kpi-title">Reducción de Tiempos Muertos</div>
-                <div class="kpi-desc">Comparado con el tiempo que tomaba antes, a mano</div>
-            @else
-                <div class="kpi-ring neutral"><i class="fas fa-hourglass-half"></i></div>
-                <div class="kpi-title">Reducción de Tiempos Muertos</div>
-                <div class="kpi-desc">
-                    Aún falta cargar el tiempo manual (pre-test).
-                    <a href="{{ route('tiempos-operacion.index') }}">Cargarlo aquí →</a>
-                </div>
-            @endif
-        </div>
-    </div>
 </div>
 @endif
 
@@ -373,39 +342,10 @@
 </div>
 @endif
 
-{{-- ══════════ ROTACIÓN Y ÚLTIMAS VENTAS ══════════ --}}
+{{-- ══════════ ÚLTIMAS VENTAS ══════════ --}}
 <div class="row">
-    @if($u->hasModulo('inventario') || $u->hasModulo('reportes') || $u->isAdmin())
-    <div class="col-md-{{ $u->hasModulo('ventas') ? 5 : 12 }} mb-3">
-        <div class="card h-100">
-            <div class="card-header bg-white d-flex justify-content-between align-items-center">
-                <h5 class="card-title mb-0"><i class="fas fa-sync-alt mr-2 text-success"></i>Rotación de Stock (mes)</h5>
-                <a href="{{ route('kardex.rotacion') }}" class="btn btn-sm btn-outline-success">Ver completo</a>
-            </div>
-            <div class="card-body p-0">
-                <table class="table table-hover mb-0 table-sm">
-                    <thead class="bg-light">
-                        <tr><th>Producto</th><th class="text-center">Vendido</th><th class="text-center">Stock</th></tr>
-                    </thead>
-                    <tbody>
-                        @forelse($rotacionStock as $p)
-                        <tr>
-                            <td>{{ $p->nombre }}</td>
-                            <td class="text-center font-weight-bold text-success">{{ $p->total_vendido }}</td>
-                            <td class="text-center">{{ $p->stock_actual }}</td>
-                        </tr>
-                        @empty
-                        <tr><td colspan="3" class="text-center text-muted py-3">Sin ventas este mes</td></tr>
-                        @endforelse
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-    @endif
-
     @if($u->hasModulo('ventas'))
-    <div class="col-md-7 mb-3">
+    <div class="col-md-12 mb-3">
         <div class="card h-100">
             <div class="card-header bg-white d-flex justify-content-between align-items-center">
                 <h5 class="card-title mb-0"><i class="fas fa-history mr-2 text-success"></i>Últimas ventas</h5>

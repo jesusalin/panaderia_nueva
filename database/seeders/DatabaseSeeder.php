@@ -261,37 +261,5 @@ class DatabaseSeeder extends Seeder
             ['id_materia'=>10,'id_usuario'=>3,'tipo'=>'salida', 'motivo'=>'merma',         'referencia_id'=>null,'cantidad'=>1700.000,'stock_antes'=>2000.000,'stock_despues'=>300.000,'observacion'=>'Merma por humedad detectada en almacén','created_at'=>now()->subDays(3)],
             ['id_materia'=>7, 'id_usuario'=>3,'tipo'=>'ajuste', 'motivo'=>'ajuste_manual', 'referencia_id'=>null,'cantidad'=>1.000,'stock_antes'=>6.000,   'stock_despues'=>5.000,  'observacion'=>'Ajuste tras conteo físico mensual',      'created_at'=>now()->subDays(6)],
         ]);
-
-        // ═══════════════════════════════════════════════════════════
-        // TIEMPOS MUERTOS — LÍNEA BASE MANUAL (pre-test)
-        // ═══════════════════════════════════════════════════════════
-        // Las filas ya existen (creadas en la migración con 0). Aquí se
-        // actualizan con los valores de la ficha de observación manual,
-        // para poder mostrar el % de reducción en el módulo de Tiempos
-        // de Operación y en el dashboard (OE3 de la tesis).
-        DB::table('tiempos_baseline')->where('tipo_operacion', 'busqueda_producto')->update(['segundos_manual' => 45.00, 'updated_at' => now()]);
-        DB::table('tiempos_baseline')->where('tipo_operacion', 'verificacion_stock')->update(['segundos_manual' => 30.00, 'updated_at' => now()]);
-        DB::table('tiempos_baseline')->where('tipo_operacion', 'registro_venta')->update(['segundos_manual' => 90.00, 'updated_at' => now()]);
-
-        // ═══════════════════════════════════════════════════════════
-        // TIEMPOS DE OPERACIÓN — mediciones del sistema (post-test)
-        // ═══════════════════════════════════════════════════════════
-        // Simulan lo que normalmente registra el JS al cronometrar cada
-        // operación en producción. Sirven para calcular el % de reducción
-        // frente a la línea base manual de arriba.
-        $tiempos = [];
-        // Búsqueda de producto: manual ≈ 45s → sistema ≈ 8-13s
-        foreach ([9200, 11500, 8700, 13200, 10100] as $i => $ms) {
-            $tiempos[] = ['id_usuario'=>2,'tipo_operacion'=>'busqueda_producto','duracion_ms'=>$ms,'referencia_id'=>null,'created_at'=>now()->subDays(5 - $i)->subHours(2)];
-        }
-        // Verificación de stock: manual ≈ 30s → sistema ≈ 5-9s
-        foreach ([5200, 7300, 6100, 8400, 5900] as $i => $ms) {
-            $tiempos[] = ['id_usuario'=>3,'tipo_operacion'=>'verificacion_stock','duracion_ms'=>$ms,'referencia_id'=>null,'created_at'=>now()->subDays(4 - $i)->subHours(3)];
-        }
-        // Registro de venta: manual ≈ 90s → sistema ≈ 20-31s
-        foreach ([22000, 28500, 31000, 25700, 19800] as $i => $ms) {
-            $tiempos[] = ['id_usuario'=>2,'tipo_operacion'=>'registro_venta','duracion_ms'=>$ms,'referencia_id'=>$i + 1,'created_at'=>now()->subDays(3 - min($i, 3))->subHours(1)];
-        }
-        DB::table('tiempos_operacion')->insert($tiempos);
     }
 }

@@ -7,6 +7,7 @@ use App\Models\MovimientoInventario;
 use App\Models\KardexProducto;
 use App\Exports\StockExport;
 use App\Exports\KardexExport;
+use App\Support\KardexCalculo;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -222,13 +223,10 @@ class ReportesController extends Controller
                 if ($hasta) $query->where('created_at', '<=', $hasta);
 
                 $movimientos = $query->orderBy('created_at')->orderBy('id')->get()->map(function ($m) {
-                    $delta = $m->stock_antes !== null
-                        ? (float) $m->stock_despues - (float) $m->stock_antes
-                        : ($m->tipo === 'entrada' ? (float) $m->cantidad : -(float) $m->cantidad);
-
-                    $m->setAttribute('entrada', $delta > 0 ? $delta : 0);
-                    $m->setAttribute('salida',  $delta < 0 ? -$delta : 0);
-                    $m->setAttribute('es_ajuste', $m->tipo === 'ajuste' || $m->motivo === 'ajuste_manual');
+                    $n = KardexCalculo::normalizar($m->stock_antes, $m->stock_despues, $m->tipo, $m->cantidad, $m->motivo);
+                    $m->setAttribute('entrada', $n['entrada']);
+                    $m->setAttribute('salida', $n['salida']);
+                    $m->setAttribute('es_ajuste', $n['es_ajuste']);
                     return $m;
                 });
             }
@@ -239,16 +237,20 @@ class ReportesController extends Controller
             : '';
 
         // Resumen del periodo (lo que el almacenero realmente quiere saber)
-        $totalEntradas = $movimientos->sum('entrada');
-        $totalSalidas  = $movimientos->sum('salida');
-        $primero = $movimientos->first();
-        $saldoInicial = $primero
-            ? ($primero->stock_antes !== null ? (float) $primero->stock_antes : (float) $primero->stock_despues - $primero->entrada + $primero->salida)
-            : ($item ? (float) $item->stock_actual : 0);
-        $saldoFinal = $movimientos->isNotEmpty() ? (float) $movimientos->last()->stock_despues : $saldoInicial;
-
-        // ¿El kardex "cuadra"? saldo inicial + entradas - salidas = saldo final
-        $cuadra = abs(($saldoInicial + $totalEntradas - $totalSalidas) - $saldoFinal) < 0.01;
+        $resumen = KardexCalculo::resumir(
+            $movimientos->map(fn($m) => [
+                'antes'   => $m->stock_antes !== null ? (float) $m->stock_antes : null,
+                'despues' => (float) $m->stock_despues,
+                'entrada' => $m->entrada,
+                'salida'  => $m->salida,
+            ])->values()->all(),
+            $item ? (float) $item->stock_actual : 0.0
+        );
+        $totalEntradas = $resumen['totalEntradas'];
+        $totalSalidas  = $resumen['totalSalidas'];
+        $saldoInicial  = $resumen['saldoInicial'];
+        $saldoFinal    = $resumen['saldoFinal'];
+        $cuadra        = $resumen['cuadra'];
 
         // Desglose por motivo: de dónde entra y a dónde sale el stock
         $porMotivo = $movimientos->groupBy('motivo')->map(fn($g) => [

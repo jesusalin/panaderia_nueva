@@ -56,7 +56,7 @@
 @endpush
 
 @section('content')
-<form action="{{ route('ventas.store') }}" method="POST" id="formVenta" onsubmit="TiempoOperacion.registrarFin('registro_venta')">
+<form action="{{ route('ventas.store') }}" method="POST" id="formVenta">
 @csrf
 <div class="row">
     {{-- Panel izquierdo: productos --}}
@@ -171,20 +171,10 @@
 @push('scripts')
 <script>
 let carrito = {};
-let hayBusquedaActiva = false;
-
-// Cronometraje: registro de venta (desde que se carga la pantalla)
-TiempoOperacion.reiniciar('registro_venta');
 
 // Buscador
 document.getElementById('buscador').addEventListener('input', function() {
     const q = this.value.toLowerCase();
-    if (q.length > 0) {
-        TiempoOperacion.marcarInicio('busqueda_producto');
-        hayBusquedaActiva = true;
-    } else {
-        hayBusquedaActiva = false;
-    }
     document.querySelectorAll('.producto-card').forEach(el => {
         el.style.display = el.dataset.nombre.includes(q) ? '' : 'none';
     });
@@ -199,12 +189,6 @@ document.querySelectorAll('.producto-item').forEach(el => {
         const stock  = parseInt(this.dataset.stock);
         const emoji  = this.dataset.emoji || '🍞';
         const imagen = this.dataset.imagen || '';
-
-        // Si el producto fue encontrado mediante el buscador, registrar cuánto tardó
-        if (hayBusquedaActiva) {
-            TiempoOperacion.registrarFin('busqueda_producto', id);
-            hayBusquedaActiva = false;
-        }
 
         if (carrito[id]) {
             if (carrito[id].cantidad >= stock) {

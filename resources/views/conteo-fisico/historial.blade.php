@@ -43,7 +43,7 @@
 <div class="page-toolbar">
     <div>
         <h2><i class="fas fa-history mr-2 text-info"></i>Historial de Conteos Físicos</h2>
-        <p>Cada jornada de conteo y su exactitud, para tu evidencia de tesis (OE2)</p>
+        <p>Cada jornada de conteo y su exactitud</p>
     </div>
     <div class="toolbar-actions">
         <a href="{{ route('conteo-fisico.index') }}" class="btn btn-primary">

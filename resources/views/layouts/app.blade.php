@@ -641,7 +641,7 @@
                     @endif
 
                     @if(auth()->user()->hasModulo('reportes'))
-                    @php $abierta = request()->routeIs('tiempos-operacion.*') || request()->routeIs('reportes.*'); @endphp
+                    @php $abierta = request()->routeIs('reportes.*'); @endphp
                     <li class="nav-section {{ $abierta ? 'open' : '' }}">
                         <a href="#" class="nav-header-toggle">
                             <span>REPORTES</span>
@@ -661,11 +661,6 @@
                             <li class="nav-item">
                                 <a href="{{ route('reportes.kardex') }}" class="nav-link {{ request()->routeIs('reportes.kardex*') ? 'active' : '' }}">
                                     <i class="nav-icon fas fa-file-invoice"></i><p>Reporte de Kardex</p>
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a href="{{ route('tiempos-operacion.index') }}" class="nav-link {{ request()->routeIs('tiempos-operacion.*') ? 'active' : '' }}">
-                                    <i class="nav-icon fas fa-stopwatch"></i><p>Tiempos por Operación</p>
                                 </a>
                             </li>
                         </ul>
@@ -831,7 +826,6 @@
 <script src="https://cdn.jsdelivr.net/npm/jquery@3.6/dist/jquery.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/js/adminlte.min.js"></script>
-<script src="{{ asset('js/tiempos-operacion.js') }}"></script>
 
 <script>
     (function () {

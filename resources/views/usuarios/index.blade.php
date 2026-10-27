@@ -221,7 +221,6 @@
                             if ($u->producciones_count > 0)$usosUsuario[] = $u->producciones_count . ' producción(es)';
                             if ($u->movimientos_count > 0) $usosUsuario[] = 'movimientos de inventario';
                             if ($u->kardex_count > 0)      $usosUsuario[] = 'movimientos de productos';
-                            if ($u->tiempos_count > 0)     $usosUsuario[] = 'registros de tiempos de operación';
                             $tieneHistorialUsuario = count($usosUsuario) > 0;
                         @endphp
                         @if($tieneHistorialUsuario)

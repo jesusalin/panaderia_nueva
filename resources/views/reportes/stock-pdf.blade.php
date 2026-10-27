@@ -32,6 +32,7 @@
     .badge { display: inline-block; padding: 2px 7px; border-radius: 8px; font-size: 8px; font-weight: bold; }
     .badge-ok  { background: #e5f6ec; color: #1e8e5a; border: 1px solid #b6e3c8; }
     .badge-bad { background: #fbe9e7; color: #c0392b; border: 1px solid #f1c2bb; }
+    .badge-warn { background: #fff4e0; color: #a5680d; border: 1px solid #f5deb3; }
 
     .pie { margin-top: 20px; text-align: center; font-size: 9px; color: #999; border-top: 1px solid #eee; padding-top: 10px; }
 </style>
@@ -58,7 +59,7 @@
         <thead>
             <tr>
                 <th>Insumo</th><th>Proveedor</th><th class="num">Stock</th>
-                <th class="num">Mínimo</th><th class="num">Costo Unit.</th><th class="num">Valor Total</th><th>Estado</th>
+                <th class="num">Mínimo</th><th class="num">Costo Unit.</th><th class="num">Valor Total</th><th>Estado</th><th class="num">Reponer</th>
             </tr>
         </thead>
         <tbody>
@@ -71,12 +72,15 @@
                 <td class="num">S/ {{ number_format($m->costo_unitario, 2) }}</td>
                 <td class="num">S/ {{ number_format($m->stock_actual * $m->costo_unitario, 2) }}</td>
                 <td>
-                    @if($m->tieneStockBajo())
-                        <span class="badge badge-bad">Stock bajo</span>
+                    @if($m->nivel === 'agotado')
+                        <span class="badge badge-bad">Agotado</span>
+                    @elseif($m->nivel === 'bajo')
+                        <span class="badge badge-warn">Stock bajo</span>
                     @else
                         <span class="badge badge-ok">Normal</span>
                     @endif
                 </td>
+                <td class="num">{{ $m->reponer > 0 ? number_format($m->reponer, 2) . ' ' . $m->unidad->abreviatura : '' }}</td>
             </tr>
             @endforeach
         </tbody>
@@ -89,7 +93,7 @@
         <thead>
             <tr>
                 <th>Producto</th><th>Categoría</th><th class="num">Stock</th>
-                <th class="num">Mínimo</th><th class="num">Costo Unit.</th><th class="num">Valor Total</th><th>Estado</th>
+                <th class="num">Mínimo</th><th class="num">Costo Unit.</th><th class="num">Valor Total</th><th>Estado</th><th class="num">Reponer</th>
             </tr>
         </thead>
         <tbody>
@@ -102,12 +106,15 @@
                 <td class="num">S/ {{ number_format($p->costo_produccion ?? 0, 2) }}</td>
                 <td class="num">S/ {{ number_format($p->stock_actual * ($p->costo_produccion ?? 0), 2) }}</td>
                 <td>
-                    @if($p->tieneStockBajo())
-                        <span class="badge badge-bad">Stock bajo</span>
+                    @if($p->nivel === 'agotado')
+                        <span class="badge badge-bad">Agotado</span>
+                    @elseif($p->nivel === 'bajo')
+                        <span class="badge badge-warn">Stock bajo</span>
                     @else
                         <span class="badge badge-ok">Normal</span>
                     @endif
                 </td>
+                <td class="num">{{ $p->reponer > 0 ? number_format($p->reponer, 2) . ' uds' : '' }}</td>
             </tr>
             @endforeach
         </tbody>

@@ -78,7 +78,7 @@
     </div>
 </div>
 
-<form method="GET" action="{{ route('movimientos.index') }}" class="filter-bar" onsubmit="TiempoOperacion.marcarInicio('verificacion_stock')">
+<form method="GET" action="{{ route('movimientos.index') }}" class="filter-bar">
     <label class="fb-label mb-0">Ingrediente</label>
     <select name="id_materia" class="form-control" style="width:auto;" onchange="this.form.submit()">
         <option value="">Todos los ingredientes</option>
@@ -169,9 +169,3 @@
 @endif
 
 @endsection
-
-@push('scripts')
-<script>
-TiempoOperacion.registrarFin('verificacion_stock');
-</script>
-@endpush
