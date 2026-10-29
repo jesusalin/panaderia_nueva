@@ -8,9 +8,31 @@ class Usuario extends Authenticatable {
     use Notifiable, HasFactory;
 
     protected $table    = 'usuarios';
-    protected $fillable = ['nombre','apodo','usuario','email','password','foto_perfil','id_rol','estado','ultimo_acceso'];
+    protected $fillable = ['nombre','apodo','usuario','email','password','debe_cambiar_password','foto_perfil','id_rol','estado','ultimo_acceso'];
     protected $hidden   = ['password'];
-    protected $casts    = ['password' => 'hashed', 'ultimo_acceso' => 'datetime'];
+    protected $casts    = ['password' => 'hashed', 'ultimo_acceso' => 'datetime', 'debe_cambiar_password' => 'boolean'];
+
+    /** URL de la foto de perfil (null si no tiene; se muestran sus iniciales). */
+    public function getFotoUrlAttribute(): ?string
+    {
+        return $this->foto_perfil ? route('perfil.foto', ['usuario' => $this->id, 'v' => substr(md5($this->foto_perfil), 0, 8)]) : null;
+    }
+
+    /** Iniciales para el avatar sin foto: "Maria Quispe" → "MQ". */
+    public function getInicialesAttribute(): string
+    {
+        $partes = preg_split('/\s+/', trim((string) $this->nombre)) ?: [];
+        $ini = mb_substr($partes[0] ?? '?', 0, 1) . (count($partes) > 1 ? mb_substr(end($partes), 0, 1) : '');
+        return mb_strtoupper($ini);
+    }
+
+    /** Contraseña temporal fácil de dictar (sin letras que se confunden: 0/O, 1/l). */
+    public static function generarClaveTemporal(): string
+    {
+        $letras = 'abcdefghjkmnpqrstuvwxyz';
+        $l = fn () => $letras[random_int(0, strlen($letras) - 1)];
+        return $l() . $l() . $l() . $l() . '-' . random_int(2000, 9999);
+    }
 
     // Minutos de inactividad tras los cuales dejamos de considerar "en línea" a un usuario.
     const MINUTOS_CONECTADO = 3;
@@ -222,6 +244,41 @@ class Usuario extends Authenticatable {
     public function modulosAsignados(): array
     {
         return self::expandirPermisos($this->permisos->pluck('modulo')->all());
+    }
+
+    /** Días sin entrar a partir de los cuales se considera "sin actividad". */
+    const DIAS_SIN_ACTIVIDAD = 30;
+    /** Días sin entrar a partir de los cuales se considera "poco activo". */
+    const DIAS_POCO_ACTIVO = 7;
+
+    public function actividades() { return $this->hasMany(ActividadUsuario::class, 'id_usuario'); }
+
+    /** La última acción real (no inicios/cierres de sesión) que hizo el usuario. */
+    public function ultimaAccion()
+    {
+        // El filtro va DENTRO de ofMany: así busca la última entre las acciones reales
+        // (si fuera afuera, tomaría el último registro, p. ej. un "Cerró sesión", y lo descartaría).
+        return $this->hasOne(ActividadUsuario::class, 'id_usuario')
+            ->ofMany(['created_at' => 'max', 'id' => 'max'],
+                fn ($q) => $q->whereNotIn('accion', ['inicio_sesion', 'cierre_sesion', 'login_fallido']));
+    }
+
+    /**
+     * Estado de actividad según su último acceso:
+     *   en_linea · activo (≤ 7 días) · poco_activo (8–29 días) · sin_actividad (30+ días) · nunca
+     * @return array{clave:string, texto:string, dias:?int}
+     */
+    public function estadoActividad(): array
+    {
+        if ($this->estaConectado()) return ['clave' => 'en_linea', 'texto' => 'En línea', 'dias' => 0];
+        if (!$this->ultimo_acceso)  return ['clave' => 'nunca', 'texto' => 'Nunca ingresó', 'dias' => null];
+
+        $dias = (int) $this->ultimo_acceso->copy()->startOfDay()->diffInDays(now()->startOfDay());
+        return match (true) {
+            $dias < self::DIAS_POCO_ACTIVO     => ['clave' => 'activo', 'texto' => 'Activo', 'dias' => $dias],
+            $dias < self::DIAS_SIN_ACTIVIDAD   => ['clave' => 'poco_activo', 'texto' => "Sin entrar hace {$dias} días", 'dias' => $dias],
+            default                            => ['clave' => 'sin_actividad', 'texto' => "Sin actividad hace {$dias} días", 'dias' => $dias],
+        };
     }
 
     /**

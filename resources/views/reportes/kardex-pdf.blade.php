@@ -54,10 +54,10 @@
 
     <table class="resumen" width="100%">
         <tr>
-            <td width="25%"><div class="caja"><div class="lbl">Saldo inicial</div><div class="val">{{ number_format($saldoInicial, 2) }} {{ $unidad }}</div></div></td>
-            <td width="25%"><div class="caja"><div class="lbl">Entradas</div><div class="val">+{{ number_format($totalEntradas, 2) }} {{ $unidad }}</div></div></td>
-            <td width="25%"><div class="caja"><div class="lbl">Salidas</div><div class="val">-{{ number_format($totalSalidas, 2) }} {{ $unidad }}</div></div></td>
-            <td width="25%"><div class="caja"><div class="lbl">Saldo actual</div><div class="val">{{ number_format($item->stock_actual, 2) }} {{ $unidad }}</div></div></td>
+            <td width="25%"><div class="caja"><div class="lbl">Saldo inicial</div><div class="val">{{ \App\Support\Cantidad::fmt($saldoInicial) }} {{ $unidad }}</div></div></td>
+            <td width="25%"><div class="caja"><div class="lbl">Entradas</div><div class="val">+{{ \App\Support\Cantidad::fmt($totalEntradas) }} {{ $unidad }}</div></div></td>
+            <td width="25%"><div class="caja"><div class="lbl">Salidas</div><div class="val">-{{ \App\Support\Cantidad::fmt($totalSalidas) }} {{ $unidad }}</div></div></td>
+            <td width="25%"><div class="caja"><div class="lbl">Saldo actual</div><div class="val">{{ \App\Support\Cantidad::fmt($item->stock_actual) }} {{ $unidad }}</div></div></td>
         </tr>
     </table>
 
@@ -72,7 +72,7 @@
             @if($movimientos->isNotEmpty())
             <tr style="background:#f4f1ee;font-style:italic;font-weight:bold;">
                 <td colspan="5">Saldo inicial</td>
-                <td class="num">{{ number_format($saldoInicial, 2) }}</td>
+                <td class="num">{{ \App\Support\Cantidad::fmt($saldoInicial) }}</td>
                 <td></td>
             </tr>
             @endif
@@ -81,9 +81,9 @@
                 <td>{{ $mov->created_at->format('d/m/Y H:i') }}</td>
                 <td>{{ $mov->es_ajuste ? 'Ajuste' : ucfirst($mov->tipo) }}</td>
                 <td>{{ ucfirst(str_replace('_', ' ', $mov->motivo)) }}</td>
-                <td class="num">{{ $mov->entrada > 0 ? number_format($mov->entrada, 2) : '' }}</td>
-                <td class="num">{{ $mov->salida > 0 ? number_format($mov->salida, 2) : '' }}</td>
-                <td class="num">{{ number_format($mov->stock_despues, 2) }}</td>
+                <td class="num">{{ $mov->entrada > 0 ? \App\Support\Cantidad::fmt($mov->entrada) : '' }}</td>
+                <td class="num">{{ $mov->salida > 0 ? \App\Support\Cantidad::fmt($mov->salida) : '' }}</td>
+                <td class="num">{{ \App\Support\Cantidad::fmt($mov->stock_despues) }}</td>
                 <td>{{ $mov->usuario->apodo ?? $mov->usuario->nombre ?? '—' }}</td>
             </tr>
             @empty

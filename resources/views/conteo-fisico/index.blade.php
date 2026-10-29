@@ -98,7 +98,7 @@
                 <div class="lr-meta">
                     <div class="lm-item">
                         <span class="lm-label">Sistema</span>
-                        <span class="lm-value" id="sistema-{{ $m->id }}">{{ number_format($m->stock_actual, 2) }} {{ $m->unidad->abreviatura }}</span>
+                        <span class="lm-value" id="sistema-{{ $m->id }}">{{ \App\Support\Cantidad::fmt($m->stock_actual) }} {{ $m->unidad->abreviatura }}</span>
                     </div>
                 </div>
 
@@ -168,7 +168,7 @@
                 diffEl.textContent = 'Coincide';
                 diffEl.className = 'cf-diff ok';
             } else {
-                diffEl.textContent = (diff > 0 ? '+' : '') + diff.toFixed(2) + ' ' + unidad;
+                diffEl.textContent = (diff > 0 ? '+' : '') + fmtCant(diff) + ' ' + unidad;
                 diffEl.className = 'cf-diff mal';
             }
         }

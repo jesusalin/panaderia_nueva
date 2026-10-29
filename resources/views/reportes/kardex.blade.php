@@ -138,16 +138,16 @@
     <div class="rp-stat-grid">
         <div class="rp-stat">
             <div class="rp-label">Saldo inicial</div>
-            <div class="rp-value">{{ number_format($saldoInicial, 2) }} {{ $unidad }}</div>
+            <div class="rp-value">{{ \App\Support\Cantidad::fmt($saldoInicial) }} {{ $unidad }}</div>
             <div class="rp-sub">al empezar el periodo</div>
         </div>
         <div class="rp-stat acc-success">
             <div class="rp-label">Entradas</div>
-            <div class="rp-value">+ {{ number_format($totalEntradas, 2) }} {{ $unidad }}</div>
+            <div class="rp-value">+ {{ \App\Support\Cantidad::fmt($totalEntradas) }} {{ $unidad }}</div>
         </div>
         <div class="rp-stat acc-danger">
             <div class="rp-label">Salidas</div>
-            <div class="rp-value">− {{ number_format($totalSalidas, 2) }} {{ $unidad }}</div>
+            <div class="rp-value">− {{ \App\Support\Cantidad::fmt($totalSalidas) }} {{ $unidad }}</div>
         </div>
         <div class="rp-stat {{ $stockBajo ? 'acc-danger' : 'acc-info' }}">
             <div class="rp-label">Saldo actual
@@ -157,8 +157,8 @@
                     </span>
                 @endif
             </div>
-            <div class="rp-value">{{ number_format($item->stock_actual, 2) }} {{ $unidad }}</div>
-            <div class="rp-sub">mínimo: {{ number_format($item->stock_minimo, 2) }} {{ $unidad }}</div>
+            <div class="rp-value">{{ \App\Support\Cantidad::fmt($item->stock_actual) }} {{ $unidad }}</div>
+            <div class="rp-sub">mínimo: {{ \App\Support\Cantidad::fmt($item->stock_minimo) }} {{ $unidad }}</div>
         </div>
         <div class="rp-stat acc-warn">
             <div class="rp-label">Valor del saldo</div>
@@ -180,8 +180,8 @@
         @foreach($porMotivo as $motivo => $d)
             <div class="kd-motivo">
                 {{ $motivos[$motivo] ?? ucfirst(str_replace('_', ' ', $motivo)) }}:
-                @if($d['entrada'] > 0)<b class="text-success">+{{ number_format($d['entrada'], 2) }}</b>@endif
-                @if($d['salida'] > 0)<b class="text-danger">−{{ number_format($d['salida'], 2) }}</b>@endif
+                @if($d['entrada'] > 0)<b class="text-success">+{{ \App\Support\Cantidad::fmt($d['entrada']) }}</b>@endif
+                @if($d['salida'] > 0)<b class="text-danger">−{{ \App\Support\Cantidad::fmt($d['salida']) }}</b>@endif
                 <span class="text-muted">({{ $d['cuenta'] }})</span>
             </div>
         @endforeach
@@ -214,7 +214,7 @@
             <tbody>
                 <tr class="kd-row-inicial">
                     <td colspan="5">Saldo inicial</td>
-                    <td class="text-right">{{ number_format($saldoInicial, 2) }} {{ $unidad }}</td>
+                    <td class="text-right">{{ \App\Support\Cantidad::fmt($saldoInicial) }} {{ $unidad }}</td>
                     <td colspan="2"></td>
                 </tr>
                 @foreach($movimientos as $mov)
@@ -226,9 +226,9 @@
                         </span>
                     </td>
                     <td class="text-muted small">{{ $motivos[$mov->motivo] ?? ucfirst(str_replace('_', ' ', $mov->motivo)) }}</td>
-                    <td class="text-right text-success font-weight-bold">{{ $mov->entrada > 0 ? '+'.number_format($mov->entrada, 2) : '' }}</td>
-                    <td class="text-right text-danger font-weight-bold">{{ $mov->salida > 0 ? '−'.number_format($mov->salida, 2) : '' }}</td>
-                    <td class="text-right font-weight-bold">{{ number_format($mov->stock_despues, 2) }} {{ $unidad }}</td>
+                    <td class="text-right text-success font-weight-bold">{{ $mov->entrada > 0 ? '+'.\App\Support\Cantidad::fmt($mov->entrada) : '' }}</td>
+                    <td class="text-right text-danger font-weight-bold">{{ $mov->salida > 0 ? '−'.\App\Support\Cantidad::fmt($mov->salida) : '' }}</td>
+                    <td class="text-right font-weight-bold">{{ \App\Support\Cantidad::fmt($mov->stock_despues) }} {{ $unidad }}</td>
                     <td class="text-muted small">{{ $mov->usuario->apodo ?? $mov->usuario->nombre ?? '—' }}</td>
                     <td class="text-muted small">{{ $mov->observacion }}</td>
                 </tr>

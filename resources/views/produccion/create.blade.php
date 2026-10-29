@@ -270,8 +270,8 @@ function actualizarPanel() {
                             <div class="ing-bar"><span style="width:${pct}%; background:${color};"></span></div>
                         </div>
                         <div class="ing-cifras">
-                            <span class="ing-necesario" style="color:${color};">${necesario} ${d.abreviatura}</span>
-                            <span class="ing-stock">stock: ${d.stock_actual} ${d.abreviatura}</span>
+                            <span class="ing-necesario" style="color:${color};">${fmtCant(necesario)} ${d.abreviatura}</span>
+                            <span class="ing-stock">stock: ${fmtCant(d.stock_actual)} ${d.abreviatura}</span>
                         </div>
                     </div>`;
             });

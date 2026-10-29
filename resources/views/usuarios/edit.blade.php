@@ -12,10 +12,10 @@
 <div class="card usuario-form-card">
 
     <div class="usuario-form-header">
-        <div class="usuario-avatar">{{ strtoupper(substr($usuario->nombre,0,1)) }}</div>
+        @include('usuarios.partials._avatar', ['u' => $usuario, 'tam' => 56, 'clase' => 'usuario-avatar'])
         <div>
             <h5>Editar: {{ $usuario->nombre }}</h5>
-            <p><span>@</span>{{ $usuario->usuario }} &middot; {{ ucfirst($usuario->rol->nombre) }}</p>
+            <p>{{ $usuario->apodo ? $usuario->apodo . ' · ' : '' }}{{ ucfirst($usuario->rol->nombre) }} &middot; usuario: {{ $usuario->usuario }}</p>
         </div>
     </div>
 
@@ -74,6 +74,20 @@
                     </div>
                 </div>
             </div>
+            <div class="custom-control custom-checkbox mb-2">
+                <input type="checkbox" class="custom-control-input" id="debeCambiar" name="debe_cambiar_password" value="1" {{ old('debe_cambiar_password') ? 'checked' : '' }}>
+                <label class="custom-control-label" for="debeCambiar" style="font-weight:600;">Pedirle que elija su propia contraseña al entrar</label>
+            </div>
+            @if(auth()->id() !== $usuario->id)
+            <div class="clave-olvido">
+                <i class="fas fa-question-circle"></i>
+                <div>
+                    <strong>¿Olvidó su contraseña?</strong> Por seguridad las contraseñas se guardan cifradas y nadie puede verlas,
+                    ni el admin. Genera una temporal: se mostrará una sola vez para que se la des, y al entrar el sistema le pedirá cambiarla.
+                </div>
+                <button type="submit" form="formClaveTemporal" class="btn btn-sm btn-outline-primary"><i class="fas fa-key mr-1"></i>Generar temporal</button>
+            </div>
+            @endif
 
             <label class="section-label"><i class="fas fa-user-shield mr-1"></i> Rol y estado</label>
             <div class="row">
@@ -106,6 +120,13 @@
     </div>
 </div>
 </div></div>
+@if(auth()->id() !== $usuario->id)
+<form id="formClaveTemporal" action="{{ route('usuarios.clave-temporal', $usuario) }}" method="POST" class="d-none js-confirm"
+      data-confirm-title="¿Generar contraseña temporal?"
+      data-confirm="La contraseña actual de &quot;{{ $usuario->nombre }}&quot; dejará de funcionar. Te mostraremos la nueva para que se la des.">
+    @csrf @method('PUT')
+</form>
+@endif
 @endsection
 
 @push('scripts')

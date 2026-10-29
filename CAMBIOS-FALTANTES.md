@@ -172,6 +172,87 @@ Se quitó del sistema lo que ya no forma parte de la investigación:
 - Pendiente: cuando existan Registro rápido, Consultar stock y Cierre del día, agregarlos a
   los accesos rápidos y mostrar si el cierre del día ya se hizo.
 
+## ✅ Vuelta 9 (historial de actividad, usuarios activos/inactivos y categorías)
+
+**Ejecutar:** `php artisan migrate` (crea `actividad_usuarios` y agrega `icono`/`color` a `categorias`).
+Para datos de ejemplo: `php artisan migrate:fresh --seed`.
+
+**Historial de actividad** (Administración › Historial de actividad, solo admin)
+- Se registra solo: inicios y cierres de sesión, intentos fallidos (contraseña mala,
+  usuario que no existe, cuenta desactivada) y cada registro, edición o eliminación
+  con una frase clara (ej. *Registró la venta V-000120 por S/ 12.50*, *Recibió la compra #23*).
+- Si la acción falla (error de validación o mensaje de error) **no** se anota.
+- Filtros por usuario, tipo de acción, módulo, fechas y texto; agrupado por día.
+- Al filtrar un usuario se ve su ficha: último acceso, ingresos, acciones e intentos fallidos de 30 días.
+- Aviso rojo si hubo intentos de ingreso fallidos en los últimos 7 días (con × para ocultarlo; vuelve a salir cada vez que se entra).
+- El historial no está en el menú lateral: se abre desde Usuarios.
+
+**Usuarios**
+- Cada tarjeta muestra el estado de actividad: *En línea*, *Activo*, *Sin entrar hace N días* (7–29),
+  *Sin actividad hace N días* (30+) o *Nunca ingresó*, con la fecha y hora exacta del último acceso
+  y la última acción que hizo.
+- Filtro "Actividad" y tarjeta "Sin uso 30+ días" (cuentas activas que no se usan).
+- Sugerencia de desactivar a quien no entra hace 30+ días; botón para ver su historial.
+
+**Categorías**
+- El admin elige ícono y color (con vista previa); si no elige, se adivina por el nombre.
+- Buscador y filtro por estado; cada tarjeta muestra productos activos y cuántos tienen stock bajo.
+- "Ver productos": ficha con precio, costo, stock (semáforo) y estado de cada producto.
+- Una categoría con productos no se elimina: se les cambia la categoría desde Editar de cada producto, o se desactiva.
+
+**Seeder:** íconos y colores en las 4 categorías, historial de los 14 días simulados (con sus
+inicios y cierres de sesión), 4 intentos fallidos de ejemplo y un usuario inactivo
+(`jrojas` / `caja123`, Caja 2, sin entrar hace 41 días).
+
+## ✅ Vuelta 10 (Mi perfil y contraseñas olvidadas)
+
+**Ejecutar:** `php artisan migrate` (agrega `debe_cambiar_password` a `usuarios`).
+
+**Mi perfil** (menú de arriba a la derecha → *Mi perfil*, para todos los usuarios)
+- Subir, cambiar o quitar la foto de perfil (JPG/PNG/WEBP, hasta 2 MB). La foto sale en la barra
+  de arriba, en Usuarios y al editar. No necesita `php artisan storage:link`.
+- Cambiar nombre completo, apodo, correo (Gmail u otro) y su propio "usuario para entrar" (sin espacios y que nadie más lo use).
+- Cambiar su propia contraseña (pide la actual).
+
+**Contraseñas olvidadas** (las contraseñas se guardan cifradas sin vuelta atrás: nadie puede leerlas)
+- El admin, en *Editar usuario*, pulsa **Generar temporal**: se muestra UNA vez (ej. `atxt-7443`) para dársela.
+- Al entrar con ella, el sistema obliga a esa persona a elegir su propia contraseña antes de usar nada más.
+- También puede escribir una contraseña a mano y marcar "Pedirle que elija su propia contraseña al entrar".
+- Si el **admin** olvida la suya: en la carpeta del proyecto, `php artisan usuario:clave admin`.
+- En Usuarios, una etiqueta "Clave temporal" indica quién todavía no la cambió.
+
+**Usuarios:** se destacan el nombre completo y el apodo; el nombre de usuario queda como dato secundario.
+El buscador también encuentra por apodo.
+
+## ✅ Vuelta 11 (Productos)
+
+No necesita migración.
+
+- **El stock ya no se escribe a mano al editar** (eso descuadraba el kardex). Cambia solo con
+  producción, ventas o el nuevo **Ajustar stock**: *merma o pérdida* (cuántas se perdieron) o
+  *corrección por conteo* (cuántas contaste), con motivo obligatorio; todo queda en el kardex.
+- Al crear un producto, su **stock inicial** queda registrado en el kardex.
+- **Ficha del producto** (clic en la tarjeta): precio, costo, ganancia y %, stock y para cuántos días
+  alcanza, ventas de los últimos 14 días, receta con el costo de cada insumo y costo por unidad
+  según la receta, y los últimos 10 movimientos.
+- En Editar, si tiene receta, muestra cuánto cuesta según la receta y un enlace "Usar ese costo".
+- Listado: resumen (productos, stock bajo, agotados), filtro por stock, orden (más vendidos,
+  más urgentes, mayor ganancia, precio), buscador también por descripción.
+- Cada tarjeta muestra el ícono y color de su categoría, % de ganancia, unidades vendidas en 30 días
+  y una barra de stock (verde / ámbar / rojo).
+
+## ✅ Vuelta 12 (cantidades sin ceros de sobra)
+
+No necesita migración. Las cantidades de insumos se muestran limpias: `25.000 kg` → `25 kg`,
+`0.500 kg` → `0.5 kg`, `1250.750` → `1,250.75` (los precios en S/ siguen con 2 decimales).
+- `app/Support/Cantidad.php` (`Cantidad::fmt()`) y `fmtCant()` en JavaScript (layout).
+- Modelos con cantidades como número: MateriaPrima, MovimientoInventario, RecetaDetalle,
+  CompraDetalle, OrdenAutomatica, ConteoFisico.
+- Aplicado en materia prima, ajuste, movimientos, conteo físico, compras, órdenes automáticas,
+  producción, recetas, reportes de stock y kardex (pantalla y PDF) y el correo de stock bajo.
+- Los movimientos nuevos de conteo/ajuste ya escriben "(-0.8)" en vez de "(-0.800)"; los
+  textos que ya estaban guardados antes no cambian.
+
 ## 🔲 Lo que falta
 
 ### A. Configuración (no es código)

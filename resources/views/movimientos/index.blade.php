@@ -142,11 +142,11 @@
                 <td>{{ ucfirst(str_replace('_',' ',$mov->motivo)) }}</td>
                 <td class="text-center font-weight-bold {{ $mov->tipo === 'entrada' ? 'text-success' : ($mov->tipo === 'salida' ? 'text-danger' : 'text-warning') }}">
                     {{ $mov->tipo === 'entrada' ? '+' : ($mov->tipo === 'salida' ? '-' : '±') }}
-                    {{ number_format($mov->cantidad, 3) }}
+                    {{ \App\Support\Cantidad::fmt($mov->cantidad) }}
                     <small class="text-muted">{{ $mov->materia->unidad->abreviatura }}</small>
                 </td>
-                <td class="text-center">{{ number_format($mov->stock_antes, 3) }}</td>
-                <td class="text-center font-weight-bold">{{ number_format($mov->stock_despues, 3) }}</td>
+                <td class="text-center">{{ \App\Support\Cantidad::fmt($mov->stock_antes) }}</td>
+                <td class="text-center font-weight-bold">{{ \App\Support\Cantidad::fmt($mov->stock_despues) }}</td>
                 <td>
                     @if($mov->observacion)
                         <span class="mov-obs" title="{{ $mov->observacion }}">{{ $mov->observacion }}</span>

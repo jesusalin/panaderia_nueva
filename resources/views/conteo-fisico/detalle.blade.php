@@ -44,16 +44,16 @@
             <div class="lr-meta">
                 <div class="lm-item">
                     <span class="lm-label">Sistema</span>
-                    <span class="lm-value">{{ number_format($it->stock_sistema, 2) }} {{ $it->materia->unidad->abreviatura }}</span>
+                    <span class="lm-value">{{ \App\Support\Cantidad::fmt($it->stock_sistema) }} {{ $it->materia->unidad->abreviatura }}</span>
                 </div>
                 <div class="lm-item">
                     <span class="lm-label">Físico</span>
-                    <span class="lm-value">{{ number_format($it->stock_fisico, 2) }} {{ $it->materia->unidad->abreviatura }}</span>
+                    <span class="lm-value">{{ \App\Support\Cantidad::fmt($it->stock_fisico) }} {{ $it->materia->unidad->abreviatura }}</span>
                 </div>
                 <div class="lm-item">
                     <span class="lm-label">Diferencia</span>
                     <span class="lm-value {{ $it->diferencia == 0 ? 'text-success' : 'text-danger' }}">
-                        {{ $it->diferencia > 0 ? '+' : '' }}{{ number_format($it->diferencia, 2) }}
+                        {{ $it->diferencia > 0 ? '+' : '' }}{{ \App\Support\Cantidad::fmt($it->diferencia) }}
                     </span>
                 </div>
             </div>

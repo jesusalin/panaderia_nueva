@@ -81,8 +81,8 @@
                         <div class="sg-fill {{ $m->tieneStockBajo() ? 'bajo' : 'ok' }}" style="width: {{ $porcentaje }}%;"></div>
                     </div>
                     <div class="sg-labels">
-                        <span>Actual: <strong>{{ number_format($m->stock_actual, 2) }} {{ $m->unidad->abreviatura }}</strong></span>
-                        <span>Mínimo: {{ number_format($m->stock_minimo, 2) }} {{ $m->unidad->abreviatura }}</span>
+                        <span>Actual: <strong>{{ \App\Support\Cantidad::fmt($m->stock_actual) }} {{ $m->unidad->abreviatura }}</strong></span>
+                        <span>Mínimo: {{ \App\Support\Cantidad::fmt($m->stock_minimo) }} {{ $m->unidad->abreviatura }}</span>
                     </div>
                 </div>
 

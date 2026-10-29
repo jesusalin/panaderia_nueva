@@ -5,6 +5,8 @@ use Illuminate\Database\Eloquent\Model;
 class MateriaPrima extends Model {
     protected $table = 'materia_prima';
     protected $fillable = ['nombre','id_unidad','id_proveedor','stock_actual','stock_minimo','cantidad_reposicion','costo_unitario','estado'];
+    // Cantidades como número (sin ceros de sobra al mostrarlas: 25.000 → 25)
+    protected $casts = ['stock_actual' => 'float', 'stock_minimo' => 'float', 'cantidad_reposicion' => 'float'];
 
     public function unidad()          { return $this->belongsTo(UnidadMedida::class, 'id_unidad'); }
     public function proveedor()       { return $this->belongsTo(Proveedor::class, 'id_proveedor'); }

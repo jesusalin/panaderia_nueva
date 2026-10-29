@@ -77,7 +77,7 @@ class ConteoFisicoController extends Controller
                         'cantidad'      => abs($diferencia),
                         'stock_antes'   => $stockSistema,
                         'stock_despues' => $stockFisico,
-                        'observacion'   => "Conteo físico #{$lote} (" . ($diferencia > 0 ? '+' : '') . number_format($diferencia, 3) . ')',
+                        'observacion'   => "Conteo físico #{$lote} (" . ($diferencia > 0 ? '+' : '') . \App\Support\Cantidad::fmt($diferencia) . ')',
                     ]);
                     $ajustados++;
                 }

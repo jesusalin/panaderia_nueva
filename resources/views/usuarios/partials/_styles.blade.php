@@ -31,6 +31,13 @@
     }
     .field-warning i { margin-top: .15rem; }
 
+    .usuario-avatar.avatar-usuario { background: rgba(255,255,255,.15); }
+    .clave-olvido { display: flex; gap: .8rem; align-items: center; background: #f1f7fd; border: 1px solid #d6e7f7; color: #2c4a66;
+        border-radius: 10px; padding: .7rem 1rem; font-size: .82rem; margin-top: .6rem; }
+    .clave-olvido > i { font-size: 1.2rem; color: #2980b9; }
+    .clave-olvido .btn { white-space: nowrap; margin-left: auto; }
+    @media (max-width: 576px) { .clave-olvido { flex-wrap: wrap; } }
+    body.dark-mode .clave-olvido { background: #1d2a3a; border-color: #2b4058; color: #c9dcf0; }
     .password-wrap { position: relative; }
     .password-wrap .toggle-pass {
         position: absolute; right: .9rem; top: 50%; transform: translateY(-50%);

@@ -16,6 +16,8 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
         $middleware->web(append: [
             \App\Http\Middleware\ActualizarUltimoAcceso::class,
+            \App\Http\Middleware\RegistrarActividad::class,   // historial de actividad
+            \App\Http\Middleware\ExigirCambioPassword::class, // contraseña temporal → elegir una propia
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

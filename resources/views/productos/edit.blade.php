@@ -76,6 +76,14 @@
                                 <input type="number" name="costo_produccion" id="inCosto" step="0.01" min="0"
                                     class="form-control" value="{{ old('costo_produccion', $producto->costo_produccion) }}">
                             </div>
+                            @if($costoReceta !== null)
+                                <small class="d-block mt-1">
+                                    Según su receta cuesta <strong>S/ {{ number_format($costoReceta, 2) }}</strong>.
+                                    @if(abs($costoReceta - (float) $producto->costo_produccion) >= 0.01)
+                                        <a href="#" onclick="document.getElementById('inCosto').value='{{ number_format($costoReceta, 2, '.', '') }}'; document.getElementById('inCosto').dispatchEvent(new Event('input')); return false;">Usar ese costo</a>
+                                    @endif
+                                </small>
+                            @endif
                         </div>
                     </div>
 
@@ -86,9 +94,16 @@
 
                     <div class="row mt-3">
                         <div class="col-md-6 form-group">
-                            <label>Stock Actual <span class="text-danger">*</span></label>
-                            <input type="number" name="stock_actual" id="inStock" min="0" class="form-control"
-                                value="{{ old('stock_actual', $producto->stock_actual) }}" required>
+                            <label>Stock actual</label>
+                            <div class="input-group">
+                                <input type="number" id="inStock" class="form-control" value="{{ $producto->stock_actual }}" readonly>
+                                <div class="input-group-append">
+                                    <a href="{{ route('productos.ajuste', $producto) }}" class="btn btn-outline-secondary" title="Merma o corrección por conteo">
+                                        <i class="fas fa-balance-scale mr-1"></i>Ajustar
+                                    </a>
+                                </div>
+                            </div>
+                            <small class="text-muted">Cambia solo con producción, ventas o un ajuste, así el kardex siempre cuadra.</small>
                         </div>
                         <div class="col-md-6 form-group">
                             <label>Stock Mínimo <span class="text-danger">*</span></label>

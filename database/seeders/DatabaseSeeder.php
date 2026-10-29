@@ -62,6 +62,8 @@ class DatabaseSeeder extends Seeder
     private bool  $hayDescartada = false;
     private array $clientes = [];
     private array $docProveedor = [];    // código proveedor => correlativo de factura
+    private array $actividad = [];       // historial de actividad (se guarda al final)
+    private const IP = ['admin' => '192.168.1.10', 'almacenero' => '192.168.1.21', 'cmamani' => '192.168.1.22', 'mquispe' => '192.168.1.31', 'jrojas' => '192.168.1.32'];
 
     public function run(): void
     {
@@ -73,6 +75,7 @@ class DatabaseSeeder extends Seeder
         $this->catalogo();
         $this->simular();
         $this->guardarSaldos();
+        $this->sesionesYAccesos();
     }
 
     // ═══════════════════════════════════════════════════════════════════
@@ -107,9 +110,14 @@ class DatabaseSeeder extends Seeder
              'password' => Hash::make('ventas123'),  'id_rol' => $idRolUsuario, 'estado' => 'activo', 'created_at' => $alta, 'updated_at' => $alta],
             ['nombre' => 'Carlos Mamani', 'apodo' => 'Almacén', 'usuario' => 'cmamani', 'email' => 'carlos@panaderia.com',
              'password' => Hash::make('almacen123'), 'id_rol' => $idRolUsuario, 'estado' => 'activo', 'created_at' => $alta, 'updated_at' => $alta],
+            // Cajero de reemplazo que dejó de venir: su cuenta sigue activa pero no entra hace más de 30 días
+            // (ejemplo para "Sin actividad" en Usuarios y la sugerencia de desactivarlo)
+            ['nombre' => 'Jorge Rojas',   'apodo' => 'Caja 2',  'usuario' => 'jrojas',  'email' => 'jorge@panaderia.com',
+             'password' => Hash::make('caja123'),    'id_rol' => $idRolUsuario, 'estado' => 'activo',
+             'created_at' => $this->ahora->copy()->subDays(70), 'updated_at' => $this->ahora->copy()->subDays(70)],
         ]);
 
-        foreach (['admin', 'almacenero', 'mquispe', 'cmamani'] as $usuario) {
+        foreach (['admin', 'almacenero', 'mquispe', 'cmamani', 'jrojas'] as $usuario) {
             $this->u[$usuario] = DB::table('usuarios')->where('usuario', $usuario)->value('id');
         }
 
@@ -118,6 +126,7 @@ class DatabaseSeeder extends Seeder
         $permisosDemo = [
             // Maria (Ventas): vende desde el carrito de Productos y atiende clientes
             'mquispe' => ['ventas', 'clientes', 'catalogo.productos'],
+            'jrojas'  => ['ventas', 'clientes'],
             // Carlos (Almacén): inventario, compras, producción y reportes de stock/kardex
             'cmamani' => [
                 'inventario.materia_prima', 'inventario.movimientos', 'inventario.conteo', 'inventario.kardex',
@@ -146,14 +155,14 @@ class DatabaseSeeder extends Seeder
 
         // ── Categorías ──
         $categorias = [
-            'panes'     => ['Panes', 'Panes del día: francés, ciabatta, yema, chancay, integral y molde'],
-            'pasteleria'=> ['Pastelería', 'Tortas y kekes enteros'],
-            'dulces'    => ['Galletas y dulces', 'Alfajores y galletas por unidad'],
-            'salados'   => ['Salados', 'Empanadas horneadas'],
+            'panes'     => ['Panes', 'Panes del día: francés, ciabatta, yema, chancay, integral y molde', 'fa-bread-slice', '#d4880f'],
+            'pasteleria'=> ['Pastelería', 'Tortas y kekes enteros', 'fa-birthday-cake', '#e84393'],
+            'dulces'    => ['Galletas y dulces', 'Alfajores y galletas por unidad', 'fa-cookie-bite', '#6d4c41'],
+            'salados'   => ['Salados', 'Empanadas horneadas', 'fa-cheese', '#c0392b'],
         ];
         $idCat = [];
-        foreach ($categorias as $c => [$nombre, $desc]) {
-            $idCat[$c] = DB::table('categorias')->insertGetId(['nombre' => $nombre, 'descripcion' => $desc, 'estado' => 'activo'] + $ts);
+        foreach ($categorias as $c => [$nombre, $desc, $icono, $color]) {
+            $idCat[$c] = DB::table('categorias')->insertGetId(['nombre' => $nombre, 'descripcion' => $desc, 'icono' => $icono, 'color' => $color, 'estado' => 'activo'] + $ts);
         }
 
         // ── Proveedores (nombres y RUC de ejemplo) ──
@@ -403,6 +412,7 @@ class DatabaseSeeder extends Seeder
                     "Producción #{$idProd} — {$this->pr[$p]['nombre']}", $usuario, $t);
             }
             $this->movimientoPr($p, 'entrada', 'produccion', $cantidad, $idProd, "Producción #{$idProd}", $usuario, $t);
+            $this->act($usuario, 'crear', 'Producción', "Registró producción de {$cantidad} uds de \"{$this->pr[$p]['nombre']}\"", $t);
         }
     }
 
@@ -453,6 +463,7 @@ class DatabaseSeeder extends Seeder
             if (!$this->hayDescartada) {
                 $this->hayDescartada = true;
                 DB::table('ordenes_automaticas')->where('id', $idOrden)->update(['estado' => 'descartada', 'updated_at' => $tCompra]);
+                $this->act('almacenero', 'eliminar', 'Compras', "Descartó la orden automática #{$idOrden}", $tCompra);
                 continue;
             }
 
@@ -475,6 +486,7 @@ class DatabaseSeeder extends Seeder
             DB::table('ordenes_automaticas')->where('id', $idOrden)
                 ->update(['estado' => 'convertida', 'id_compra' => $idCompra, 'updated_at' => $tCompra]);
 
+            $this->act($usuario, 'crear', 'Compras', "Convirtió la orden automática #{$idOrden} en compra", $tCompra);
             $this->porRecibir[] = [$idCompra, [[$c, $cant, $precio]], $usuario];   // llega a las 11:00
         }
     }
@@ -516,6 +528,8 @@ class DatabaseSeeder extends Seeder
                 'precio_unitario' => $precio, 'subtotal' => round($cant * $precio, 2), 'created_at' => $t, 'updated_at' => $t,
             ]);
         }
+        $proveedor = DB::table('proveedores')->where('id', $this->mp['harina']['id_prov'])->value('nombre');
+        $this->act('cmamani', 'crear', 'Compras', "Registró una compra a \"{$proveedor}\" (compra #{$idCompra})", $t);
         if ($d === 3) {
             $this->porRecibir[] = [$idCompra, $items, 'cmamani'];   // llega a las 16:30
         }
@@ -531,6 +545,7 @@ class DatabaseSeeder extends Seeder
             $this->costoMp[$c] = $precio;
         }
         DB::table('compras')->where('id', $idCompra)->update(['estado' => 'recibida', 'updated_at' => $t]);
+        $this->act($usuario, 'editar', 'Compras', "Recibió la compra #{$idCompra} (entró al stock)", $t);
     }
 
     /** Pedidos fijos de clientes + ventas de mostrador del día: [hora, cliente, items, pago, observación]. */
@@ -608,6 +623,7 @@ class DatabaseSeeder extends Seeder
                 ]);
                 $this->movimientoPr($p, 'salida', 'venta', -$cant, $idVenta, "Venta {$numero}", $usuario, $t);
             }
+            $this->act($usuario, 'crear', 'Ventas', "Registró la venta {$numero} por S/ " . number_format($subtotal + $igv, 2), $t);
         }
     }
 
@@ -629,6 +645,7 @@ class DatabaseSeeder extends Seeder
         if (!$t) return;
         $usuario = $d % 2 === 0 ? 'almacenero' : 'cmamani';
         $this->movimientoMp($c, 'salida', 'merma', -$cant, null, $motivo, $usuario, $t);
+        $this->act($usuario, 'editar', 'Inventario', "Registró una merma de \"{$this->mp[$c]['nombre']}\": {$motivo}", $t);
     }
 
     /** Merma que deja el insumo exactamente en su mínimo (si estaba por encima). */
@@ -639,6 +656,7 @@ class DatabaseSeeder extends Seeder
         $t = $this->tick($hora);
         if (!$t) return;
         $this->movimientoMp($c, 'salida', 'merma', -$exceso, null, $motivo, 'almacenero', $t);
+        $this->act('almacenero', 'editar', 'Inventario', "Registró una merma de \"{$this->mp[$c]['nombre']}\": {$motivo}", $t);
     }
 
     /** Igual que ConteoFisicoController@store, sobre los 10 insumos fijos. */
@@ -661,9 +679,10 @@ class DatabaseSeeder extends Seeder
 
             if ($dif != 0) {
                 $this->movimientoMp($c, 'ajuste', 'ajuste_manual', $dif, null,
-                    "Conteo físico #{$lote} (" . ($dif > 0 ? '+' : '') . number_format($dif, 3) . ')', 'almacenero', $t);
+                    "Conteo físico #{$lote} (" . ($dif > 0 ? '+' : '') . \App\Support\Cantidad::fmt($dif) . ')', 'almacenero', $t);
             }
         }
+        $this->act('almacenero', 'crear', 'Inventario', 'Registró un conteo físico de ' . count(self::INSUMOS_CONTEO) . ' insumo(s)', $t);
     }
 
     // ═══════════════════════════════════════════════════════════════════
@@ -695,6 +714,72 @@ class DatabaseSeeder extends Seeder
             'cantidad' => abs($delta), 'stock_antes' => $antes, 'stock_despues' => $despues,
             'observacion' => $obs, 'created_at' => $t->copy(),
         ];
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    // HISTORIAL DE ACTIVIDAD Y ÚLTIMO ACCESO
+    // ═══════════════════════════════════════════════════════════════════
+
+    /** Anota una acción en el historial (igual que el middleware RegistrarActividad). */
+    private function act(string $usuario, string $accion, ?string $modulo, string $descripcion, Carbon $t): void
+    {
+        $this->actividad[] = [
+            'id_usuario' => $this->u[$usuario], 'usuario_texto' => $usuario, 'accion' => $accion,
+            'modulo' => $modulo, 'descripcion' => $descripcion, 'ip' => self::IP[$usuario] ?? null, 'created_at' => $t->copy(),
+        ];
+    }
+
+    /**
+     * Cada día que un usuario trabajó, inicia sesión un rato antes de su primera
+     * acción y la cierra después de la última. Su "último acceso" queda en su última
+     * actividad. Además: algunos intentos de ingreso fallidos y el cajero inactivo.
+     */
+    private function sesionesYAccesos(): void
+    {
+        $porDia = [];
+        foreach ($this->actividad as $a) {
+            $usuario = $a['usuario_texto'];
+            $porDia[$usuario][$a['created_at']->toDateString()][] = $a['created_at'];
+        }
+
+        $ultimo = [];
+        foreach ($porDia as $usuario => $dias) {
+            foreach ($dias as $tiempos) {
+                $inicio = min($tiempos)->copy()->subMinutes(mt_rand(4, 18));
+                $fin    = max($tiempos)->copy()->addMinutes(mt_rand(3, 25));
+                $this->act($usuario, 'inicio_sesion', 'Sesión', 'Inició sesión', $inicio);
+                if ($fin->lessThan($this->ahora->copy()->subMinutes(30))) {
+                    $this->act($usuario, 'cierre_sesion', 'Sesión', 'Cerró sesión', $fin);
+                    $ultimo[$usuario] = $fin;
+                } else {
+                    $ultimo[$usuario] = max($tiempos)->copy();
+                }
+            }
+        }
+
+        // Intentos fallidos (ejemplo del aviso de seguridad del historial)
+        $hace = fn (int $dias, int $hh, int $mm) => $this->ahora->copy()->startOfDay()->subDays($dias)->setTime($hh, $mm);
+        $this->actividad[] = ['id_usuario' => $this->u['mquispe'], 'usuario_texto' => 'mquispe', 'accion' => 'login_fallido',
+            'modulo' => 'Sesión', 'descripcion' => 'Contraseña incorrecta al intentar ingresar', 'ip' => self::IP['mquispe'], 'created_at' => $hace(2, 6, 12)];
+        foreach ([[4, 23, 41], [4, 23, 42], [4, 23, 44]] as [$d, $hh, $mm]) {
+            $this->actividad[] = ['id_usuario' => null, 'usuario_texto' => 'administrador', 'accion' => 'login_fallido',
+                'modulo' => 'Sesión', 'descripcion' => 'Intento de ingreso con un usuario que no existe ("administrador")', 'ip' => '181.65.12.' . (40 + $mm), 'created_at' => $hace($d, $hh, $mm)];
+        }
+
+        // Jorge (Caja 2): trabajó hace más de un mes y no volvió a entrar
+        foreach ([45, 44, 43, 41] as $d) {
+            $this->act('jrojas', 'inicio_sesion', 'Sesión', 'Inició sesión', $hace($d, 14, 2));
+            $this->act('jrojas', 'cierre_sesion', 'Sesión', 'Cerró sesión', $hace($d, 18, 10));
+        }
+        $ultimo['jrojas'] = $hace(41, 18, 10);
+
+        $this->actividad = array_values(array_filter($this->actividad, fn ($a) => $a['created_at']->lessThanOrEqualTo($this->ahora)));
+        usort($this->actividad, fn ($a, $b) => $a['created_at'] <=> $b['created_at']);
+        foreach (array_chunk($this->actividad, 500) as $lote) DB::table('actividad_usuarios')->insert($lote);
+
+        foreach ($ultimo as $usuario => $t) {
+            DB::table('usuarios')->where('id', $this->u[$usuario])->update(['ultimo_acceso' => $t]);
+        }
     }
 
     /**

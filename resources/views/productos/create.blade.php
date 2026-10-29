@@ -82,7 +82,7 @@
 
                     <div class="row mt-3">
                         <div class="col-md-6 form-group">
-                            <label>Stock Actual <span class="text-danger">*</span></label>
+                            <label>Stock inicial <span class="text-danger">*</span> <small class="text-muted">(queda registrado en el kardex)</small></label>
                             <input type="number" name="stock_actual" id="inStock" min="0"
                                 class="form-control @error('stock_actual') is-invalid @enderror"
                                 value="{{ old('stock_actual', 0) }}" required>

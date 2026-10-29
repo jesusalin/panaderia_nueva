@@ -8,7 +8,7 @@
 @include('categorias.partials._styles')
 
 @section('content')
-<div class="row justify-content-center"><div class="col-lg-6">
+<div class="row justify-content-center"><div class="col-lg-7 col-xl-6">
 <div class="card cat-form-card">
     <div class="cat-form-header">
         <div class="cat-form-icon"><i class="fas fa-tags"></i></div>
@@ -27,8 +27,9 @@
             </div>
             <div class="form-group">
                 <label>Descripción <small class="text-muted">(opcional)</small></label>
-                <textarea name="descripcion" class="form-control" rows="3" placeholder="Ej: Panes y bollos del día">{{ old('descripcion') }}</textarea>
+                <textarea name="descripcion" class="form-control" rows="2" maxlength="255" placeholder="Ej: Panes y bollos del día">{{ old('descripcion') }}</textarea>
             </div>
+            @include('categorias.partials._apariencia', ['categoria' => null])
             <div class="form-group">
                 <label>Estado</label>
                 <select name="estado" class="form-control">

@@ -12,6 +12,8 @@ class ConteoFisico extends Model
         'lote', 'id_materia', 'id_usuario',
         'stock_sistema', 'stock_fisico', 'diferencia', 'observacion',
     ];
+    // Cantidades como número (sin ceros de sobra al mostrarlas: 25.000 → 25)
+    protected $casts = ['stock_sistema' => 'float', 'stock_fisico' => 'float', 'diferencia' => 'float'];
 
     public function materia()
     {

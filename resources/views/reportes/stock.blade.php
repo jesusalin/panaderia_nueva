@@ -125,14 +125,14 @@
                 <div class="lr-subtitle">{{ $m->proveedor->nombre ?? 'Sin proveedor' }}</div>
             </div>
             <div class="lr-meta">
-                <div class="lm-item"><span class="lm-label">Stock</span><span class="lm-value {{ $m->nivel === 'ok' ? '' : 'text-danger' }}">{{ number_format($m->stock_actual, 2) }} {{ $m->unidad->abreviatura }}</span></div>
-                <div class="lm-item"><span class="lm-label">Mínimo</span><span class="lm-value">{{ number_format($m->stock_minimo, 2) }} {{ $m->unidad->abreviatura }}</span></div>
+                <div class="lm-item"><span class="lm-label">Stock</span><span class="lm-value {{ $m->nivel === 'ok' ? '' : 'text-danger' }}">{{ \App\Support\Cantidad::fmt($m->stock_actual) }} {{ $m->unidad->abreviatura }}</span></div>
+                <div class="lm-item"><span class="lm-label">Mínimo</span><span class="lm-value">{{ \App\Support\Cantidad::fmt($m->stock_minimo) }} {{ $m->unidad->abreviatura }}</span></div>
                 <div class="lm-item"><span class="lm-label">Costo Unit.</span><span class="lm-value">S/ {{ number_format($m->costo_unitario, 2) }}</span></div>
             </div>
             <div class="lr-side">
                 <span class="lr-amount">S/ {{ number_format($m->valor, 2) }}</span>
                 @if($m->reponer > 0)
-                    <div class="reponer-hint">Reponer ≈ {{ number_format($m->reponer, 2) }} {{ $m->unidad->abreviatura }}</div>
+                    <div class="reponer-hint">Reponer ≈ {{ \App\Support\Cantidad::fmt($m->reponer) }} {{ $m->unidad->abreviatura }}</div>
                 @endif
                 <div class="sk-acciones">
                     @if($puedeKardex)<a href="{{ route('reportes.kardex', ['item' => 'materia-'.$m->id]) }}" class="btn btn-outline-info" title="Ver su kardex"><i class="fas fa-file-invoice"></i></a>@endif

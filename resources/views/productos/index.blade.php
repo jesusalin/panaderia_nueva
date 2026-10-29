@@ -20,10 +20,16 @@
     </div>
 </div>
 
-<form method="GET" action="{{ route('productos.index') }}" class="filter-bar">
+<div class="prod-stats">
+    <a href="{{ route('productos.index') }}" class="ps-item {{ !request('stock') ? 'activo' : '' }}"><b>{{ $stats['total'] }}</b> productos <small>({{ $stats['activos'] }} activos)</small></a>
+    <a href="{{ route('productos.index', ['stock' => 'bajo', 'estado' => 'activo']) }}" class="ps-item ps-bajo {{ request('stock') === 'bajo' ? 'activo' : '' }}"><i class="fas fa-exclamation-triangle"></i><b>{{ $stats['bajo'] }}</b> con stock bajo</a>
+    <a href="{{ route('productos.index', ['stock' => 'agotado', 'estado' => 'activo']) }}" class="ps-item ps-agotado {{ request('stock') === 'agotado' ? 'activo' : '' }}"><i class="fas fa-times-circle"></i><b>{{ $stats['agotados'] }}</b> agotados</a>
+</div>
+
+<form method="GET" action="{{ route('productos.index') }}" class="filter-bar flex-wrap" style="gap:.6rem">
     <div class="search-box flex-grow-1" style="min-width:220px;">
         <i class="fas fa-search"></i>
-        <input type="text" name="buscar" class="form-control" placeholder="Buscar producto..." value="{{ request('buscar') }}">
+        <input type="text" name="buscar" class="form-control" placeholder="Buscar por nombre o descripción..." value="{{ request('buscar') }}">
     </div>
     <label class="fb-label mb-0">Categoría</label>
     <select name="categoria" class="form-control" style="width:auto;" onchange="this.form.submit()">
@@ -38,8 +44,24 @@
         <option value="activo"   {{ request('estado') === 'activo'   ? 'selected' : '' }}>Activo</option>
         <option value="inactivo" {{ request('estado') === 'inactivo' ? 'selected' : '' }}>Inactivo</option>
     </select>
+    <label class="fb-label mb-0">Stock</label>
+    <select name="stock" class="form-control" style="width:auto;" onchange="this.form.submit()">
+        <option value="">Todos</option>
+        <option value="ok"      {{ request('stock') === 'ok'      ? 'selected' : '' }}>Suficiente</option>
+        <option value="bajo"    {{ request('stock') === 'bajo'    ? 'selected' : '' }}>Bajo</option>
+        <option value="agotado" {{ request('stock') === 'agotado' ? 'selected' : '' }}>Agotado</option>
+    </select>
+    <label class="fb-label mb-0">Ordenar</label>
+    <select name="orden" class="form-control" style="width:auto;" onchange="this.form.submit()">
+        <option value="">Nombre (A-Z)</option>
+        <option value="vendidos"    {{ request('orden') === 'vendidos'    ? 'selected' : '' }}>Más vendidos (30 días)</option>
+        <option value="stock"       {{ request('orden') === 'stock'       ? 'selected' : '' }}>Más urgentes de reponer</option>
+        <option value="margen"      {{ request('orden') === 'margen'      ? 'selected' : '' }}>Mayor ganancia (%)</option>
+        <option value="precio_asc"  {{ request('orden') === 'precio_asc'  ? 'selected' : '' }}>Precio: menor a mayor</option>
+        <option value="precio_desc" {{ request('orden') === 'precio_desc' ? 'selected' : '' }}>Precio: mayor a menor</option>
+    </select>
     <button type="submit" class="btn btn-light"><i class="fas fa-filter mr-1"></i>Filtrar</button>
-    @if(request('buscar') || request('categoria') || request('estado'))
+    @if(request('buscar') || request('categoria') || request('estado') || request('stock') || request('orden'))
         <a href="{{ route('productos.index') }}" class="btn btn-light text-muted"><i class="fas fa-times mr-1"></i>Limpiar</a>
     @endif
 </form>
@@ -48,12 +70,13 @@
 <div class="card-grid">
     @foreach($productos as $p)
         @php
-            $nombreLower = mb_strtolower($p->categoria->nombre ?? '');
-            $icono = 'fa-bread-slice';
-            if (str_contains($nombreLower, 'pastel') || str_contains($nombreLower, 'torta')) $icono = 'fa-birthday-cake';
-            elseif (str_contains($nombreLower, 'galleta'))                  $icono = 'fa-cookie';
-            elseif (str_contains($nombreLower, 'empanada'))                 $icono = 'fa-cheese';
-            elseif (str_contains($nombreLower, 'bebida') || str_contains($nombreLower, 'café')) $icono = 'fa-mug-hot';
+            $icono = $p->categoria->icono_final ?? 'fa-bread-slice';
+            $color = $p->categoria->color_final ?? '#b5451b';
+            $vendidos = (int) $p->vendidos_30;
+            // Barra de stock: llena = 3 veces el mínimo
+            $tope = max(1, $p->stock_minimo * 3);
+            $pct = min(100, round($p->stock_actual / $tope * 100));
+            $nivel = $p->estaAgotado() ? 'agotado' : ($p->tieneStockBajo() ? 'bajo' : 'ok');
         @endphp
         @php
             $usosProducto = [];
@@ -63,8 +86,8 @@
             if ($p->kardex_count > 0)         $usosProducto[] = 'movimientos de kardex';
             $bloqueadoProducto = count($usosProducto) > 0;
         @endphp
-        <div class="item-card {{ $p->estado !== 'activo' ? 'is-inactive' : '' }}">
-            <div class="item-card-media">
+        <div class="item-card {{ $p->estado !== 'activo' ? 'is-inactive' : '' }}" style="--cat-color: {{ $color }}">
+            <a href="{{ route('productos.show', $p) }}" class="item-card-media prod-media" title="Ver ficha del producto">
                 @if($p->imagen)
                     <img src="{{ asset('storage/'.$p->imagen) }}" alt="{{ $p->nombre }}">
                 @else
@@ -72,31 +95,42 @@
                 @endif
 
                 <span class="ic-badge">
-                    @if($p->tieneStockBajo())
-                        <span class="badge-soft badge-soft-danger"><i class="fas fa-exclamation-triangle mr-1"></i>Stock bajo</span>
-                    @elseif($p->estado !== 'activo')
+                    @if($p->estado !== 'activo')
                         <span class="badge-soft badge-soft-secondary">Inactivo</span>
+                    @elseif($nivel === 'agotado')
+                        <span class="badge-soft badge-soft-danger"><i class="fas fa-times-circle mr-1"></i>Agotado</span>
+                    @elseif($nivel === 'bajo')
+                        <span class="badge-soft badge-soft-danger"><i class="fas fa-exclamation-triangle mr-1"></i>Stock bajo</span>
                     @endif
                 </span>
-            </div>
+                @if($vendidos > 0)
+                    <span class="prod-vendidos" title="Unidades vendidas en los últimos 30 días"><i class="fas fa-fire mr-1"></i>{{ $vendidos }} vendidos</span>
+                @endif
+            </a>
 
             <div class="item-card-body">
-                <div class="item-card-cat">{{ $p->categoria->nombre ?? 'Sin categoría' }}</div>
-                <h3 class="item-card-title">{{ $p->nombre }}</h3>
+                <div class="item-card-cat prod-cat"><i class="fas {{ $icono }} mr-1"></i>{{ $p->categoria->nombre ?? 'Sin categoría' }}</div>
+                <h3 class="item-card-title"><a href="{{ route('productos.show', $p) }}">{{ $p->nombre }}</a></h3>
 
                 <div class="item-card-price">
                     S/ {{ number_format($p->precio_venta, 2) }}
-                    @if($p->costo_produccion)
-                        <span class="ic-cost">costo S/ {{ number_format($p->costo_produccion, 2) }}</span>
+                    @if($p->margen !== null)
+                        <span class="prod-margen {{ $p->margen < 0 ? 'perdida' : ($p->margen < 20 ? 'baja' : '') }}"
+                              title="Costo S/ {{ number_format($p->costo_produccion, 2) }} · ganas S/ {{ number_format($p->ganancia, 2) }} por unidad">
+                            {{ $p->margen < 0 ? 'Pierdes' : 'Ganas' }} {{ abs($p->margen) }}%
+                        </span>
+                    @else
+                        <span class="ic-cost">sin costo registrado</span>
                     @endif
                 </div>
 
                 <div class="item-card-stockrow">
-                    <span>Stock disponible</span>
-                    <span class="badge-soft {{ $p->tieneStockBajo() ? 'badge-soft-danger' : 'badge-soft-success' }}">
+                    <span>Stock <small class="text-muted">(mín. {{ $p->stock_minimo }})</small></span>
+                    <span class="badge-soft {{ $nivel === 'ok' ? 'badge-soft-success' : 'badge-soft-danger' }}">
                         {{ $p->stock_actual }} uds
                     </span>
                 </div>
+                <div class="prod-barra {{ $nivel }}"><span style="width: {{ $pct }}%"></span></div>
 
                 @if($puedeVender)
                     @if($p->estado === 'activo' && $p->stock_actual > 0)
@@ -123,11 +157,9 @@
                     </button>
                 </form>
                 <div class="btn-icon-group">
-                    @if(auth()->user()->hasPermiso('reportes.kardex'))
-                    <a href="{{ route('reportes.kardex', ['tipo_item' => 'producto', 'id_item' => $p->id]) }}" class="btn btn-icon btn-secondary" title="Ver Kardex">
-                        <i class="fas fa-file-invoice"></i>
+                    <a href="{{ route('productos.ajuste', $p) }}" class="btn btn-icon btn-info" title="Ajustar stock (merma o conteo)">
+                        <i class="fas fa-balance-scale"></i>
                     </a>
-                    @endif
                     <a href="{{ route('productos.edit', $p) }}" class="btn btn-icon btn-warning" title="Editar">
                         <i class="fas fa-edit"></i>
                     </a>
@@ -154,7 +186,7 @@
 @else
 <div class="empty-state">
     <i class="fas fa-bread-slice"></i>
-    <p>{{ request('buscar') || request('categoria') || request('estado') ? 'Ningún producto coincide con ese filtro' : 'Todavía no tienes productos registrados' }}</p>
+    <p>{{ request('buscar') || request('categoria') || request('estado') || request('stock') ? 'Ningún producto coincide con ese filtro' : 'Todavía no tienes productos registrados' }}</p>
     <a href="{{ route('productos.create') }}" class="btn btn-primary"><i class="fas fa-plus mr-1"></i>Crear el primero</a>
 </div>
 @endif
@@ -220,6 +252,35 @@
 @endif
 
 @endsection
+
+@push('styles')
+<style>
+    .prod-stats { display: flex; flex-wrap: wrap; gap: .6rem; margin-bottom: 1rem; }
+    .prod-stats .ps-item { background: #fff; border-radius: 10px; padding: .5rem .9rem; font-size: .85rem; color: #6c757d;
+        box-shadow: 0 1px 6px rgba(0,0,0,.05); border: 1.5px solid transparent; text-decoration: none; display: inline-flex; align-items: center; gap: .35rem; }
+    .prod-stats .ps-item b { color: #1a1a2e; font-size: 1rem; }
+    .prod-stats .ps-item.activo { border-color: #b5451b; }
+    .prod-stats .ps-bajo i { color: #e67e22; } .prod-stats .ps-agotado i { color: #c0392b; }
+    body.dark-mode .prod-stats .ps-item { background: #1f1f33; color: #b0b0cc; }
+    body.dark-mode .prod-stats .ps-item b { color: #f0f0f7; }
+
+    .item-card .prod-media { display: flex; text-decoration: none; position: relative; }
+    .item-card .prod-media > i { color: var(--cat-color, #b5451b); }
+    .prod-vendidos { position: absolute; left: .55rem; bottom: .55rem; background: rgba(26,26,46,.78); color: #fff;
+        font-size: .7rem; font-weight: 700; padding: .2rem .55rem; border-radius: 20px; }
+    .prod-cat { color: var(--cat-color, #b5451b) !important; }
+    .item-card-title a { color: inherit; }
+    .item-card-title a:hover { color: #b5451b; text-decoration: none; }
+    .prod-margen { font-size: .72rem; font-weight: 800; padding: .15rem .5rem; border-radius: 20px; margin-left: .3rem;
+        background: rgba(46,204,113,.14); color: #1e8e5a; vertical-align: middle; }
+    .prod-margen.baja { background: rgba(243,156,18,.16); color: #a5680d; }
+    .prod-margen.perdida { background: rgba(231,76,60,.14); color: #c0392b; }
+    .prod-barra { height: 6px; border-radius: 6px; background: #eef0f3; overflow: hidden; margin-top: .35rem; }
+    .prod-barra span { display: block; height: 100%; border-radius: 6px; background: #2ecc71; }
+    .prod-barra.bajo span { background: #f39c12; } .prod-barra.agotado span { background: #e74c3c; }
+    body.dark-mode .prod-barra { background: #2c2c44; }
+</style>
+@endpush
 
 @if($puedeVender)
 @push('styles')

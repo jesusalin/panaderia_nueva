@@ -152,8 +152,8 @@
 
         const stock = parseFloat($('inStock').value) || 0;
         const stockMin = parseFloat($('inStockMin').value) || 0;
-        $('prevStock').textContent = stock.toFixed(2);
-        $('prevStockMin').textContent = stockMin.toFixed(2);
+        $('prevStock').textContent = fmtCant(stock);
+        $('prevStockMin').textContent = fmtCant(stockMin);
 
         const referencia = Math.max(stockMin * 2, 0.001);
         const porcentaje = Math.min(100, Math.round((stock / referencia) * 100));

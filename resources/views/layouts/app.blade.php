@@ -271,6 +271,17 @@
         body.dark-mode .modal-header, body.dark-mode .modal-footer { border-color: #33334d; }
         body.dark-mode .close { color: #e4e4ef; text-shadow: none; }
         body.dark-mode .dropdown-menu { background: #1f1f33; border-color: #33334d; }
+        .nav-usuario { display: flex; align-items: center; gap: .55rem; padding-top: .3rem; padding-bottom: .3rem; }
+        .nav-usuario-txt { display: flex; flex-direction: column; line-height: 1.1; }
+        .nav-usuario-txt .nu-nombre { font-weight: 700; font-size: .9rem; }
+        .nav-usuario-txt .nu-apodo { font-size: .72rem; color: #8a8a9d; }
+        @media (max-width: 576px) { .nav-usuario-txt { display: none; } }
+        .avatar-usuario { border-radius: 50%; flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center;
+            font-weight: 800; color: #fff; background: linear-gradient(135deg, #4a4a5e, #1a1a2e); overflow: hidden; }
+        .avatar-usuario img { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .clave-temporal { display: flex; flex-direction: column; gap: .35rem; }
+        .clave-temporal .ct-clave { align-self: flex-start; font-size: 1.35rem; padding: .25rem .8rem; border-radius: 8px;
+            background: #fff; color: #1a1a2e; letter-spacing: .06em; user-select: all; }
         body.dark-mode .dropdown-item { color: #e4e4ef; }
         body.dark-mode .dropdown-item:hover { background: #24243b; color: #fff; }
         body.dark-mode .dropdown-divider { border-color: #33334d; }
@@ -630,6 +641,13 @@
         body.dark-mode .stock-gauge .sg-labels strong { color: #f0f0f7; }
     </style>
     @stack('styles')
+    <script>
+        // Cantidades sin ceros de sobra (25.000 → 25, 0.500 → 0.5), igual que App\Support\Cantidad
+        window.fmtCant = function (n, dec) {
+            var x = Number(n); if (!isFinite(x)) return n;
+            return x.toLocaleString('en-US', { maximumFractionDigits: dec === undefined ? 3 : dec });
+        };
+    </script>
 </head>
 <body class="hold-transition sidebar-mini layout-fixed">
 {{-- Recordar si el menú quedó contraído (botón ☰) y aplicarlo antes de pintar, sin parpadeo.
@@ -650,11 +668,18 @@
         </ul>
         <ul class="navbar-nav ml-auto">
             <li class="nav-item dropdown">
-                <a class="nav-link dropdown-toggle" href="#" data-toggle="dropdown">
-                    <i class="fas fa-user-circle mr-1"></i>
-                    {{ auth()->user()->nombre ?? 'Usuario' }}
+                <a class="nav-link dropdown-toggle nav-usuario" href="#" data-toggle="dropdown">
+                    @include('usuarios.partials._avatar', ['u' => auth()->user(), 'tam' => 30])
+                    <span class="nav-usuario-txt">
+                        <span class="nu-nombre">{{ auth()->user()->nombre ?? 'Usuario' }}</span>
+                        @if(auth()->user()->apodo)<span class="nu-apodo">{{ auth()->user()->apodo }}</span>@endif
+                    </span>
                 </a>
                 <div class="dropdown-menu dropdown-menu-right p-0" style="min-width: 230px; overflow: hidden;">
+                    <a href="{{ route('perfil.edit') }}" class="dropdown-item py-2">
+                        <i class="fas fa-user-cog mr-2" style="width: 16px;"></i>Mi perfil
+                    </a>
+                    <div class="dropdown-divider m-0"></div>
                     <div class="dropdown-item d-flex align-items-center justify-content-between py-2" id="darkModeItem" style="cursor: pointer;">
                         <span>
                             <i class="fas fa-moon mr-2" style="width: 16px;"></i>Modo oscuro
@@ -897,7 +922,7 @@
                     @endif
 
                     @if(auth()->user()->isAdmin())
-                    @php $abierta = request()->routeIs('usuarios.*') || request()->routeIs('backups.*'); @endphp
+                    @php $abierta = request()->routeIs('usuarios.*') || request()->routeIs('backups.*') || request()->routeIs('actividad.*'); @endphp
                     <li data-menu-id="sec-administracion" class="nav-section {{ $abierta ? 'open' : '' }}">
                         <a href="#" class="nav-header-toggle">
                             <span>ADMINISTRACIÓN</span>
@@ -905,7 +930,7 @@
                         </a>
                         <ul class="nav-section-body" data-menu-lista="sec-administracion" style="{{ $abierta ? '' : 'display:none;' }}">
                             <li class="nav-item" data-menu-id="usuarios">
-                                <a href="{{ route('usuarios.index') }}" class="nav-link {{ request()->routeIs('usuarios.*') ? 'active' : '' }}">
+                                <a href="{{ route('usuarios.index') }}" class="nav-link {{ request()->routeIs('usuarios.*') || request()->routeIs('actividad.*') ? 'active' : '' }}">
                                     <i class="nav-icon fas fa-users"></i><p>Usuarios</p>
                                 </a>
                             </li>
@@ -984,6 +1009,19 @@
                     <div class="alert alert-success alert-dismissible fade show">
                         <i class="fas fa-check-circle mr-2"></i>{{ session('success') }}
                         <button type="button" class="close" data-dismiss="alert"><span>&times;</span></button>
+                    </div>
+                @endif
+                @if(session('warning'))
+                    <div class="alert alert-warning">
+                        <i class="fas fa-key mr-2"></i>{{ session('warning') }}
+                    </div>
+                @endif
+                @if(session('clave_temporal'))
+                    <div class="alert alert-info clave-temporal">
+                        <div><i class="fas fa-key mr-2"></i>Contraseña temporal de <strong>{{ session('clave_temporal.nombre') }}</strong>
+                            (usuario <strong>{{ session('clave_temporal.usuario') }}</strong>):</div>
+                        <code class="ct-clave">{{ session('clave_temporal.clave') }}</code>
+                        <small>Dásela a la persona. Solo se muestra esta vez; al entrar el sistema le pedirá elegir su propia contraseña.</small>
                     </div>
                 @endif
                 @if(session('error'))

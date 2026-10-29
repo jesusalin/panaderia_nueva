@@ -18,6 +18,8 @@ use App\Http\Controllers\KardexController;
 use App\Http\Controllers\OrdenesAutomaticasController;
 use App\Http\Controllers\ReportesController;
 use App\Http\Controllers\MenuController;
+use App\Http\Controllers\ActividadController;
+use App\Http\Controllers\PerfilController;
 
 // Redirigir raíz al dashboard
 Route::get('/', fn() => redirect()->route('dashboard'));
@@ -28,6 +30,14 @@ Route::middleware(['auth'])->group(function () {
     // Dashboard: visible para cualquier usuario autenticado, sin importar sus permisos
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
+    // Mi perfil: cada usuario edita su foto, nombre, apodo, correo y contraseña
+    Route::get('perfil',            [PerfilController::class, 'edit'])->name('perfil.edit');
+    Route::put('perfil',            [PerfilController::class, 'update'])->name('perfil.update');
+    Route::put('perfil/password',   [PerfilController::class, 'password'])->name('perfil.password');
+    Route::get('perfil/foto/{usuario}', [PerfilController::class, 'foto'])->name('perfil.foto');
+    Route::put('usuarios/{usuario}/clave-temporal', [UsuariosController::class, 'claveTemporal'])
+        ->name('usuarios.clave-temporal')->middleware('modulo:usuarios');
+
     // Orden del menú lateral: solo el admin lo cambia (el controlador lo verifica) y aplica a todos
     Route::post('menu/orden',   [MenuController::class, 'guardar'])->name('menu.orden.guardar');
     Route::delete('menu/orden', [MenuController::class, 'restablecer'])->name('menu.orden.restablecer');
@@ -36,6 +46,7 @@ Route::middleware(['auth'])->group(function () {
     Route::middleware(['modulo:usuarios'])->group(function () {
         Route::resource('usuarios', UsuariosController::class);
         Route::put('usuarios/{usuario}/toggle-estado', [UsuariosController::class, 'toggleEstado'])->name('usuarios.toggle-estado');
+        Route::get('actividad', [ActividadController::class, 'index'])->name('actividad.index');   // historial de actividad
 
         Route::get('backups', [BackupController::class, 'index'])->name('backups.index');
         Route::post('backups', [BackupController::class, 'store'])->name('backups.store');
@@ -55,6 +66,8 @@ Route::middleware(['auth'])->group(function () {
     Route::middleware(['modulo:catalogo.productos'])->group(function () {
         Route::resource('productos',  ProductosController::class);
         Route::put('productos/{producto}/toggle-estado', [ProductosController::class, 'toggleEstado'])->name('productos.toggle-estado');
+        Route::get('productos/{producto}/ajuste',  [ProductosController::class, 'ajusteForm'])->name('productos.ajuste');
+        Route::post('productos/{producto}/ajuste', [ProductosController::class, 'ajusteStore'])->name('productos.ajuste.store');
     });
 
     // ── Módulo: Inventario ───────────────────────────────────────

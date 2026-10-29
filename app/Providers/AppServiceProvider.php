@@ -28,6 +28,9 @@ class AppServiceProvider extends ServiceProvider
         Paginator::defaultView('pagination.custom');
         Paginator::defaultSimpleView('pagination.custom');
 
+        // Fechas relativas en español ("hace 2 horas", "hace 3 días") aunque APP_LOCALE sea "en"
+        \Illuminate\Support\Carbon::setLocale('es');
+
         View::composer('layouts.app', function ($view) {
             $view->with('stockBajoProductosCount', Producto::whereColumn('stock_actual', '<=', 'stock_minimo')->count());
             $view->with('stockBajoMateriaPrimaCount', MateriaPrima::whereColumn('stock_actual', '<=', 'stock_minimo')->count());

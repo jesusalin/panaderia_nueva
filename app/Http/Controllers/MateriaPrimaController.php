@@ -133,7 +133,7 @@ class MateriaPrimaController extends Controller
                 'stock_antes'   => $stockSistema,
                 'stock_despues' => $stockReal,
                 'observacion'   => ($diferencia > 0 ? 'Ajuste positivo (+' : 'Ajuste negativo (')
-                                    . number_format($diferencia, 3) . '): ' . $request->observacion,
+                                    . \App\Support\Cantidad::fmt($diferencia) . '): ' . $request->observacion,
             ]);
 
             DB::commit();

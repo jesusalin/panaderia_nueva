@@ -87,7 +87,7 @@
                         @foreach($compra->detalles as $d)
                         <tr>
                             <td class="row-title">{{ $d->materia->nombre }}</td>
-                            <td class="text-center">{{ number_format($d->cantidad, 3) }} {{ $d->materia->unidad->abreviatura }}</td>
+                            <td class="text-center">{{ \App\Support\Cantidad::fmt($d->cantidad) }} {{ $d->materia->unidad->abreviatura }}</td>
                             <td class="text-right">S/ {{ number_format($d->precio_unitario, 2) }}</td>
                             <td class="text-right font-weight-bold">S/ {{ number_format($d->subtotal, 2) }}</td>
                         </tr>

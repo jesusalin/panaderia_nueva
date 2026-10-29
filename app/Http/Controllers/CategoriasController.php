@@ -2,37 +2,70 @@
 namespace App\Http\Controllers;
 use App\Models\Categoria;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 class CategoriasController extends Controller
 {
-    public function index() {
-        $categorias = Categoria::withCount('productos')->orderBy('nombre')->paginate(12);
-        return view('categorias.index', compact('categorias'));
+    public function index(Request $request) {
+        $request->validate([
+            'buscar' => 'nullable|string|max:100',
+            'estado' => 'nullable|in:activo,inactivo',
+        ]);
+
+        $categorias = Categoria::withCount([
+                'productos',
+                'productos as productos_activos_count'   => fn ($q) => $q->where('estado', 'activo'),
+                'productos as productos_stock_bajo_count' => fn ($q) => $q->where('estado', 'activo')->whereColumn('stock_actual', '<=', 'stock_minimo'),
+            ])
+            ->when($request->filled('buscar'), fn ($q) => $q->where(fn ($w) => $w
+                ->where('nombre', 'like', '%' . $request->buscar . '%')
+                ->orWhere('descripcion', 'like', '%' . $request->buscar . '%')))
+            ->when($request->filled('estado'), fn ($q) => $q->where('estado', $request->estado))
+            ->orderBy('nombre')
+            ->paginate(12)->withQueryString();
+
+        $stats = [
+            'total'      => Categoria::count(),
+            'activas'    => Categoria::where('estado', 'activo')->count(),
+            'vacias'     => Categoria::doesntHave('productos')->count(),
+        ];
+
+        return view('categorias.index', compact('categorias', 'stats'));
     }
+
+    /** Ficha de la categoría: sus productos. */
+    public function show(Categoria $categoria) {
+        $productos = $categoria->productos()->orderByDesc('estado')->orderBy('nombre')->get();
+        return view('categorias.show', compact('categoria', 'productos'));
+    }
+
     public function create() { return view('categorias.create'); }
+
     public function store(Request $request) {
-        $request->validate(['nombre'=>'required|unique:categorias,nombre|max:100','descripcion'=>'nullable|string','estado'=>'required|in:activo,inactivo']);
-        Categoria::create($request->all());
+        $datos = $request->validate($this->reglas());
+        Categoria::create($datos);
         return redirect()->route('categorias.index')->with('success','Categoría creada.');
     }
+
     public function edit(Categoria $categoria) { return view('categorias.edit', compact('categoria')); }
+
     public function update(Request $request, Categoria $categoria) {
-        $request->validate(['nombre'=>'required|unique:categorias,nombre,'.$categoria->id.'|max:100','descripcion'=>'nullable|string','estado'=>'required|in:activo,inactivo']);
-        $categoria->update($request->all());
+        $datos = $request->validate($this->reglas($categoria));
+        $categoria->update($datos);
         return redirect()->route('categorias.index')->with('success','Categoría actualizada.');
     }
 
     /**
      * Elimina la categoría de verdad, solo si no tiene productos asociados
-     * (si los tiene, borrarla rompería esos productos). En ese caso se
-     * sugiere desactivarla en su lugar.
+     * (si los tiene, borrarla rompería esos productos). Para vaciarla se cambia
+     * la categoría de cada producto desde su "Editar".
      */
     public function destroy(Categoria $categoria) {
         $totalProductos = $categoria->productos()->count();
 
         if ($totalProductos > 0) {
             return redirect()->route('categorias.index')
-                ->with('error', "No se puede eliminar \"{$categoria->nombre}\": tiene {$totalProductos} producto(s) asociado(s). Desactívala si ya no la usas.");
+                ->with('error', "No se puede eliminar \"{$categoria->nombre}\": tiene {$totalProductos} producto(s). Cámbiales la categoría desde Editar o desactívala.");
         }
 
         $categoria->delete();
@@ -40,14 +73,22 @@ class CategoriasController extends Controller
     }
 
     /**
-     * Activa/desactiva la categoría sin borrarla (para cuando tiene productos
-     * y por lo tanto no se puede eliminar).
+     * Activa/desactiva la categoría sin borrarla.
      */
     public function toggleEstado(Categoria $categoria) {
         $nuevoEstado = $categoria->estado === 'activo' ? 'inactivo' : 'activo';
         $categoria->update(['estado' => $nuevoEstado]);
 
-        return redirect()->route('categorias.index')
-            ->with('success', 'Categoría ' . ($nuevoEstado === 'activo' ? 'activada' : 'desactivada') . '.');
+        return back()->with('success', 'Categoría ' . ($nuevoEstado === 'activo' ? 'activada' : 'desactivada') . '.');
+    }
+
+    private function reglas(?Categoria $categoria = null): array {
+        return [
+            'nombre'      => ['required', 'string', 'max:100', Rule::unique('categorias', 'nombre')->ignore($categoria?->id)],
+            'descripcion' => 'nullable|string|max:255',
+            'icono'       => ['nullable', Rule::in(array_keys(Categoria::ICONOS))],
+            'color'       => ['nullable', 'regex:/^#[0-9a-fA-F]{6}$/'],
+            'estado'      => 'required|in:activo,inactivo',
+        ];
     }
 }

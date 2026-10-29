@@ -107,8 +107,8 @@
                     <div class="compare-grid">
                         <div class="compare-box">
                             <div class="cb-label">Stock en el sistema</div>
-                            <div class="cb-value">{{ number_format($materiaPrima->stock_actual, 3) }}</div>
-                            <div class="cb-unit">{{ $materiaPrima->unidad->abreviatura }} · mínimo {{ number_format($materiaPrima->stock_minimo, 3) }}</div>
+                            <div class="cb-value">{{ \App\Support\Cantidad::fmt($materiaPrima->stock_actual) }}</div>
+                            <div class="cb-unit">{{ $materiaPrima->unidad->abreviatura }} · mínimo {{ \App\Support\Cantidad::fmt($materiaPrima->stock_minimo) }}</div>
                         </div>
 
                         <div class="compare-arrow"><i class="fas fa-arrow-right"></i></div>
@@ -172,7 +172,7 @@
                         <div class="sg-track"><div class="sg-fill ok" id="prevGaugeFill" style="width:0%;"></div></div>
                         <div class="sg-labels">
                             <span>Nuevo: <strong><span id="prevStock">0</span> {{ $materiaPrima->unidad->abreviatura }}</strong></span>
-                            <span>Mínimo: {{ number_format($materiaPrima->stock_minimo, 2) }} {{ $materiaPrima->unidad->abreviatura }}</span>
+                            <span>Mínimo: {{ \App\Support\Cantidad::fmt($materiaPrima->stock_minimo) }} {{ $materiaPrima->unidad->abreviatura }}</span>
                         </div>
                     </div>
                     <span class="preview-diff-pill neutro" id="prevDiffPill"><i class="fas fa-equals"></i> Sin cambios</span>
@@ -222,12 +222,12 @@ function actualizarTodo() {
     let claseDiff = 'neutro', icono = 'fa-equals', textoDiff = 'Sin diferencia respecto al sistema', textoPill = 'Sin cambios';
     if (diferencia > 0) {
         claseDiff = 'sobrante'; icono = 'fa-arrow-up';
-        textoDiff = 'Sobrante de +' + diferencia.toFixed(3) + ' ' + unidad;
-        textoPill = '+' + diferencia.toFixed(3) + ' ' + unidad;
+        textoDiff = 'Sobrante de +' + fmtCant(diferencia) + ' ' + unidad;
+        textoPill = '+' + fmtCant(diferencia) + ' ' + unidad;
     } else if (diferencia < 0) {
         claseDiff = 'faltante'; icono = 'fa-arrow-down';
-        textoDiff = 'Faltante de ' + diferencia.toFixed(3) + ' ' + unidad;
-        textoPill = diferencia.toFixed(3) + ' ' + unidad;
+        textoDiff = 'Faltante de ' + fmtCant(diferencia) + ' ' + unidad;
+        textoPill = fmtCant(diferencia) + ' ' + unidad;
     }
     banner.classList.add(claseDiff);
     banner.querySelector('i').className = 'fas ' + icono;
@@ -235,7 +235,7 @@ function actualizarTodo() {
     subBajo.innerHTML = bajo ? '<i class="fas fa-exclamation-triangle mr-1"></i>Quedará en stock bajo' : '';
 
     // Vista previa de la tarjeta
-    document.getElementById('prevStock').textContent = stockReal.toFixed(2);
+    document.getElementById('prevStock').textContent = fmtCant(stockReal);
     const porcentaje = Math.min(100, Math.round((stockReal / referenciaGauge) * 100));
     const fill = document.getElementById('prevGaugeFill');
     fill.style.width = porcentaje + '%';

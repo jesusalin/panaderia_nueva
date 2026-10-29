@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Hash;
 class UsuariosController extends Controller
 {
     public function index() {
-        $query = Usuario::with(['rol', 'permisos'])
+        $query = Usuario::with(['rol', 'permisos', 'ultimaAccion'])
             ->withCount(['ventas', 'compras', 'producciones', 'movimientos', 'kardex'])
             ->withMax('ventas', 'fecha_venta');
 
@@ -17,6 +17,7 @@ class UsuariosController extends Controller
             $buscar = request('buscar');
             $query->where(function ($q) use ($buscar) {
                 $q->where('nombre', 'like', "%{$buscar}%")
+                  ->orWhere('apodo', 'like', "%{$buscar}%")
                   ->orWhere('usuario', 'like', "%{$buscar}%")
                   ->orWhere('email', 'like', "%{$buscar}%");
             });
@@ -28,6 +29,20 @@ class UsuariosController extends Controller
             $query->where('estado', request('estado'));
         }
 
+        // Filtro por actividad (según el último acceso)
+        $actividad = request('actividad');
+        // "hace menos de N días" contando días de calendario (igual que Usuario::estadoActividad)
+        $hace = fn (int $dias) => now()->startOfDay()->subDays($dias - 1);
+        match ($actividad) {
+            'en_linea'      => $query->where('ultimo_acceso', '>=', now()->subMinutes(Usuario::MINUTOS_CONECTADO)),
+            'activo'        => $query->where('ultimo_acceso', '>=', $hace(Usuario::DIAS_POCO_ACTIVO)),
+            'poco_activo'   => $query->where('ultimo_acceso', '<', $hace(Usuario::DIAS_POCO_ACTIVO))
+                                     ->where('ultimo_acceso', '>=', $hace(Usuario::DIAS_SIN_ACTIVIDAD)),
+            'sin_actividad' => $query->where('ultimo_acceso', '<', $hace(Usuario::DIAS_SIN_ACTIVIDAD)),
+            'nunca'         => $query->whereNull('ultimo_acceso'),
+            default         => null,
+        };
+
         $usuarios = $query->orderBy('nombre')->paginate(15)->withQueryString();
         $roles = Rol::orderBy('nombre')->get();
 
@@ -37,6 +52,10 @@ class UsuariosController extends Controller
             'inactivos'  => Usuario::where('estado', 'inactivo')->count(),
             'admins'     => Usuario::whereHas('rol', fn ($q) => $q->where('nombre', 'admin'))->count(),
             'conectados' => Usuario::where('ultimo_acceso', '>=', now()->subMinutes(Usuario::MINUTOS_CONECTADO))->count(),
+            // Cuentas ACTIVAS que no se usan hace 30+ días (o nunca): candidatas a desactivar
+            'sin_actividad' => Usuario::where('estado', 'activo')
+                ->where(fn ($q) => $q->whereNull('ultimo_acceso')->orWhere('ultimo_acceso', '<', now()->startOfDay()->subDays(Usuario::DIAS_SIN_ACTIVIDAD - 1)))
+                ->count(),
         ];
 
         return view('usuarios.index', compact('usuarios', 'roles', 'stats'));
@@ -104,12 +123,30 @@ class UsuariosController extends Controller
         ]);
 
         $data = $request->only(['nombre','apodo','usuario','email','id_rol','estado']);
-        if ($request->filled('password')) $data['password'] = Hash::make($request->password);
+        if ($request->filled('password')) {
+            $data['password'] = Hash::make($request->password);
+            $data['debe_cambiar_password'] = $request->boolean('debe_cambiar_password');
+        }
         $usuario->update($data);
 
         $this->sincronizarPermisos($usuario, $request->input('permisos', []));
 
         return redirect()->route('usuarios.index')->with('success','Usuario actualizado.');
+    }
+
+    /**
+     * Cuando alguien olvida su contraseña: el admin le genera una TEMPORAL (se muestra
+     * una sola vez) y al entrar el sistema le obliga a elegir la suya. Las contraseñas
+     * se guardan cifradas sin vuelta atrás (hash), así nadie —ni el admin— puede leerlas.
+     */
+    public function claveTemporal(Usuario $usuario) {
+        if (auth()->id() === $usuario->id) {
+            return back()->with('error', 'Tu propia contraseña la cambias en "Mi perfil".');
+        }
+        $clave = Usuario::generarClaveTemporal();
+        $usuario->update(['password' => $clave, 'debe_cambiar_password' => true]);
+
+        return back()->with('clave_temporal', ['nombre' => $usuario->nombre, 'usuario' => $usuario->usuario, 'clave' => $clave]);
     }
 
     public function toggleEstado(Usuario $usuario) {
@@ -154,6 +191,7 @@ class UsuariosController extends Controller
         }
 
         $this->sincronizarPermisos($usuario, []); // limpia sus permisos antes de borrar
+        if ($usuario->foto_perfil) \Illuminate\Support\Facades\Storage::disk('public')->delete($usuario->foto_perfil);
         $usuario->delete();
 
         return redirect()->route('usuarios.index')->with('success', "Usuario \"{$usuario->nombre}\" eliminado.");

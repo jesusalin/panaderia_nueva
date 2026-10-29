@@ -49,6 +49,23 @@
 
     .empty-state { text-align: center; padding: 4rem 1rem; color: #adb5bd; }
     .empty-state i { font-size: 2.6rem; margin-bottom: .8rem; opacity: .5; }
+
+    .cat-card { border-top: 4px solid var(--cat-color, #b5451b); }
+    .cat-icon { background: linear-gradient(135deg, #1a1a2e, var(--cat-color, #b5451b)); }
+    .cat-name a { color: inherit; }
+    .cat-name a:hover { color: var(--cat-color, #b5451b); text-decoration: none; }
+    .cat-chips { display: flex; flex-wrap: wrap; gap: .35rem; margin-top: .2rem; }
+    .cat-chip { font-size: .74rem; font-weight: 700; padding: .2rem .55rem; border-radius: 20px; background: #f4f2ef; color: #6c757d; }
+    .cat-chip.bajo { background: rgba(231,76,60,.12); color: #c0392b; }
+    .cat-chip.ok   { background: rgba(46,204,113,.13); color: #1e8e5a; }
+    .cat-chip.vacia { background: #f8f9fa; color: #adb5bd; font-style: italic; }
+    a.cat-chip:hover { text-decoration: none; filter: brightness(.95); }
+    .cat-stats { display: flex; gap: 1.4rem; flex-wrap: wrap; font-size: .85rem; color: #8a8a9d; margin-bottom: 1rem; }
+    .cat-stats b { color: #1a1a2e; font-size: 1.05rem; }
+    body.dark-mode .cat-card { background: #1f1f33; }
+    body.dark-mode .cat-name, body.dark-mode .cat-stats b, body.dark-mode .cat-count strong { color: #f0f0f7; }
+    body.dark-mode .cat-meta { border-top-color: #33334d; }
+    body.dark-mode .cat-chip { background: #29293f; color: #b0b0cc; }
 </style>
 @endpush
 
@@ -64,25 +81,52 @@
     </a>
 </div>
 
+<div class="cat-stats">
+    <span><b>{{ $stats['total'] }}</b> categorías</span>
+    <span><b>{{ $stats['activas'] }}</b> activas</span>
+    @if($stats['vacias'])<span><b>{{ $stats['vacias'] }}</b> sin productos</span>@endif
+</div>
+
+<form method="GET" action="{{ route('categorias.index') }}" class="filter-bar flex-wrap" style="gap:.6rem">
+    <div class="search-box flex-grow-1" style="min-width:220px;">
+        <i class="fas fa-search"></i>
+        <input type="text" name="buscar" class="form-control" placeholder="Buscar categoría…" value="{{ request('buscar') }}">
+    </div>
+    <label class="fb-label mb-0">Estado</label>
+    <select name="estado" class="form-control" style="width:auto;" onchange="this.form.submit()">
+        <option value="">Todas</option>
+        <option value="activo"   {{ request('estado') === 'activo'   ? 'selected' : '' }}>Activas</option>
+        <option value="inactivo" {{ request('estado') === 'inactivo' ? 'selected' : '' }}>Inactivas</option>
+    </select>
+    <button type="submit" class="btn btn-light"><i class="fas fa-filter mr-1"></i>Filtrar</button>
+    @if(request('buscar') || request('estado'))
+        <a href="{{ route('categorias.index') }}" class="btn btn-light text-muted"><i class="fas fa-times mr-1"></i>Limpiar</a>
+    @endif
+</form>
+
 @if($categorias->count() > 0)
 <div class="cat-grid">
     @foreach($categorias as $c)
-        @php
-            $nombreLower = mb_strtolower($c->nombre);
-            $icono = 'fa-tag';
-            if (str_contains($nombreLower, 'pan'))                          $icono = 'fa-bread-slice';
-            elseif (str_contains($nombreLower, 'pastel') || str_contains($nombreLower, 'torta')) $icono = 'fa-birthday-cake';
-            elseif (str_contains($nombreLower, 'galleta'))                  $icono = 'fa-cookie';
-            elseif (str_contains($nombreLower, 'empanada'))                 $icono = 'fa-cheese';
-            elseif (str_contains($nombreLower, 'bebida') || str_contains($nombreLower, 'café')) $icono = 'fa-mug-hot';
-        @endphp
-        <div class="cat-card {{ $c->estado !== 'activo' ? 'inactiva' : '' }}">
+        <div class="cat-card {{ $c->estado !== 'activo' ? 'inactiva' : '' }}" style="--cat-color: {{ $c->color_final }}">
             <div class="cat-head">
-                <div class="cat-icon"><i class="fas {{ $icono }}"></i></div>
+                <div class="cat-icon"><i class="fas {{ $c->icono_final }}"></i></div>
                 <div>
-                    <p class="cat-name">{{ $c->nombre }}</p>
+                    <p class="cat-name"><a href="{{ route('categorias.show', $c) }}">{{ $c->nombre }}</a></p>
                     <p class="cat-desc">{{ $c->descripcion ?? 'Sin descripción' }}</p>
                 </div>
+            </div>
+
+            <div class="cat-chips">
+                @if($c->productos_count === 0)
+                    <span class="cat-chip vacia">Sin productos</span>
+                @else
+                    <span class="cat-chip">{{ $c->productos_activos_count }} activo{{ $c->productos_activos_count === 1 ? '' : 's' }}@if($c->productos_count > $c->productos_activos_count) · {{ $c->productos_count - $c->productos_activos_count }} inactivo(s)@endif</span>
+                    @if($c->productos_stock_bajo_count > 0)
+                        <a href="{{ route('categorias.show', $c) }}#productos" class="cat-chip bajo"><i class="fas fa-exclamation-triangle mr-1"></i>{{ $c->productos_stock_bajo_count }} con stock bajo</a>
+                    @elseif($c->productos_activos_count > 0)
+                        <span class="cat-chip ok"><i class="fas fa-check mr-1"></i>Stock OK</span>
+                    @endif
+                @endif
             </div>
 
             <div class="cat-meta">
@@ -98,6 +142,7 @@
             </div>
 
             <div class="cat-meta" style="border-top:none;padding-top:.6rem;">
+                <a href="{{ route('categorias.show', $c) }}" class="btn btn-sm btn-light"><i class="fas fa-eye mr-1"></i>Ver productos</a>
                 <div class="cat-actions ml-auto">
                     <a href="{{ route('categorias.edit', $c) }}" class="btn btn-sm btn-warning" title="Editar">
                         <i class="fas fa-edit"></i>
@@ -105,7 +150,7 @@
                     @if($c->productos_count > 0)
                         <button type="button" class="btn btn-sm btn-secondary is-locked js-blocked"
                             data-blocked-title="No se puede eliminar esta categoría"
-                            data-blocked-message="&quot;{{ $c->nombre }}&quot; tiene {{ $c->productos_count }} producto(s) asociado(s). Desactívala si ya no la usas, o mueve sus productos a otra categoría antes de eliminarla.">
+                            data-blocked-message="&quot;{{ $c->nombre }}&quot; tiene {{ $c->productos_count }} producto(s). Cámbiales la categoría desde Editar de cada producto, o desactívala si ya no la usas.">
                             <i class="fas fa-trash"></i>
                         </button>
                     @else
@@ -127,8 +172,12 @@
 @else
 <div class="empty-state">
     <i class="fas fa-tags"></i>
-    <p class="mb-3">Todavía no tienes categorías registradas</p>
-    <a href="{{ route('categorias.create') }}" class="btn btn-primary"><i class="fas fa-plus mr-1"></i>Crear la primera</a>
+    @if(request('buscar') || request('estado'))
+        <p class="mb-3">Ninguna categoría coincide con ese filtro</p>
+    @else
+        <p class="mb-3">Todavía no tienes categorías registradas</p>
+        <a href="{{ route('categorias.create') }}" class="btn btn-primary"><i class="fas fa-plus mr-1"></i>Crear la primera</a>
+    @endif
 </div>
 @endif
 

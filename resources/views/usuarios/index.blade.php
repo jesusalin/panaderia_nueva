@@ -4,7 +4,7 @@
 
 @push('styles')
 <style>
-    .usr-stats { display: grid; grid-template-columns: repeat(5, 1fr); gap: 1rem; margin-bottom: 1.25rem; }
+    .usr-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem; margin-bottom: 1.25rem; }
     .usr-stat {
         background: #fff; border-radius: 12px; padding: 1rem 1.1rem; box-shadow: 0 2px 12px rgba(0,0,0,.05);
         border-left: 4px solid #dee2e6; display: flex; align-items: center; gap: .8rem;
@@ -27,7 +27,21 @@
     .usr-stat.admins .us-icon    { background: rgba(231,76,60,.12); color: #c0392b; }
     .usr-stat.conectados { border-left-color: #2ecc71; }
     .usr-stat.conectados .us-icon { background: rgba(46,204,113,.14); color: #1e8e5a; }
-    @media (max-width: 1100px) { .usr-stats { grid-template-columns: repeat(3, 1fr); } }
+    .usr-stat.sin-uso    { border-left-color: #f39c12; color: inherit; text-decoration: none; }
+    .usr-stat.sin-uso .us-icon { background: rgba(243,156,18,.16); color: #a5680d; }
+    a.usr-stat:hover { transform: translateY(-1px); box-shadow: 0 4px 16px rgba(0,0,0,.08); }
+    .usr-conexion-dot.poco_activo   { background: #f1c40f; }
+    .usr-conexion-dot.sin_actividad { background: #e67e22; }
+    .usr-conexion-texto.activo        { color: #1e8e5a; }
+    .usr-conexion-texto.poco_activo   { color: #a5680d; }
+    .usr-conexion-texto.sin_actividad, .usr-conexion-texto.nunca { color: #c0392b; }
+    .usr-actividad { margin-top: .6rem; padding: .55rem .7rem; background: #f8f7f5; border-radius: 8px; font-size: .78rem; color: #6c757d; }
+    .usr-actividad div + div { margin-top: .2rem; }
+    .usr-actividad b { color: #343a40; font-weight: 700; }
+    .usr-actividad .ua-accion { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    body.dark-mode .usr-actividad { background: #29293f; }
+    body.dark-mode .usr-actividad b { color: #e0e0ea; }
+    .usr-sugerencia { margin-top: .55rem; padding: .5rem .7rem; border-radius: 8px; font-size: .78rem; background: rgba(243,156,18,.12); color: #8a5a0b; }
     @media (max-width: 700px)  { .usr-stats { grid-template-columns: repeat(2, 1fr); } }
 
     .usr-card-body { padding: 1.1rem 1.1rem .2rem; flex: 1; }
@@ -43,6 +57,8 @@
     .usr-conexion-dot.online { background: #2ecc71; box-shadow: 0 0 0 2px rgba(46,204,113,.25); }
     body.dark-mode .usr-conexion-dot { border-color: #1f1f33; }
     .usr-name-wrap { min-width: 0; }
+    .usr-avatar img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; }
+    .usr-apodo { font-size: .8rem; font-weight: 700; color: #b5451b; margin-top: -.1rem; }
     .usr-name { font-weight: 800; color: #1a1a2e; font-size: .98rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     body.dark-mode .usr-name { color: #f0f0f7; }
     .usr-conexion-texto { font-size: .74rem; font-weight: 700; }
@@ -71,6 +87,9 @@
         <p>Cuentas de acceso y módulos asignados a cada persona</p>
     </div>
     <div class="toolbar-actions">
+        <a href="{{ route('actividad.index') }}" class="btn btn-outline-secondary">
+            <i class="fas fa-history mr-1"></i>Historial de actividad
+        </a>
         <a href="{{ route('usuarios.create') }}" class="btn btn-primary">
             <i class="fas fa-plus mr-1"></i>Nuevo Usuario
         </a>
@@ -96,14 +115,19 @@
     </div>
     <div class="usr-stat admins">
         <div class="us-icon"><i class="fas fa-user-shield"></i></div>
-        <div><div class="us-value">{{ $stats['admins'] }}</div><div class="us-label">Administradores</div></div>
+        <div><div class="us-value">{{ $stats['admins'] }}</div><div class="us-label">Admins</div></div>
     </div>
+    <a href="{{ route('usuarios.index', ['actividad' => 'sin_actividad', 'estado' => 'activo']) }}" class="usr-stat sin-uso"
+       title="Cuentas activas que no se usan hace {{ \App\Models\Usuario::DIAS_SIN_ACTIVIDAD }} días o más (o que nunca ingresaron)">
+        <div class="us-icon"><i class="fas fa-user-clock"></i></div>
+        <div><div class="us-value">{{ $stats['sin_actividad'] }}</div><div class="us-label">Sin uso {{ \App\Models\Usuario::DIAS_SIN_ACTIVIDAD }}+ días</div></div>
+    </a>
 </div>
 
 <form method="GET" action="{{ route('usuarios.index') }}" class="filter-bar flex-wrap" style="gap:.6rem">
     <div class="search-box flex-grow-1" style="min-width:220px;">
         <i class="fas fa-search"></i>
-        <input type="text" name="buscar" class="form-control" placeholder="Buscar por nombre, usuario o email..." value="{{ request('buscar') }}">
+        <input type="text" name="buscar" class="form-control" placeholder="Buscar por nombre, apodo, usuario o correo..." value="{{ request('buscar') }}">
     </div>
     <label class="fb-label mb-0">Rol</label>
     <select name="rol" class="form-control" style="width:auto;" onchange="this.form.submit()">
@@ -118,8 +142,17 @@
         <option value="activo"   {{ request('estado') === 'activo'   ? 'selected' : '' }}>Activo</option>
         <option value="inactivo" {{ request('estado') === 'inactivo' ? 'selected' : '' }}>Inactivo</option>
     </select>
+    <label class="fb-label mb-0">Actividad</label>
+    <select name="actividad" class="form-control" style="width:auto;" onchange="this.form.submit()">
+        <option value="">Toda</option>
+        <option value="en_linea"      {{ request('actividad') === 'en_linea'      ? 'selected' : '' }}>En línea ahora</option>
+        <option value="activo"        {{ request('actividad') === 'activo'        ? 'selected' : '' }}>Activos (últimos {{ \App\Models\Usuario::DIAS_POCO_ACTIVO }} días)</option>
+        <option value="poco_activo"   {{ request('actividad') === 'poco_activo'   ? 'selected' : '' }}>Poco activos ({{ \App\Models\Usuario::DIAS_POCO_ACTIVO }}–{{ \App\Models\Usuario::DIAS_SIN_ACTIVIDAD - 1 }} días)</option>
+        <option value="sin_actividad" {{ request('actividad') === 'sin_actividad' ? 'selected' : '' }}>Sin actividad ({{ \App\Models\Usuario::DIAS_SIN_ACTIVIDAD }}+ días)</option>
+        <option value="nunca"         {{ request('actividad') === 'nunca'         ? 'selected' : '' }}>Nunca ingresaron</option>
+    </select>
     <button type="submit" class="btn btn-light"><i class="fas fa-filter mr-1"></i>Filtrar</button>
-    @if(request('buscar') || request('rol') || request('estado'))
+    @if(request('buscar') || request('rol') || request('estado') || request('actividad'))
         <a href="{{ route('usuarios.index') }}" class="btn btn-light text-muted"><i class="fas fa-times mr-1"></i>Limpiar</a>
     @endif
 </form>
@@ -127,33 +160,39 @@
 @if($usuarios->count() > 0)
 <div class="card-grid">
     @foreach($usuarios as $u)
-        @php $esAdmin = $u->rol->nombre === 'admin'; @endphp
+        @php
+            $esAdmin = $u->rol->nombre === 'admin';
+            $act = $u->estadoActividad();
+        @endphp
         <div class="item-card {{ $u->estado !== 'activo' ? 'is-inactive' : '' }}">
             <div class="item-card-body usr-card-body">
                 <div class="usr-avatar-row">
                     <div class="usr-avatar">
-                        {{ strtoupper(substr($u->nombre,0,1)) }}
-                        <span class="usr-conexion-dot {{ $u->estaConectado() ? 'online' : '' }}"
-                            title="{{ $u->estaConectado() ? 'En línea' : 'Desconectado' }}"></span>
+                        @if($u->foto_url)<img src="{{ $u->foto_url }}" alt="Foto de {{ $u->nombre }}">@else{{ $u->iniciales }}@endif
+                        <span class="usr-conexion-dot {{ $act['clave'] === 'en_linea' ? 'online' : $act['clave'] }}"
+                            title="{{ $act['texto'] }}"></span>
                     </div>
                     <div class="usr-name-wrap">
                         <div class="usr-name">{{ $u->nombre }}</div>
-                        @if($u->estaConectado())
+                        @if($u->apodo)<div class="usr-apodo">{{ $u->apodo }}</div>@endif
+                        @if($act['clave'] === 'en_linea')
                             <span class="usr-conexion-texto online"><i class="fas fa-circle mr-1" style="font-size:.55rem;"></i>En línea</span>
+                        @elseif($act['clave'] === 'activo')
+                            <span class="usr-conexion-texto activo">Activo · {{ $u->ultimo_acceso->diffForHumans() }}</span>
                         @else
-                            <span class="usr-conexion-texto offline">{{ $u->ultimo_acceso ? 'Últ. vez '.$u->ultimo_acceso->diffForHumans() : 'Nunca ha ingresado' }}</span>
+                            <span class="usr-conexion-texto {{ $act['clave'] }}">{{ $act['texto'] }}</span>
                         @endif
-                        @if($u->apodo)<br><span class="badge-soft badge-soft-secondary">{{ $u->apodo }}</span>@endif
                     </div>
                 </div>
 
-                <div class="item-card-cat"><code>{{ '@'.$u->usuario }}</code></div>
+                <div class="usr-card-row"><i class="fas fa-user"></i>Usuario: {{ $u->usuario }}</div>
 
                 <div class="usr-card-row"><i class="fas fa-envelope"></i>{{ $u->email }}</div>
 
                 <div class="usr-badges">
                     <span class="badge-soft {{ $esAdmin ? 'badge-soft-danger' : 'badge-soft-secondary' }}">{{ ucfirst($u->rol->nombre) }}</span>
                     <span class="badge-soft {{ $u->estado === 'activo' ? 'badge-soft-success' : 'badge-soft-secondary' }}">{{ ucfirst($u->estado) }}</span>
+                    @if($u->debe_cambiar_password)<span class="badge-soft badge-soft-warning" title="Todavía no eligió su propia contraseña"><i class="fas fa-key mr-1"></i>Clave temporal</span>@endif
                 </div>
 
                 <div class="mt-2">
@@ -171,6 +210,25 @@
                         </div>
                     @endif
                 </div>
+
+                <div class="usr-actividad">
+                    <div><i class="far fa-clock mr-1"></i>Último acceso:
+                        <b>{{ $u->ultimo_acceso ? $u->ultimo_acceso->format('d/m/Y H:i') : 'nunca' }}</b></div>
+                    @if($u->ultimaAccion)
+                        <div class="ua-accion" title="{{ $u->ultimaAccion->descripcion }}"><i class="fas fa-bolt mr-1"></i>Última acción:
+                            <b>{{ $u->ultimaAccion->descripcion }}</b> · {{ $u->ultimaAccion->created_at->diffForHumans() }}</div>
+                    @else
+                        <div><i class="fas fa-bolt mr-1"></i>Última acción: <span class="text-muted">sin registros todavía</span></div>
+                    @endif
+                </div>
+
+                @if($u->estado === 'activo' && in_array($act['clave'], ['sin_actividad', 'nunca']) && auth()->id() !== $u->id)
+                    <div class="usr-sugerencia">
+                        <i class="fas fa-lightbulb mr-1"></i>
+                        {{ $act['clave'] === 'nunca' ? 'Esta cuenta nunca se usó.' : 'No entra hace ' . $act['dias'] . ' días.' }}
+                        Si ya no trabaja aquí, desactívala con el interruptor.
+                    </div>
+                @endif
 
                 @if($u->ventas_count > 0)
                     <div class="usr-ventas-row">
@@ -200,6 +258,9 @@
                     @endif
                 </form>
                 <div class="btn-icon-group">
+                    <a href="{{ route('actividad.index', ['usuario' => $u->id]) }}" class="btn btn-icon btn-info" title="Ver historial de actividad">
+                        <i class="fas fa-history"></i>
+                    </a>
                     <a href="{{ route('usuarios.edit', $u) }}" class="btn btn-icon btn-warning" title="Editar">
                         <i class="fas fa-edit"></i>
                     </a>
@@ -249,7 +310,7 @@
 @else
 <div class="empty-state">
     <i class="fas fa-users"></i>
-    <p>{{ request('buscar') || request('rol') || request('estado') ? 'Ningún usuario coincide con ese filtro' : 'No hay usuarios registrados' }}</p>
+    <p>{{ request('buscar') || request('rol') || request('estado') || request('actividad') ? 'Ningún usuario coincide con ese filtro' : 'No hay usuarios registrados' }}</p>
     <a href="{{ route('usuarios.create') }}" class="btn btn-primary"><i class="fas fa-plus mr-1"></i>Crear el primero</a>
 </div>
 @endif
