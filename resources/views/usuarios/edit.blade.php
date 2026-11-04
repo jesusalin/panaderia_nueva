@@ -74,18 +74,14 @@
                     </div>
                 </div>
             </div>
-            <div class="custom-control custom-checkbox mb-2">
-                <input type="checkbox" class="custom-control-input" id="debeCambiar" name="debe_cambiar_password" value="1" {{ old('debe_cambiar_password') ? 'checked' : '' }}>
-                <label class="custom-control-label" for="debeCambiar" style="font-weight:600;">Pedirle que elija su propia contraseña al entrar</label>
-            </div>
             @if(auth()->id() !== $usuario->id)
             <div class="clave-olvido">
                 <i class="fas fa-question-circle"></i>
                 <div>
                     <strong>¿Olvidó su contraseña?</strong> Por seguridad las contraseñas se guardan cifradas y nadie puede verlas,
-                    ni el admin. Genera una temporal: se mostrará una sola vez para que se la des, y al entrar el sistema le pedirá cambiarla.
+                    ni el admin. Escribe una nueva arriba, o genera una: se mostrará una sola vez para que se la des.
                 </div>
-                <button type="submit" form="formClaveTemporal" class="btn btn-sm btn-outline-primary"><i class="fas fa-key mr-1"></i>Generar temporal</button>
+                <button type="submit" form="formClaveTemporal" class="btn btn-sm btn-outline-primary"><i class="fas fa-key mr-1"></i>Generar contraseña</button>
             </div>
             @endif
 
@@ -122,7 +118,7 @@
 </div></div>
 @if(auth()->id() !== $usuario->id)
 <form id="formClaveTemporal" action="{{ route('usuarios.clave-temporal', $usuario) }}" method="POST" class="d-none js-confirm"
-      data-confirm-title="¿Generar contraseña temporal?"
+      data-confirm-title="¿Generar una contraseña nueva?"
       data-confirm="La contraseña actual de &quot;{{ $usuario->nombre }}&quot; dejará de funcionar. Te mostraremos la nueva para que se la des.">
     @csrf @method('PUT')
 </form>

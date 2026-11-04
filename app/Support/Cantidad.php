@@ -19,4 +19,31 @@ class Cantidad
 
         return ($conSigno && $n > 0 ? '+' : '') . $txt;
     }
+
+    /**
+     * Cantidad con su unidad, pasando a la unidad más cómoda de leer:
+     *   0.5 L → "500 mL"   ·   0.25 kg → "250 g"   ·   1500 mL → "1.5 L"   ·   1.5 L → "1.5 L"
+     * Solo cambia cómo se MUESTRA; en la base de datos todo sigue en la unidad del insumo.
+     */
+    public static function conUnidad($valor, ?string $unidad, bool $conSigno = false): string
+    {
+        [$v, $u] = self::convertir((float) $valor, (string) $unidad);
+        return trim(self::fmt($v, 3, $conSigno) . ' ' . $u);
+    }
+
+    /** @return array{0: float, 1: string} */
+    public static function convertir(float $v, string $unidad): array
+    {
+        $abs = abs($v);
+        $u = strtolower(trim($unidad));
+        if ($abs > 0 && $abs < 1) {
+            if (in_array($u, ['l', 'lt', 'lts', 'litro', 'litros'], true)) return [$v * 1000, 'mL'];
+            if (in_array($u, ['kg', 'kilo', 'kilos', 'kilogramo', 'kilogramos'], true)) return [$v * 1000, 'g'];
+        }
+        if ($abs >= 1000) {
+            if (in_array($u, ['ml', 'mililitro', 'mililitros'], true)) return [$v / 1000, 'L'];
+            if (in_array($u, ['g', 'gr', 'gramo', 'gramos'], true)) return [$v / 1000, 'kg'];
+        }
+        return [$v, $unidad];
+    }
 }

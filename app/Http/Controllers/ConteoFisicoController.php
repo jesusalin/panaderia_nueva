@@ -14,46 +14,58 @@ class ConteoFisicoController extends Controller
      * insumos activos con su stock actual (según el sistema) y un
      * campo para anotar lo que se contó a mano.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $materias = MateriaPrima::with('unidad')
-            ->where('estado', 'activo')
+        $hayControl = MateriaPrima::where('estado', 'activo')->where('es_control', true)->exists();
+        $modo = $request->input('modo', $hayControl ? 'control' : 'todos');
+        if ($modo === 'control' && !$hayControl) $modo = 'todos';
+
+        $materias = MateriaPrima::with('unidad')->where('estado', 'activo')
+            ->when($modo === 'control', fn ($q) => $q->where('es_control', true))
             ->orderBy('nombre')->get();
 
-        return view('conteo-fisico.index', compact('materias'));
+        // PER del último conteo, para comparar
+        $ultimo = ConteoFisico::select('lote')->selectRaw('MIN(created_at) as fecha, COUNT(*) as verificados, SUM(CASE WHEN diferencia <> 0 THEN 1 ELSE 0 END) as con_diferencia')
+            ->groupBy('lote')->orderByDesc('fecha')->first();
+        if ($ultimo) $ultimo->per = $ultimo->verificados ? round($ultimo->con_diferencia / $ultimo->verificados * 100, 1) : 0;
+
+        return view('conteo-fisico.index', compact('materias', 'modo', 'hayControl', 'ultimo'));
     }
 
     /**
-     * Guarda el conteo. Solo procesa los insumos a los que se les puso
-     * un valor (los que se dejaron vacíos se asume que no se contaron
-     * en esta jornada y se ignoran). Si hay diferencia entre lo contado
-     * y el stock del sistema, ajusta el stock automáticamente y deja
-     * registrado el movimiento, igual que un ajuste manual.
+     * Guarda el conteo. Solo procesa los insumos a los que se les puso un valor.
+     * Si lo contado no coincide con el sistema, se corrige el stock y queda el
+     * movimiento de ajuste en el kardex. Luego muestra el resultado con su PER.
      */
     public function store(Request $request)
     {
         $request->validate([
             'conteo'                 => 'required|array|min:1',
             'conteo.*.stock_fisico'  => 'nullable|numeric|min:0',
-            'observacion_general'    => 'nullable|string|max:255',
+            'conteo.*.unidad'        => 'nullable|in:base,sub',
+            'observacion_general'    => 'nullable|string|max:200',
+            'modo'                   => 'nullable|in:control,todos',
         ]);
 
-        $items = collect($request->conteo)->filter(fn($item) => $item['stock_fisico'] !== null && $item['stock_fisico'] !== '');
+        $items = collect($request->conteo)->filter(fn($item) => isset($item['stock_fisico']) && $item['stock_fisico'] !== null && $item['stock_fisico'] !== '');
 
         if ($items->isEmpty()) {
             return back()->with('error', 'No ingresaste ningún valor de conteo físico.');
         }
 
         $lote = now()->format('YmdHis');
+        $tipoConteo = $request->modo === 'control' ? 'Conteo de insumos de control' : 'Conteo físico';
+        $observacion = trim($tipoConteo . ($request->observacion_general ? ' — ' . $request->observacion_general : ''));
         $ajustados = 0;
 
         DB::beginTransaction();
         try {
             foreach ($items as $idMateria => $item) {
-                $materia = MateriaPrima::findOrFail($idMateria);
-                $stockSistema = $materia->stock_actual;
-                $stockFisico  = (float) $item['stock_fisico'];
-                $diferencia   = $stockFisico - $stockSistema;
+                $materia = MateriaPrima::with('unidad')->lockForUpdate()->findOrFail($idMateria);
+                $factor = (($item['unidad'] ?? 'base') === 'sub' && ProduccionController::subunidad($materia->unidad->abreviatura ?? '')) ? 1000 : 1;
+                $stockSistema = (float) $materia->stock_actual;
+                $stockFisico  = round((float) $item['stock_fisico'] / $factor, 3);
+                $diferencia   = round($stockFisico - $stockSistema, 3);
 
                 ConteoFisico::create([
                     'lote'          => $lote,
@@ -62,7 +74,7 @@ class ConteoFisicoController extends Controller
                     'stock_sistema' => $stockSistema,
                     'stock_fisico'  => $stockFisico,
                     'diferencia'    => $diferencia,
-                    'observacion'   => $request->observacion_general,
+                    'observacion'   => mb_substr($observacion, 0, 255),
                 ]);
 
                 if ($diferencia != 0) {
@@ -77,7 +89,8 @@ class ConteoFisicoController extends Controller
                         'cantidad'      => abs($diferencia),
                         'stock_antes'   => $stockSistema,
                         'stock_despues' => $stockFisico,
-                        'observacion'   => "Conteo físico #{$lote} (" . ($diferencia > 0 ? '+' : '') . \App\Support\Cantidad::fmt($diferencia) . ')',
+                        'observacion'   => "Conteo físico #{$lote} (" . \App\Support\Cantidad::conUnidad($diferencia, $materia->unidad->abreviatura ?? '', true) . ')',
+                        'created_at'    => now(),
                     ]);
                     $ajustados++;
                 }
@@ -85,13 +98,15 @@ class ConteoFisicoController extends Controller
             DB::commit();
         } catch (\Throwable $e) {
             DB::rollBack();
-            return back()->with('error', 'Ocurrió un error al guardar el conteo: ' . $e->getMessage());
+            return back()->withInput()->with('error', 'Ocurrió un error al guardar el conteo: ' . $e->getMessage());
         }
 
-        $mensaje = "Conteo físico registrado: {$items->count()} insumo(s) contado(s)";
-        $mensaje .= $ajustados > 0 ? ", {$ajustados} con ajuste de stock." : ', sin diferencias.';
+        $per = round($ajustados / $items->count() * 100, 1);
+        $mensaje = "Conteo registrado: {$items->count()} insumo(s) contado(s), "
+            . ($ajustados ? "{$ajustados} con diferencia (stock corregido)." : 'todos coinciden con el sistema.')
+            . " PER de este conteo: {$per} %.";
 
-        return redirect()->route('conteo-fisico.historial')->with('success', $mensaje);
+        return redirect()->route('conteo-fisico.detalle', $lote)->with('success', $mensaje);
     }
 
     /**
@@ -115,13 +130,22 @@ class ConteoFisicoController extends Controller
 
         $lotes = $query->orderByDesc('fecha')->paginate(10)->withQueryString();
 
-        // Exactitud promedio y usuario responsable de cada lote
+        // PER (fórmula de la tesis), exactitud promedio, valor de las diferencias y responsable de cada lote
         $lotes->getCollection()->transform(function ($grupo) {
-            $items = ConteoFisico::with('usuario')->where('lote', $grupo->lote)->get();
+            $items = ConteoFisico::with(['usuario', 'materia'])->where('lote', $grupo->lote)->get();
+            $grupo->per = $grupo->total_items ? round($grupo->total_ajustados / $grupo->total_items * 100, 1) : 0;
             $grupo->exactitud_promedio = round($items->avg('exactitud'), 1);
+            $grupo->valor_diferencias = round($items->sum(fn ($i) => $i->diferencia * ($i->materia->costo_unitario ?? 0)), 2);
+            $grupo->tipo = str_contains((string) $items->first()->observacion, 'control') ? 'Control (PER)' : 'Completo';
             $grupo->usuario = $items->first()->usuario;
             return $grupo;
         });
+
+        // Tendencia del PER (últimos 10 conteos, del más antiguo al más reciente)
+        $tendencia = ConteoFisico::select('lote')->selectRaw('MIN(created_at) as fecha, COUNT(*) as verificados, SUM(CASE WHEN diferencia <> 0 THEN 1 ELSE 0 END) as con_diferencia')
+            ->groupBy('lote')->orderByDesc('fecha')->take(10)->get()
+            ->map(fn ($c) => ['fecha' => \Carbon\Carbon::parse($c->fecha), 'per' => $c->verificados ? round($c->con_diferencia / $c->verificados * 100, 1) : 0])
+            ->reverse()->values();
 
         // Conteos para las pestañas (siempre sobre el total, sin filtrar)
         $todosLosLotes = ConteoFisico::select('lote')
@@ -138,7 +162,7 @@ class ConteoFisicoController extends Controller
             return view('conteo-fisico._lista-historial', compact('lotes'));
         }
 
-        return view('conteo-fisico.historial', compact('lotes', 'conteos'));
+        return view('conteo-fisico.historial', compact('lotes', 'conteos', 'tendencia'));
     }
 
     /**
@@ -151,6 +175,17 @@ class ConteoFisicoController extends Controller
 
         if ($items->isEmpty()) abort(404);
 
-        return view('conteo-fisico.detalle', compact('items', 'lote'));
+        $resumen = [
+            'verificados'    => $items->count(),
+            'con_diferencia' => $items->where('diferencia', '!=', 0)->count(),
+            'faltante'       => round($items->where('diferencia', '<', 0)->sum(fn ($i) => abs($i->diferencia) * ($i->materia->costo_unitario ?? 0)), 2),
+            'sobrante'       => round($items->where('diferencia', '>', 0)->sum(fn ($i) => $i->diferencia * ($i->materia->costo_unitario ?? 0)), 2),
+        ];
+        $resumen['per'] = $resumen['verificados'] ? round($resumen['con_diferencia'] / $resumen['verificados'] * 100, 1) : 0;
+
+        // Ordena: primero los que no coincidieron (de mayor a menor valor de la diferencia)
+        $items = $items->sortByDesc(fn ($i) => [$i->diferencia != 0, abs($i->diferencia) * ($i->materia->costo_unitario ?? 0)])->values();
+
+        return view('conteo-fisico.detalle', compact('items', 'lote', 'resumen'));
     }
 }

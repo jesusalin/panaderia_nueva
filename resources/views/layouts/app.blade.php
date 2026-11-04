@@ -545,6 +545,47 @@
             box-shadow: 0 2px 12px rgba(0,0,0,.05); display: flex; flex-wrap: wrap; gap: .6rem; align-items: center;
         }
         .filter-bar .form-control, .filter-bar select.form-control { border-radius: 8px; }
+        /* Listas desplegables: flecha propia con espacio reservado, así el texto elegido
+           ("Galletas y dulces") nunca queda tapado por la flecha en ningún navegador */
+        select.form-control:not([multiple]):not([size]) {
+            -webkit-appearance: none; -moz-appearance: none; appearance: none;
+            padding-right: 2.4rem; text-overflow: ellipsis; white-space: nowrap;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8'%3E%3Cpath fill='none' stroke='%238a8a9d' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round' d='M1 1.5l5 5 5-5'/%3E%3C/svg%3E");
+            background-repeat: no-repeat; background-position: right .8rem center; background-size: 11px 8px;
+        }
+        select.form-control-sm:not([multiple]):not([size]) { padding-right: 1.8rem; background-position: right .6rem center; }
+        select.form-control::-ms-expand { display: none; }
+        body.dark-mode select.form-control:not([multiple]):not([size]) {
+            background-color: #24243b;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8'%3E%3Cpath fill='none' stroke='%23a9a9c6' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round' d='M1 1.5l5 5 5-5'/%3E%3C/svg%3E");
+            background-repeat: no-repeat; background-position: right .8rem center; background-size: 11px 8px;
+        }
+        .filter-bar select.form-control { flex-shrink: 0; max-width: 100%; }
+        /* ── Sugerencias de los buscadores (data-sugerencias) ── */
+        .sug-wrap { position: relative; display: inline-block; }
+        .sug-lista { position: absolute; top: calc(100% + 6px); left: 0; z-index: 1060; min-width: 100%; width: max(100%, 320px); max-width: 92vw;
+            background: #fff; color: #1a1a2e; border: 1px solid #ece6e0; border-radius: 12px; box-shadow: 0 12px 32px rgba(26,26,46,.16); overflow: hidden; display: none; }
+        .sug-lista.abierta { display: block; }
+        .search-box .sug-lista i { position: static; transform: none; left: auto; top: auto; color: inherit; font-size: inherit; }
+        .sug-cab { display: flex; justify-content: space-between; align-items: center; padding: .45rem .85rem; font-size: .7rem; font-weight: 800;
+            letter-spacing: .04em; text-transform: uppercase; color: #8a8a9d; background: #faf8f6; border-bottom: 1px solid #f1ece7; }
+        .sug-items { max-height: 300px; overflow-y: auto; padding: .25rem; }
+        .sug-item { display: flex; align-items: center; gap: .65rem; padding: .45rem .6rem; border-radius: 8px; cursor: pointer; }
+        .sug-item .si-ic { width: 28px; height: 28px; border-radius: 8px; background: #f6f1ec; color: #b5451b; display: flex; align-items: center; justify-content: center; font-size: .75rem; flex-shrink: 0; }
+        .sug-item .si-t { font-size: .88rem; font-weight: 600; color: #1a1a2e; line-height: 1.2; }
+        .sug-item .si-s { font-size: .72rem; color: #8a8a9d; }
+        .sug-item mark { background: rgba(243,156,18,.28); color: inherit; padding: 0 1px; border-radius: 3px; }
+        .sug-item:hover, .sug-item.activo { background: #fbf3ee; }
+        .sug-item.activo .si-ic { background: #b5451b; color: #fff; }
+        .sug-vacio { padding: .9rem; text-align: center; font-size: .82rem; color: #8a8a9d; }
+        .sug-pie { padding: .4rem .85rem; font-size: .7rem; color: #adb5bd; border-top: 1px solid #f1ece7; background: #faf8f6; }
+        body.dark-mode .sug-lista { background: #1f1f33; color: #e4e4ef; border-color: #33334d; box-shadow: 0 12px 32px rgba(0,0,0,.45); }
+        body.dark-mode .sug-cab, body.dark-mode .sug-pie { background: #24243b; border-color: #33334d; }
+        body.dark-mode .sug-item .si-t { color: #f0f0f7; }
+        body.dark-mode .sug-item .si-ic { background: #2c2c44; color: #ff9d6e; }
+        body.dark-mode .sug-item:hover, body.dark-mode .sug-item.activo { background: #2a2a42; }
+        /* Cada etiqueta queda pegada a su filtro (no se separa al saltar de línea) */
+        .filter-bar .fb-par { display: inline-flex; align-items: center; gap: .4rem; flex-shrink: 0; max-width: 100%; }
         .filter-bar label.fb-label { font-size: .76rem; font-weight: 700; color: #8a8a9d; text-transform: uppercase; letter-spacing: .03em; margin: 0 .2rem 0 0; }
         body.dark-mode .filter-bar { background: #1f1f33; box-shadow: 0 2px 12px rgba(0,0,0,.3); }
         body.dark-mode .filter-bar .fb-label { color: #9a9ac0; }
@@ -646,6 +687,18 @@
         window.fmtCant = function (n, dec) {
             var x = Number(n); if (!isFinite(x)) return n;
             return x.toLocaleString('en-US', { maximumFractionDigits: dec === undefined ? 3 : dec });
+        };
+        // Con unidad y pasando a la más cómoda: 0.5 L → 500 mL, 0.25 kg → 250 g, 1500 mL → 1.5 L
+        window.fmtCantU = function (n, u, conSigno) {
+            var x = Number(n), un = (u || '').trim(), k = un.toLowerCase(), a = Math.abs(x);
+            if (isFinite(x) && a > 0 && a < 1) {
+                if (['l','lt','lts','litro','litros'].indexOf(k) >= 0) { x *= 1000; un = 'mL'; }
+                else if (['kg','kilo','kilos','kilogramo','kilogramos'].indexOf(k) >= 0) { x *= 1000; un = 'g'; }
+            } else if (isFinite(x) && a >= 1000) {
+                if (['ml','mililitro','mililitros'].indexOf(k) >= 0) { x /= 1000; un = 'L'; }
+                else if (['g','gr','gramo','gramos'].indexOf(k) >= 0) { x /= 1000; un = 'kg'; }
+            }
+            return ((conSigno && x > 0) ? '+' : '') + fmtCant(x) + (un ? ' ' + un : '');
         };
     </script>
 </head>
@@ -754,7 +807,7 @@
                         <ul class="nav-section-body" data-menu-lista="sec-inventario" style="{{ $abierta ? '' : 'display:none;' }}">
                             @if(auth()->user()->hasPermiso('inventario.materia_prima'))
                             <li class="nav-item" data-menu-id="materia-prima">
-                                <a href="{{ route('materia-prima.index') }}" class="nav-link {{ request()->routeIs('materia-prima.*') ? 'active' : '' }}">
+                                <a href="{{ route('materia-prima.index') }}" class="nav-link {{ request()->routeIs('materia-prima.*') || request()->routeIs('conteo-fisico.*') ? 'active' : '' }}">
                                     <i class="nav-icon fas fa-boxes"></i><p>
                                         Materia Prima
                                         @if($stockBajoMateriaPrimaCount > 0)
@@ -771,7 +824,8 @@
                                 </a>
                             </li>
                             @endif
-                            @if(auth()->user()->hasPermiso('inventario.conteo'))
+                            {{-- El conteo físico se abre con el botón de Materia Prima; solo sale en el menú si no se tiene esa pantalla --}}
+                            @if(auth()->user()->hasPermiso('inventario.conteo') && !auth()->user()->hasPermiso('inventario.materia_prima'))
                             <li class="nav-item" data-menu-id="conteo-fisico">
                                 <a href="{{ route('conteo-fisico.index') }}" class="nav-link {{ request()->routeIs('conteo-fisico.*') ? 'active' : '' }}">
                                     <i class="nav-icon fas fa-clipboard-check"></i><p>Conteo Físico</p>
@@ -1018,10 +1072,10 @@
                 @endif
                 @if(session('clave_temporal'))
                     <div class="alert alert-info clave-temporal">
-                        <div><i class="fas fa-key mr-2"></i>Contraseña temporal de <strong>{{ session('clave_temporal.nombre') }}</strong>
+                        <div><i class="fas fa-key mr-2"></i>Contraseña nueva de <strong>{{ session('clave_temporal.nombre') }}</strong>
                             (usuario <strong>{{ session('clave_temporal.usuario') }}</strong>):</div>
                         <code class="ct-clave">{{ session('clave_temporal.clave') }}</code>
-                        <small>Dásela a la persona. Solo se muestra esta vez; al entrar el sistema le pedirá elegir su propia contraseña.</small>
+                        <small>Dásela a la persona. Solo se muestra esta vez; anótala en un lugar seguro.</small>
                     </div>
                 @endif
                 @if(session('error'))
@@ -1112,6 +1166,121 @@
 <script src="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/js/adminlte.min.js"></script>
 
 <script>
+    // Buscadores con sugerencias: al hacer clic muestran toda la lista y, mientras
+    // se escribe, se va achicando. Elegir una sugerencia busca al instante.
+    (function () {
+        var cache = {};
+        var quitarTildes = function (t) { return (t || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase(); };
+        var esc = function (t) { return String(t).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); };
+        // Resalta lo escrito sin importar tildes ni mayúsculas
+        var resaltar = function (texto, palabras) {
+            var base = quitarTildes(texto), marcas = new Array(texto.length).fill(false);
+            palabras.forEach(function (p) { var i = base.indexOf(p); while (p && i >= 0) { for (var k = i; k < i + p.length; k++) marcas[k] = true; i = base.indexOf(p, i + p.length); } });
+            var out = '', abierto = false;
+            for (var i = 0; i < texto.length; i++) {
+                if (marcas[i] && !abierto) { out += '<mark>'; abierto = true; }
+                if (!marcas[i] && abierto) { out += '</mark>'; abierto = false; }
+                out += esc(texto[i]);
+            }
+            return out + (abierto ? '</mark>' : '');
+        };
+
+        document.querySelectorAll('input[data-sugerencias]').forEach(function (input) {
+            var fuente = input.dataset.sugerencias;
+            var form = input.form;
+            var cont = input.parentElement;
+            if (getComputedStyle(cont).position === 'static' || cont.tagName === 'FORM') {
+                var w = document.createElement('span'); w.className = 'sug-wrap';
+                input.parentNode.insertBefore(w, input); w.appendChild(input); cont = w;
+            }
+            var lista = document.createElement('div');
+            lista.className = 'sug-lista'; lista.setAttribute('role', 'listbox');
+            cont.appendChild(lista);
+            input.setAttribute('role', 'combobox'); input.setAttribute('aria-autocomplete', 'list');
+            var datos = null, visibles = [], activo = -1;
+
+            var destino = input.dataset.sugerenciasValor ? document.querySelector(input.dataset.sugerenciasValor) : null;
+            function cargar() {
+                if (datos) return Promise.resolve(datos);
+                if (input.dataset.sugerenciasLista) {   // lista ya incluida en la página
+                    var d = JSON.parse(document.getElementById(input.dataset.sugerenciasLista).textContent);
+                    datos = d.map(function (x) { x._b = quitarTildes(x.t + ' ' + (x.s || '') + ' ' + (x.k || '')); return x; });
+                    return Promise.resolve(datos);
+                }
+                if (!cache[fuente]) {
+                    cache[fuente] = fetch('{{ url('sugerencias') }}/' + fuente, { headers: { 'Accept': 'application/json' }, credentials: 'same-origin' })
+                        .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
+                        .then(function (d) { return d.map(function (x) { x._b = quitarTildes(x.t + ' ' + (x.s || '') + ' ' + (x.k || '')); return x; }); });
+                }
+                return cache[fuente].then(function (d) { datos = d; return d; });
+            }
+            var tocado = false;
+            function pintar() {
+                var palabras = (destino && !tocado) ? [] : quitarTildes(input.value).split(/\s+/).filter(Boolean);
+                visibles = datos.filter(function (x) { return palabras.every(function (p) { return x._b.indexOf(p) >= 0; }); });
+                activo = -1;
+                var muestra = visibles.slice(0, 80);
+                var html = '<div class="sug-cab"><span>' + (palabras.length ? 'Coincidencias' : 'Todos') + '</span><span>' + visibles.length + ' de ' + datos.length + '</span></div>';
+                if (!muestra.length) {
+                    html += '<div class="sug-vacio"><i class="fas fa-search mr-1"></i>Nada coincide con "' + esc(input.value) + '"</div>';
+                } else {
+                    html += '<div class="sug-items">' + muestra.map(function (x, i) {
+                        return '<div class="sug-item" role="option" data-i="' + i + '"><span class="si-ic"><i class="fas ' + esc(x.i || 'fa-search') + '"></i></span>'
+                            + '<span><span class="si-t d-block">' + resaltar(x.t, palabras) + '</span>' + (x.s ? '<span class="si-s">' + resaltar(x.s, palabras) + '</span>' : '') + '</span></div>';
+                    }).join('') + '</div>';
+                    if (visibles.length > muestra.length) html += '<div class="sug-pie">Sigue escribiendo para ver los demás (' + (visibles.length - muestra.length) + ' más)</div>';
+                    else html += '<div class="sug-pie">↑ ↓ para moverte · Enter para buscar · Esc para cerrar</div>';
+                }
+                lista.innerHTML = html;
+                lista.classList.add('abierta');
+                input.setAttribute('aria-expanded', 'true');
+            }
+            function cerrar() { lista.classList.remove('abierta'); input.setAttribute('aria-expanded', 'false'); activo = -1; }
+            function marcar(n) {
+                var items = lista.querySelectorAll('.sug-item');
+                if (!items.length) return;
+                activo = (n + items.length) % items.length;
+                items.forEach(function (el, i) { el.classList.toggle('activo', i === activo); });
+                items[activo].scrollIntoView({ block: 'nearest' });
+            }
+            function elegir(i) {
+                var x = visibles[i]; if (!x) return;
+                input.value = x.t; cerrar();
+                if (destino) destino.value = x.v;   // el valor real viaja en un campo oculto
+                if (form) form.submit();
+            }
+            function abrir() { cargar().then(pintar).catch(function () { /* sin sugerencias: el buscador sigue funcionando normal */ }); }
+
+            input.addEventListener('focus', function () { if (destino) input.select(); abrir(); });
+            input.addEventListener('click', abrir);
+            input.addEventListener('input', function () { tocado = true; if (datos) pintar(); else abrir(); });
+            input.addEventListener('keydown', function (e) {
+                if (!lista.classList.contains('abierta')) { if (e.key === 'ArrowDown') { abrir(); e.preventDefault(); } return; }
+                if (e.key === 'ArrowDown') { marcar(activo + 1); e.preventDefault(); }
+                else if (e.key === 'ArrowUp') { marcar(activo - 1); e.preventDefault(); }
+                else if (e.key === 'Enter' && activo >= 0) { e.preventDefault(); elegir(activo); }
+                else if (e.key === 'Enter' && destino) { e.preventDefault(); if (visibles.length === 1) elegir(0); }
+                else if (e.key === 'Escape') { cerrar(); }
+            });
+            lista.addEventListener('mousedown', function (e) {
+                var it = e.target.closest('.sug-item'); if (!it) return;
+                e.preventDefault(); elegir(+it.dataset.i);
+            });
+            document.addEventListener('click', function (e) { if (!cont.contains(e.target)) cerrar(); });
+            input.addEventListener('blur', function () { setTimeout(cerrar, 150); });
+        });
+    })();
+
+    // Filtros: junta cada etiqueta ("CATEGORÍA") con su lista para que no queden separadas
+    document.querySelectorAll('.filter-bar label.fb-label').forEach(function (l) {
+        var campo = l.nextElementSibling;
+        if (!campo || !/^(SELECT|INPUT)$/.test(campo.tagName) || l.parentElement.classList.contains('fb-par')) return;
+        var par = document.createElement('span');
+        par.className = 'fb-par';
+        l.parentNode.insertBefore(par, l);
+        par.appendChild(l); par.appendChild(campo);
+    });
+
     // Menú contraído (botón ☰): recordar el estado y mostrar el nombre de cada ícono
     // en una etiqueta al pasar el mouse (solo en PC y solo con el menú contraído).
     (function () {

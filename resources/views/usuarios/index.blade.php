@@ -127,7 +127,7 @@
 <form method="GET" action="{{ route('usuarios.index') }}" class="filter-bar flex-wrap" style="gap:.6rem">
     <div class="search-box flex-grow-1" style="min-width:220px;">
         <i class="fas fa-search"></i>
-        <input type="text" name="buscar" class="form-control" placeholder="Buscar por nombre, apodo, usuario o correo..." value="{{ request('buscar') }}">
+        <input type="text" name="buscar" data-sugerencias="usuarios" autocomplete="off" class="form-control" placeholder="Buscar por nombre, apodo, usuario o correo..." value="{{ request('buscar') }}">
     </div>
     <label class="fb-label mb-0">Rol</label>
     <select name="rol" class="form-control" style="width:auto;" onchange="this.form.submit()">
@@ -192,7 +192,6 @@
                 <div class="usr-badges">
                     <span class="badge-soft {{ $esAdmin ? 'badge-soft-danger' : 'badge-soft-secondary' }}">{{ ucfirst($u->rol->nombre) }}</span>
                     <span class="badge-soft {{ $u->estado === 'activo' ? 'badge-soft-success' : 'badge-soft-secondary' }}">{{ ucfirst($u->estado) }}</span>
-                    @if($u->debe_cambiar_password)<span class="badge-soft badge-soft-warning" title="Todavía no eligió su propia contraseña"><i class="fas fa-key mr-1"></i>Clave temporal</span>@endif
                 </div>
 
                 <div class="mt-2">

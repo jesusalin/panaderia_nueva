@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
-/** "Mi perfil" (foto, datos, contraseña) y contraseña temporal del admin. */
+/** "Mi perfil" (foto y datos) y contraseñas: solo el admin las cambia. */
 class PerfilUsuarioTest extends TestCase
 {
     use RefreshDatabase;
@@ -65,19 +65,29 @@ class PerfilUsuarioTest extends TestCase
         }
     }
 
-    public function test_cambiar_su_contrasena_pide_la_actual(): void
+    public function test_un_usuario_normal_no_puede_cambiar_su_contrasena(): void
     {
         $u = Usuario::factory()->create();   // contraseña "password"
 
-        $this->actingAs($u)->put(route('perfil.password'), ['password_actual' => 'mala', 'password' => 'nueva123', 'password_confirmation' => 'nueva123'])
-            ->assertSessionHasErrors('password_actual');
-
+        $this->actingAs($u)->get(route('perfil.edit'))->assertOk()
+            ->assertDontSee('Cambiar mi contraseña')->assertSee('pídeselo');
         $this->actingAs($u)->put(route('perfil.password'), ['password_actual' => 'password', 'password' => 'nueva123', 'password_confirmation' => 'nueva123'])
-            ->assertRedirect(route('perfil.edit'));
-        $this->assertTrue(Hash::check('nueva123', $u->fresh()->password));
+            ->assertForbidden();
+        $this->assertTrue(Hash::check('password', $u->fresh()->password));
     }
 
-    public function test_el_admin_genera_una_clave_temporal_y_el_usuario_debe_cambiarla(): void
+    public function test_el_admin_cambia_su_contrasena_pidiendo_la_actual(): void
+    {
+        $admin = Usuario::factory()->admin()->create();
+
+        $this->actingAs($admin)->put(route('perfil.password'), ['password_actual' => 'mala', 'password' => 'nueva123', 'password_confirmation' => 'nueva123'])
+            ->assertSessionHasErrors('password_actual');
+        $this->actingAs($admin)->put(route('perfil.password'), ['password_actual' => 'password', 'password' => 'nueva123', 'password_confirmation' => 'nueva123'])
+            ->assertRedirect(route('perfil.edit'));
+        $this->assertTrue(Hash::check('nueva123', $admin->fresh()->password));
+    }
+
+    public function test_el_admin_genera_una_contrasena_nueva_para_quien_la_olvido(): void
     {
         $admin = Usuario::factory()->admin()->create();
         $u = Usuario::factory()->create(['usuario' => 'olvidadizo']);
@@ -88,16 +98,10 @@ class PerfilUsuarioTest extends TestCase
         $this->assertNotEmpty($clave);
         $this->assertTrue(Hash::check($clave, $u->fresh()->password));   // se guarda cifrada
         $this->assertNotSame($clave, $u->fresh()->password);
-        $this->assertTrue($u->fresh()->debe_cambiar_password);
 
-        // Entra con la temporal: lo manda a elegir su contraseña antes de usar el sistema
+        // Entra con la nueva y usa el sistema normalmente
         auth()->logout();
         $this->post('/login', ['usuario' => 'olvidadizo', 'password' => $clave]);
-        $this->get(route('dashboard'))->assertRedirect(route('perfil.edit'));
-
-        $this->put(route('perfil.password'), ['password' => 'mia12345', 'password_confirmation' => 'mia12345'])
-            ->assertRedirect(route('perfil.edit'));
-        $this->assertFalse($u->fresh()->debe_cambiar_password);
         $this->get(route('dashboard'))->assertOk();
     }
 
@@ -111,8 +115,9 @@ class PerfilUsuarioTest extends TestCase
     public function test_comando_para_cuando_el_admin_olvida_su_clave(): void
     {
         $admin = Usuario::factory()->admin()->create(['usuario' => 'jefe']);
+        $vieja = $admin->password;
         $this->artisan('usuario:clave', ['usuario' => 'jefe'])->assertSuccessful();
-        $this->assertTrue($admin->fresh()->debe_cambiar_password);
+        $this->assertNotSame($vieja, $admin->fresh()->password);
         $this->artisan('usuario:clave', ['usuario' => 'nadie'])->assertFailed();
     }
 }

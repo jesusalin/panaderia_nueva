@@ -1,6 +1,7 @@
 @extends('layouts.app')
 @section('title', 'Historial de Conteos')
 @section('breadcrumb')
+    <li class="breadcrumb-item"><a href="{{ route('materia-prima.index') }}">Materia Prima</a></li>
     <li class="breadcrumb-item"><a href="{{ route('conteo-fisico.index') }}">Conteo Físico</a></li>
     <li class="breadcrumb-item active">Historial</li>
 @endsection
@@ -34,6 +35,17 @@
     body.dark-mode .oa-tab.active { background: #b5451b; border-color: #b5451b; color: #fff; }
 
     #cfHistorialContainer { transition: opacity .15s ease; }
+    .cf-tendencia { background: #fff; border-radius: 14px; box-shadow: 0 2px 12px rgba(0,0,0,.05); padding: 1rem 1.25rem; margin-bottom: 1.1rem; }
+    body.dark-mode .cf-tendencia { background: #1f1f33; }
+    .ct-tit { display: flex; justify-content: space-between; flex-wrap: wrap; gap: .4rem; margin-bottom: .6rem; font-size: .85rem; }
+    .ct-tit span { color: #8a8a9d; font-size: .78rem; }
+    .ct-barras { display: flex; align-items: flex-end; gap: .6rem; height: 120px; }
+    .ct-b { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; height: 100%; }
+    .ct-barra { width: 100%; max-width: 46px; border-radius: 6px 6px 0 0; }
+    .ct-barra.good { background: #2ecc71; } .ct-barra.mid { background: #f39c12; } .ct-barra.bad { background: #e74c3c; }
+    .ct-v { font-size: .72rem; font-weight: 800; color: #495057; margin-bottom: .2rem; }
+    .ct-b em { font-style: normal; font-size: .66rem; color: #adb5bd; margin-top: .2rem; }
+    body.dark-mode .ct-v { color: #d5d5e2; }
     #cfHistorialContainer.cargando { opacity: .4; pointer-events: none; }
 </style>
 @endpush
@@ -43,14 +55,30 @@
 <div class="page-toolbar">
     <div>
         <h2><i class="fas fa-history mr-2 text-info"></i>Historial de Conteos Físicos</h2>
-        <p>Cada jornada de conteo y su exactitud</p>
+        <p>Cada conteo y su PER (insumos con diferencia ÷ insumos contados × 100; 0 % es lo ideal)</p>
     </div>
     <div class="toolbar-actions">
-        <a href="{{ route('conteo-fisico.index') }}" class="btn btn-primary">
-            <i class="fas fa-plus mr-1"></i>Nuevo Conteo
+        <a href="{{ route('conteo-fisico.index') }}" class="btn btn-light">
+            <i class="fas fa-arrow-left mr-1"></i>Regresar
         </a>
     </div>
 </div>
+
+@if($tendencia->count() >= 2)
+@php $maxPer = max(10, $tendencia->max('per')); @endphp
+<div class="cf-tendencia">
+    <div class="ct-tit"><b>Tendencia del PER</b><span>últimos {{ $tendencia->count() }} conteos · más bajo es mejor</span></div>
+    <div class="ct-barras">
+        @foreach($tendencia as $t)
+            <div class="ct-b" title="{{ $t['fecha']->format('d/m H:i') }}: PER {{ $t['per'] }} %">
+                <span class="ct-v">{{ $t['per'] }}%</span>
+                <span class="ct-barra {{ $t['per'] <= 10 ? 'good' : ($t['per'] <= 30 ? 'mid' : 'bad') }}" style="height: {{ max(3, round($t['per'] / $maxPer * 80)) }}px"></span>
+                <em>{{ $t['fecha']->format('d/m') }}</em>
+            </div>
+        @endforeach
+    </div>
+</div>
+@endif
 
 <div class="oa-tabs" id="cfTabs">
     <a href="{{ route('conteo-fisico.historial') }}" class="oa-tab {{ !request('filtro') ? 'active' : '' }}">

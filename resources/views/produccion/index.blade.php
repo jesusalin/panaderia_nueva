@@ -30,6 +30,11 @@
     .prod-stat.top .ps-icon      { background: rgba(243,156,18,.14); color: #b9770e; }
 
     .prod-icon { overflow: hidden; }
+    .prod-icon i { color: var(--cat-color, #b5451b); }
+    .plan-aviso { display: flex; align-items: center; gap: .7rem; background: #fff8ec; border: 1px solid #f5deb3; color: #8a6215;
+        border-radius: 12px; padding: .75rem 1.1rem; margin-bottom: 1rem; font-size: .88rem; text-decoration: none; }
+    .plan-aviso:hover { text-decoration: none; color: #6b4a0f; background: #fff3dc; }
+    body.dark-mode .plan-aviso { background: rgba(243,156,18,.12); border-color: rgba(243,156,18,.3); color: #ffc673; }
     .prod-icon img { width: 100%; height: 100%; object-fit: cover; }
     .prod-nombre { line-height: 1.25; }
     .prod-cat { display: block; font-size: .72rem; color: #adb5bd; font-weight: 400; }
@@ -82,13 +87,21 @@
     </div>
     <div class="prod-stat hoy">
         <div class="ps-icon"><i class="fas fa-calendar-day"></i></div>
-        <div><div class="ps-value">{{ $stats['hoy'] }}</div><div class="ps-label">Hoy</div></div>
+        <div><div class="ps-value">{{ number_format($stats['unidadesHoy']) }} <small style="font-size:.6em;font-weight:700;color:#8a8a9d;">und.</small></div><div class="ps-label">Hoy ({{ $stats['hoy'] }} {{ $stats['hoy'] == 1 ? 'producción' : 'producciones' }})</div></div>
     </div>
     <div class="prod-stat top">
         <div class="ps-icon"><i class="fas fa-trophy"></i></div>
         <div><div class="ps-value ps-value-sm">{{ $stats['top']->producto->nombre ?? '—' }}</div><div class="ps-label">Más producido</div></div>
     </div>
 </div>
+
+@if($porProducir > 0)
+<a href="{{ route('produccion.create') }}" class="plan-aviso">
+    <i class="fas fa-lightbulb"></i>
+    <span><strong>{{ $porProducir }}</strong> producto{{ $porProducir == 1 ? ' está' : 's están' }} en su mínimo o cerca. Mira <strong>qué producir hoy</strong> y cuánto alcanzan los insumos.</span>
+    <i class="fas fa-arrow-right ml-auto"></i>
+</a>
+@endif
 
 <form method="GET" action="{{ route('produccion.index') }}" class="filter-bar flex-wrap" style="gap:.6rem">
     <label class="fb-label mb-0">Producto</label>
@@ -125,14 +138,10 @@
         <tbody>
             @foreach($producciones as $p)
             @php
-                $catLower = mb_strtolower($p->producto->categoria->nombre ?? '');
-                $iconoProd = 'fa-bread-slice';
-                if (str_contains($catLower, 'pastel') || str_contains($catLower, 'torta')) $iconoProd = 'fa-birthday-cake';
-                elseif (str_contains($catLower, 'galleta'))  $iconoProd = 'fa-cookie';
-                elseif (str_contains($catLower, 'empanada')) $iconoProd = 'fa-cheese';
-                elseif (str_contains($catLower, 'bebida') || str_contains($catLower, 'café')) $iconoProd = 'fa-mug-hot';
+                $iconoProd = $p->producto->categoria->icono_final ?? 'fa-bread-slice';
+                $colorProd = $p->producto->categoria->color_final ?? '#b5451b';
             @endphp
-            <tr>
+            <tr style="--cat-color: {{ $colorProd }}">
                 <td class="text-muted small">#{{ $p->id }}</td>
                 <td>
                     <div class="d-flex align-items-center gap-2">

@@ -20,6 +20,7 @@ use App\Http\Controllers\ReportesController;
 use App\Http\Controllers\MenuController;
 use App\Http\Controllers\ActividadController;
 use App\Http\Controllers\PerfilController;
+use App\Http\Controllers\SugerenciasController;
 
 // Redirigir raíz al dashboard
 Route::get('/', fn() => redirect()->route('dashboard'));
@@ -29,6 +30,9 @@ Route::middleware(['auth'])->group(function () {
 
     // Dashboard: visible para cualquier usuario autenticado, sin importar sus permisos
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+
+    // Sugerencias de los buscadores (cada fuente revisa su propio permiso)
+    Route::get('sugerencias/{fuente}', SugerenciasController::class)->name('sugerencias')->where('fuente', '[a-z]+');
 
     // Mi perfil: cada usuario edita su foto, nombre, apodo, correo y contraseña
     Route::get('perfil',            [PerfilController::class, 'edit'])->name('perfil.edit');
@@ -97,6 +101,7 @@ Route::middleware(['auth'])->group(function () {
     Route::middleware(['modulo:produccion.recetas'])->group(function () {
         Route::get('produccion/recetas/listado',  [ProduccionController::class, 'recetas'])->name('produccion.recetas');
         Route::post('produccion/recetas/guardar', [ProduccionController::class, 'crearReceta'])->name('produccion.guardar-receta');
+        Route::get('produccion/recetas/{producto}/editar', [ProduccionController::class, 'editarReceta'])->name('produccion.receta.editar');
     });
     // Los ingredientes de una receta los usan las dos pantallas
     Route::get('produccion/ingredientes/{producto}', [ProduccionController::class, 'ingredientes'])->name('produccion.ingredientes')

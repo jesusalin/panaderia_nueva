@@ -13,12 +13,13 @@
     .perfil-dato { font-size: .85rem; color: #6c757d; }
     .perfil-dato b { color: #1a1a2e; }
     body.dark-mode .perfil-dato b { color: #f0f0f7; }
-    .perfil-temporal { border: 2px solid #f39c12; }
+    .perfil-nota { display: flex; gap: .6rem; align-items: center; background: #f1f7fd; border: 1px solid #d6e7f7; color: #2c4a66; border-radius: 10px; padding: .7rem 1rem; font-size: .84rem; margin-top: 1.4rem; }
+    body.dark-mode .perfil-nota { background: #1d2a3a; border-color: #2b4058; color: #c9dcf0; }
 </style>
 @endpush
 
 @section('content')
-@php $temporal = $usuario->debe_cambiar_password; @endphp
+@php $esAdmin = $usuario->isAdmin(); @endphp
 <div class="row justify-content-center"><div class="col-lg-8 col-xl-7">
 
 <div class="card usuario-form-card">
@@ -31,7 +32,6 @@
     </div>
 
     <div class="usuario-form-body">
-        @if(!$temporal)
         <form action="{{ route('perfil.update') }}" method="POST" enctype="multipart/form-data">
             @csrf @method('PUT')
 
@@ -86,16 +86,12 @@
                 <button type="submit" class="btn btn-primary"><i class="fas fa-save mr-1"></i>Guardar mis datos</button>
             </div>
         </form>
-        @endif
 
-        <form action="{{ route('perfil.password') }}" method="POST" class="{{ $temporal ? '' : 'mt-2' }}">
+        @if($esAdmin)
+        <form action="{{ route('perfil.password') }}" method="POST" class="mt-2">
             @csrf @method('PUT')
-            <label class="section-label"><i class="fas fa-lock mr-1"></i> {{ $temporal ? 'Elige tu propia contraseña' : 'Cambiar mi contraseña' }}</label>
-            @if($temporal)
-                <p class="perfil-dato">El administrador te dio una contraseña temporal. Escribe una nueva que solo tú sepas para seguir usando el sistema.</p>
-            @endif
+            <label class="section-label"><i class="fas fa-lock mr-1"></i> Cambiar mi contraseña</label>
             <div class="row">
-                @if(!$temporal)
                 <div class="col-md-4 form-group">
                     <label>Contraseña actual</label>
                     <div class="password-wrap">
@@ -104,16 +100,15 @@
                     </div>
                     @error('password_actual')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
                 </div>
-                @endif
-                <div class="col-md-{{ $temporal ? 6 : 4 }} form-group">
+                <div class="col-md-4 form-group">
                     <label>Contraseña nueva</label>
                     <div class="password-wrap">
-                        <input type="password" name="password" id="pfNueva" class="form-control @error('password') is-invalid @enderror" required minlength="6" autocomplete="new-password" {{ $temporal ? 'autofocus' : '' }}>
+                        <input type="password" name="password" id="pfNueva" class="form-control @error('password') is-invalid @enderror" required minlength="6" autocomplete="new-password">
                         <i class="fas fa-eye toggle-pass" onclick="togglePass('pfNueva', this)"></i>
                     </div>
                     @error('password')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
                 </div>
-                <div class="col-md-{{ $temporal ? 6 : 4 }} form-group">
+                <div class="col-md-4 form-group">
                     <label>Repetir la nueva</label>
                     <div class="password-wrap">
                         <input type="password" name="password_confirmation" id="pfNueva2" class="form-control" required minlength="6" autocomplete="new-password">
@@ -122,9 +117,15 @@
                 </div>
             </div>
             <div class="form-actions" style="margin-top:.5rem;">
-                <button type="submit" class="btn btn-warning"><i class="fas fa-key mr-1"></i>{{ $temporal ? 'Guardar y continuar' : 'Cambiar contraseña' }}</button>
+                <button type="submit" class="btn btn-warning"><i class="fas fa-key mr-1"></i>Cambiar contraseña</button>
             </div>
         </form>
+        @else
+        <div class="perfil-nota">
+            <i class="fas fa-lock"></i>
+            <span>Tu contraseña la administra el administrador del sistema. Si la olvidaste o quieres cambiarla, pídeselo.</span>
+        </div>
+        @endif
     </div>
 </div>
 

@@ -29,15 +29,15 @@
             <div class="lr-meta">
                 <div class="lm-item">
                     <span class="lm-label">Stock al generar</span>
-                    <span class="lm-value text-danger">{{ \App\Support\Cantidad::fmt($o->stock_al_generar) }} {{ $o->materia->unidad->abreviatura }}</span>
+                    <span class="lm-value text-danger">{{ \App\Support\Cantidad::conUnidad($o->stock_al_generar, $o->materia->unidad->abreviatura) }}</span>
                 </div>
                 <div class="lm-item">
                     <span class="lm-label">Mínimo</span>
-                    <span class="lm-value">{{ \App\Support\Cantidad::fmt($o->stock_minimo) }} {{ $o->materia->unidad->abreviatura }}</span>
+                    <span class="lm-value">{{ \App\Support\Cantidad::conUnidad($o->stock_minimo, $o->materia->unidad->abreviatura) }}</span>
                 </div>
                 <div class="lm-item">
                     <span class="lm-label">Sugerido</span>
-                    <span class="lm-value text-success">{{ \App\Support\Cantidad::fmt($o->cantidad_sugerida) }} {{ $o->materia->unidad->abreviatura }}</span>
+                    <span class="lm-value text-success">{{ \App\Support\Cantidad::conUnidad($o->cantidad_sugerida, $o->materia->unidad->abreviatura) }}</span>
                 </div>
             </div>
 
@@ -53,7 +53,7 @@
                     <div class="btn-icon-group">
                         <form action="{{ route('ordenes-automaticas.convertir', $o) }}" method="POST" class="js-confirm"
                             data-confirm-title="¿Generar compra?"
-                            data-confirm="Se creará una compra a {{ $o->proveedor->nombre ?? 'este proveedor' }} por {{ \App\Support\Cantidad::fmt($o->cantidad_sugerida) }} {{ $o->materia->unidad->abreviatura }} de {{ $o->materia->nombre }}.">
+                            data-confirm="Se creará una compra a {{ $o->proveedor->nombre ?? 'este proveedor' }} por {{ \App\Support\Cantidad::conUnidad($o->cantidad_sugerida, $o->materia->unidad->abreviatura) }} de {{ $o->materia->nombre }}.">
                             @csrf
                             <button class="btn btn-icon btn-success" title="Convertir en compra">
                                 <i class="fas fa-shopping-cart"></i>

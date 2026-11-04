@@ -71,7 +71,7 @@
 <form method="GET" action="{{ route('proveedores.index') }}" class="filter-bar flex-wrap" style="gap:.6rem">
     <div class="search-box flex-grow-1" style="min-width:220px;">
         <i class="fas fa-search"></i>
-        <input type="text" name="buscar" class="form-control" placeholder="Buscar por nombre, RUC o contacto..." value="{{ request('buscar') }}">
+        <input type="text" name="buscar" data-sugerencias="proveedores" autocomplete="off" class="form-control" placeholder="Buscar por nombre, RUC o contacto..." value="{{ request('buscar') }}">
     </div>
     <label class="fb-label mb-0">Estado</label>
     <select name="estado" class="form-control" style="width:auto;" onchange="this.form.submit()">

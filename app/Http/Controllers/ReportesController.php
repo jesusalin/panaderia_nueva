@@ -197,7 +197,7 @@ class ReportesController extends Controller
      */
     private function datosKardex(Request $request)
     {
-        $materias  = MateriaPrima::orderBy('nombre')->get();
+        $materias  = MateriaPrima::with('unidad')->orderBy('nombre')->get();
         $productos = Producto::orderBy('nombre')->get();
 
         [$tipoItem, $idItem] = $this->itemSolicitado($request);

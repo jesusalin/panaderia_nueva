@@ -1,122 +1,152 @@
+{{-- Detalle de una producción (se usa en el modal "Ver detalle" y en la página show) --}}
+@php
+    $p      = $produccion->producto;
+    $color  = $p->categoria->color_final ?? '#b5451b';
+    $icono  = $p->categoria->icono_final ?? 'fa-bread-slice';
+    $ganancia = $valorVenta - $costo;
+    $margen = $valorVenta > 0 && $costo > 0 ? round($ganancia / $valorVenta * 100, 1) : null;
+    $puedeEliminar = $p->stock_actual >= $produccion->cantidad;
+    $maxConsumo = max(0.0001, $consumos->max(fn ($m) => $m->cantidad * ($m->materia->costo_unitario ?? 0)) ?: 0.0001);
+@endphp
 <style>
-    .prodx-topbar { height: 5px; background: linear-gradient(90deg, #b9770e, #ffc673); }
-    .prodx-head { display: flex; align-items: center; gap: 1rem; padding: 1.4rem 1.5rem; }
-    .prodx-head .ch-icon {
-        width: 54px; height: 54px; border-radius: 14px; display: flex; align-items: center; justify-content: center;
-        font-size: 1.4rem; color: #fff; background: linear-gradient(135deg, #1a1a2e, #b9770e); flex-shrink: 0;
-        box-shadow: 0 4px 10px rgba(185,119,14,.3);
-    }
-    .prodx-head h5 { margin: 0; font-weight: 800; }
-    .prodx-head p { margin: .1rem 0 0; color: #8a8a9d; font-size: .85rem; }
-    .info-strip { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; padding: 0 1.5rem 1.4rem; }
-    .info-strip .is-item { border-left: 3px solid #f5e7cd; padding-left: .7rem; }
-    .info-strip .is-item .is-label { font-size: .68rem; text-transform: uppercase; letter-spacing: .03em; color: #adb5bd; font-weight: 700; }
-    .info-strip .is-item .is-value { font-size: .95rem; font-weight: 700; color: #1a1a2e; }
-    body.dark-mode .info-strip .is-item { border-left-color: #3a2f1a; }
-    body.dark-mode .info-strip .is-item .is-value { color: #f0f0f7; }
-    @media (max-width: 767px) { .info-strip { grid-template-columns: repeat(2, 1fr); } }
+    .pdx { --cat: {{ $color }}; }
+    .pdx-hero { display: flex; gap: 1.2rem; align-items: center; padding: 1.3rem 1.4rem; border-radius: 14px;
+        background: linear-gradient(135deg, #1a1a2e 0%, #23233d 55%, var(--cat) 140%); color: #fff; flex-wrap: wrap; }
+    .pdx-foto { width: 74px; height: 74px; border-radius: 16px; background: rgba(255,255,255,.12); border: 2px solid rgba(255,255,255,.25);
+        display: flex; align-items: center; justify-content: center; font-size: 1.9rem; overflow: hidden; flex-shrink: 0; }
+    .pdx-foto img { width: 100%; height: 100%; object-fit: cover; }
+    .pdx-hero .ph-num { font-size: .75rem; letter-spacing: .06em; text-transform: uppercase; opacity: .7; font-weight: 700; }
+    .pdx-hero h4 { margin: .1rem 0 .25rem; font-weight: 800; }
+    .pdx-hero .ph-meta { font-size: .84rem; opacity: .85; display: flex; flex-wrap: wrap; gap: .3rem 1rem; }
+    .pdx-hero .ph-meta i { opacity: .7; margin-right: .25rem; }
+    .pdx-hero .ph-cant { margin-left: auto; text-align: right; }
+    .pdx-hero .ph-cant b { display: block; font-size: 2.2rem; line-height: 1; font-weight: 800; }
+    .pdx-hero .ph-cant span { font-size: .78rem; opacity: .8; }
 
-    .prodx-note { background: rgba(185,119,14,.07); border-left: 3px solid #b9770e; border-radius: 8px; padding: .9rem 1.1rem; display: flex; gap: .6rem; align-items: flex-start; }
-    .prodx-note i { color: #b9770e; margin-top: .15rem; }
-    body.dark-mode .prodx-note { background: rgba(185,119,14,.16); }
+    .pdx-kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: .8rem; margin: 1rem 0; }
+    .pdx-kpi { background: #fff; border: 1px solid #f0ebe6; border-radius: 12px; padding: .8rem .95rem; }
+    .pdx-kpi small { display: block; font-size: .68rem; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; color: #8a8a9d; }
+    .pdx-kpi b { font-size: 1.2rem; color: #1a1a2e; }
+    .pdx-kpi .sub { display: block; font-size: .74rem; color: #adb5bd; margin-top: .1rem; }
+    .pdx-kpi.verde b { color: #1e8e5a; } .pdx-kpi.rojo b { color: #c0392b; }
+    body.dark-mode .pdx-kpi { background: #24243b; border-color: #33334d; }
+    body.dark-mode .pdx-kpi b { color: #f0f0f7; }
+    @media (max-width: 767px) { .pdx-kpis { grid-template-columns: repeat(2, 1fr); } }
 
-    .prodx-table thead th { background: rgba(185,119,14,.06) !important; }
-    body.dark-mode .prodx-table thead th { background: rgba(185,119,14,.12) !important; }
+    .pdx-grid { display: grid; grid-template-columns: 1.6fr 1fr; gap: 1rem; }
+    @media (max-width: 991px) { .pdx-grid { grid-template-columns: 1fr; } }
+    .pdx-box { background: #fff; border: 1px solid #f0ebe6; border-radius: 12px; padding: 1rem 1.1rem; }
+    .pdx-box h6 { font-weight: 800; color: #1a1a2e; font-size: .9rem; margin-bottom: .8rem; }
+    .pdx-box h6 i { color: var(--cat); margin-right: .35rem; }
+    body.dark-mode .pdx-box { background: #24243b; border-color: #33334d; }
+    body.dark-mode .pdx-box h6 { color: #f0f0f7; }
 
-    .action-icon-chip {
-        width: 34px; height: 34px; border-radius: 9px; display: inline-flex; align-items: center; justify-content: center;
-        background: rgba(52,152,219,.14); color: #2170a3; margin-right: .6rem; flex-shrink: 0;
-    }
+    .pdx-ing { display: grid; grid-template-columns: 1fr auto auto; gap: .2rem .8rem; align-items: center; padding: .5rem 0; border-bottom: 1px dashed #eee; font-size: .85rem; }
+    .pdx-ing:last-child { border-bottom: none; }
+    body.dark-mode .pdx-ing { border-bottom-color: #33334d; }
+    .pdx-ing .pi-nombre { font-weight: 700; color: #343a40; }
+    body.dark-mode .pdx-ing .pi-nombre { color: #e0e0ea; }
+    .pdx-ing .pi-cant { font-weight: 800; color: #c0392b; white-space: nowrap; }
+    .pdx-ing .pi-costo { color: #8a8a9d; white-space: nowrap; min-width: 64px; text-align: right; }
+    .pdx-ing .pi-barra { grid-column: 1 / -1; height: 4px; border-radius: 4px; background: #f1ece7; overflow: hidden; }
+    .pdx-ing .pi-barra span { display: block; height: 100%; background: var(--cat); opacity: .7; }
+    .pdx-ing .pi-stock { grid-column: 1 / -1; font-size: .72rem; color: #adb5bd; margin-top: -.1rem; }
+    .pdx-total { display: flex; justify-content: space-between; padding-top: .7rem; margin-top: .3rem; border-top: 2px solid #f1ece7; font-weight: 800; }
 
-    .prod-form-card { border: none; border-radius: 14px; box-shadow: 0 4px 24px rgba(0,0,0,.06); overflow: hidden; }
-    .prod-form-body { padding: 1.5rem; }
+    .pdx-linea { list-style: none; margin: 0; padding: 0; }
+    .pdx-linea li { position: relative; padding: 0 0 .9rem 1.4rem; font-size: .84rem; color: #6c757d; }
+    .pdx-linea li::before { content: ''; position: absolute; left: .3rem; top: .35rem; width: 9px; height: 9px; border-radius: 50%; background: var(--cat); }
+    .pdx-linea li::after { content: ''; position: absolute; left: .62rem; top: 1rem; bottom: 0; width: 1px; background: #e9e2dc; }
+    .pdx-linea li:last-child::after { display: none; }
+    .pdx-linea b { color: #1a1a2e; }
+    body.dark-mode .pdx-linea b { color: #f0f0f7; }
+    .pdx-nota { background: rgba(185,119,14,.07); border-left: 3px solid #b9770e; border-radius: 8px; padding: .7rem .9rem; font-size: .84rem; margin-top: .4rem; }
+    .pdx-acciones { display: flex; flex-wrap: wrap; gap: .5rem; justify-content: flex-end; margin-top: 1rem; }
 </style>
-<div class="row justify-content-center">
-    <div class="col-lg-9">
-        <div class="card prod-form-card mb-3">
-            <div class="prodx-topbar"></div>
-            <div class="prodx-head">
-                <div class="ch-icon"><i class="fas fa-industry"></i></div>
-                <div class="flex-grow-1">
-                    <h5>Producción #{{ $produccion->id }}</h5>
-                    <p>{{ $produccion->producto->nombre }}</p>
-                </div>
-                <span class="badge-soft badge-soft-success" style="font-size:.85rem;">{{ $produccion->cantidad }} unidades</span>
-            </div>
 
-            <div class="info-strip">
-                <div class="is-item">
-                    <div class="is-label">Producto</div>
-                    <div class="is-value">{{ $produccion->producto->nombre }}</div>
-                </div>
-                <div class="is-item">
-                    <div class="is-label">Fecha</div>
-                    <div class="is-value">{{ $produccion->fecha->format('d/m/Y') }}</div>
-                </div>
-                <div class="is-item">
-                    <div class="is-label">Registrado por</div>
-                    <div class="is-value">{{ $produccion->usuario->nombre ?? '—' }}</div>
-                </div>
-            </div>
-
-            @if($produccion->observacion)
-            <div class="px-4 pb-3">
-                <div class="prodx-note"><i class="fas fa-comment-alt"></i><span>{{ $produccion->observacion }}</span></div>
-            </div>
-            @endif
-
-            @if($produccion->producto->receta)
-            @php
-                $receta = $produccion->producto->receta;
-                $lotes  = $produccion->cantidad / max($receta->rendimiento, 1);
-            @endphp
-            <div class="px-3 pb-2">
-                <h6 class="font-weight-bold mb-2 px-1 d-flex align-items-center">
-                    <span class="action-icon-chip"><i class="fas fa-flask"></i></span>Materia prima consumida
-                </h6>
-                <div class="table-card" style="box-shadow:none;border:1px solid #f0f0f0;">
-                    <div class="table-responsive">
-                    <table class="table table-modern prodx-table mb-0">
-                        <thead>
-                            <tr>
-                                <th>Ingrediente</th>
-                                <th class="text-right">Por lote</th>
-                                <th class="text-right">Total consumido</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach($receta->detalles as $d)
-                            <tr>
-                                <td class="row-title">{{ $d->materia->nombre }}</td>
-                                <td class="text-right">{{ $d->cantidad }} {{ $d->materia->unidad->abreviatura }}</td>
-                                <td class="text-right font-weight-bold">
-                                    {{ round($d->cantidad * $lotes, 3) }} {{ $d->materia->unidad->abreviatura }}
-                                </td>
-                            </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
-                    </div>
-                </div>
-            </div>
-            @endif
-
-            <div class="px-3 pb-3 pt-2 d-flex justify-content-end" style="gap:.5rem;">
-                @if($produccion->producto->stock_actual >= $produccion->cantidad)
-                    <form action="{{ route('produccion.destroy', $produccion) }}" method="POST" class="js-confirm d-inline"
-                        data-confirm-title="¿Eliminar esta producción?"
-                        data-confirm="Se quitarán {{ $produccion->cantidad }} unidades de &quot;{{ $produccion->producto->nombre }}&quot; del stock y se devolverán los insumos que se habían descontado. Esta acción NO se puede deshacer.">
-                        @csrf @method('DELETE')
-                        <button class="btn btn-outline-danger"><i class="fas fa-trash-alt mr-1"></i>Eliminar</button>
-                    </form>
-                @else
-                    <button type="button" class="btn btn-outline-secondary is-locked js-blocked"
-                        data-blocked-title="No se puede eliminar esta producción"
-                        data-blocked-message="Ya se vendieron o movieron unidades de &quot;{{ $produccion->producto->nombre }}&quot; desde que se registró. Eliminarla dejaría el stock en negativo.">
-                        <i class="fas fa-trash-alt mr-1"></i>Eliminar
-                    </button>
-                @endif
+<div class="pdx">
+    <div class="pdx-hero">
+        <div class="pdx-foto">
+            @if($p->imagen)<img src="{{ asset('storage/' . $p->imagen) }}" alt="{{ $p->nombre }}">@else<i class="fas {{ $icono }}"></i>@endif
+        </div>
+        <div>
+            <div class="ph-num">Producción #{{ $produccion->id }} · {{ $p->categoria->nombre ?? 'Sin categoría' }}</div>
+            <h4>{{ $p->nombre }}</h4>
+            <div class="ph-meta">
+                <span><i class="far fa-calendar"></i>{{ $produccion->fecha->locale('es')->translatedFormat('l d \d\e F Y') }}</span>
+                <span><i class="far fa-clock"></i>registrada a las {{ $produccion->created_at?->format('H:i') }}</span>
+                <span><i class="far fa-user"></i>{{ $produccion->usuario->nombre ?? '—' }}</span>
             </div>
         </div>
+        <div class="ph-cant"><b>+{{ $produccion->cantidad }}</b><span>unidades al stock</span></div>
+    </div>
+
+    <div class="pdx-kpis">
+        <div class="pdx-kpi"><small>Tandas</small><b>{{ $tandas !== null ? \App\Support\Cantidad::fmt($tandas, 2) : '—' }}</b>
+            <span class="sub">{{ $p->receta ? 'de ' . $p->receta->rendimiento . ' und. cada una' : 'sin receta' }}</span></div>
+        <div class="pdx-kpi"><small>Costo de insumos</small><b>S/ {{ number_format($costo, 2) }}</b>
+            <span class="sub">S/ {{ number_format($produccion->cantidad ? $costo / $produccion->cantidad : 0, 2) }} por unidad</span></div>
+        <div class="pdx-kpi"><small>Valor de venta</small><b>S/ {{ number_format($valorVenta, 2) }}</b>
+            <span class="sub">a S/ {{ number_format($p->precio_venta, 2) }} c/u</span></div>
+        <div class="pdx-kpi {{ $ganancia >= 0 ? 'verde' : 'rojo' }}"><small>Ganancia estimada</small><b>S/ {{ number_format($ganancia, 2) }}</b>
+            <span class="sub">{{ $margen !== null ? $margen . '% del valor de venta' : 'si se vende todo' }}</span></div>
+    </div>
+
+    <div class="pdx-grid">
+        <div class="pdx-box">
+            <h6><i class="fas fa-flask"></i>Insumos descontados</h6>
+            @forelse($consumos as $m)
+                @php $c = $m->cantidad * ($m->materia->costo_unitario ?? 0); $u = $m->materia->unidad->abreviatura ?? ''; @endphp
+                <div class="pdx-ing">
+                    <span class="pi-nombre">{{ $m->materia->nombre ?? '—' }}</span>
+                    <span class="pi-cant">−{{ \App\Support\Cantidad::conUnidad($m->cantidad, $u) }}</span>
+                    <span class="pi-costo">S/ {{ number_format($c, 2) }}</span>
+                    <span class="pi-barra"><span style="width: {{ round($c / $maxConsumo * 100) }}%"></span></span>
+                    <span class="pi-stock">stock: {{ \App\Support\Cantidad::conUnidad($m->stock_antes, $u) }} → {{ \App\Support\Cantidad::conUnidad($m->stock_despues, $u) }}</span>
+                </div>
+            @empty
+                <p class="text-muted mb-0">No hay movimientos de insumos registrados para esta producción.</p>
+            @endforelse
+            @if($consumos->count())
+                <div class="pdx-total"><span>Total (a costo actual)</span><span>S/ {{ number_format($costo, 2) }}</span></div>
+            @endif
+        </div>
+
+        <div class="pdx-box">
+            <h6><i class="fas fa-stream"></i>Qué pasó</h6>
+            <ul class="pdx-linea">
+                <li>Se descontaron <b>{{ $consumos->count() }} insumo(s)</b> del almacén según la receta.</li>
+                @if($entrada)
+                    <li>El stock de {{ $p->nombre }} pasó de <b>{{ $entrada->stock_antes }}</b> a <b>{{ $entrada->stock_despues }}</b> unidades.</li>
+                @endif
+                <li>Hoy tiene <b>{{ $p->stock_actual }}</b> unidades en stock (mínimo {{ $p->stock_minimo }}).</li>
+            </ul>
+            @if($produccion->observacion)
+                <div class="pdx-nota"><i class="fas fa-comment-alt mr-1"></i>{{ $produccion->observacion }}</div>
+            @endif
+        </div>
+    </div>
+
+    <div class="pdx-acciones">
+        @if(auth()->user()->hasPermiso('catalogo.productos'))
+            <a href="{{ route('productos.show', $p) }}" class="btn btn-light"><i class="fas fa-bread-slice mr-1"></i>Ver producto</a>
+        @endif
+        @if(auth()->user()->hasPermiso('produccion.produccion'))
+            <a href="{{ route('produccion.create', ['producto' => $p->id, 'cantidad' => $produccion->cantidad]) }}" class="btn btn-light"><i class="fas fa-redo mr-1"></i>Repetir producción</a>
+        @endif
+        @if($puedeEliminar)
+            <form action="{{ route('produccion.destroy', $produccion) }}" method="POST" class="js-confirm d-inline"
+                data-confirm-title="¿Eliminar esta producción?"
+                data-confirm="Se quitarán {{ $produccion->cantidad }} unidades de &quot;{{ $p->nombre }}&quot; del stock y se devolverán los insumos que se habían descontado. Esta acción NO se puede deshacer.">
+                @csrf @method('DELETE')
+                <button class="btn btn-outline-danger"><i class="fas fa-trash-alt mr-1"></i>Eliminar</button>
+            </form>
+        @else
+            <button type="button" class="btn btn-outline-secondary is-locked js-blocked"
+                data-blocked-title="No se puede eliminar esta producción"
+                data-blocked-message="Ya se vendieron o movieron unidades de &quot;{{ $p->nombre }}&quot; desde que se registró. Eliminarla dejaría el stock en negativo.">
+                <i class="fas fa-trash-alt mr-1"></i>Eliminar
+            </button>
+        @endif
     </div>
 </div>

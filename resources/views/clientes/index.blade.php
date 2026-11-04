@@ -66,7 +66,7 @@
 <form method="GET" action="{{ route('clientes.index') }}" class="filter-bar">
     <div class="search-box flex-grow-1" style="min-width:220px;">
         <i class="fas fa-search"></i>
-        <input type="text" name="buscar" class="form-control" placeholder="Buscar por nombre o distrito..." value="{{ request('buscar') }}">
+        <input type="text" name="buscar" data-sugerencias="clientes" autocomplete="off" class="form-control" placeholder="Buscar por nombre o distrito..." value="{{ request('buscar') }}">
     </div>
     <label class="fb-label mb-0">Tipo</label>
     <select name="tipo" class="form-control" style="width:auto;" onchange="this.form.submit()">

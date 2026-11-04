@@ -67,8 +67,8 @@
             <tr>
                 <td>{{ $m->nombre }}</td>
                 <td>{{ $m->proveedor->nombre ?? '—' }}</td>
-                <td class="num">{{ \App\Support\Cantidad::fmt($m->stock_actual) }} {{ $m->unidad->abreviatura }}</td>
-                <td class="num">{{ \App\Support\Cantidad::fmt($m->stock_minimo) }}</td>
+                <td class="num">{{ \App\Support\Cantidad::conUnidad($m->stock_actual, $m->unidad->abreviatura) }}</td>
+                <td class="num">{{ \App\Support\Cantidad::conUnidad($m->stock_minimo, $m->unidad->abreviatura) }}</td>
                 <td class="num">S/ {{ number_format($m->costo_unitario, 2) }}</td>
                 <td class="num">S/ {{ number_format($m->stock_actual * $m->costo_unitario, 2) }}</td>
                 <td>
@@ -80,7 +80,7 @@
                         <span class="badge badge-ok">Normal</span>
                     @endif
                 </td>
-                <td class="num">{{ $m->reponer > 0 ? \App\Support\Cantidad::fmt($m->reponer) . ' ' . $m->unidad->abreviatura : '' }}</td>
+                <td class="num">{{ $m->reponer > 0 ? \App\Support\Cantidad::conUnidad($m->reponer, $m->unidad->abreviatura) : '' }}</td>
             </tr>
             @endforeach
         </tbody>

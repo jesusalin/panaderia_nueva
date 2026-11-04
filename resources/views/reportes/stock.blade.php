@@ -95,24 +95,30 @@
     </div>
 </div>
 
-<div class="card rp-filter">
-    <form method="GET" id="formStock" class="form-inline flex-wrap" style="gap:.6rem;">
-        <input type="text" name="buscar" id="inBuscar" class="form-control" placeholder="Buscar por nombre…" value="{{ request('buscar') }}" autocomplete="off">
-        <select name="tipo" class="form-control" onchange="this.form.submit()">
-            <option value="todos"    {{ $tipo === 'todos'    ? 'selected' : '' }}>Todo el inventario</option>
-            <option value="materia"  {{ $tipo === 'materia'  ? 'selected' : '' }}>Solo Materia Prima</option>
-            <option value="producto" {{ $tipo === 'producto' ? 'selected' : '' }}>Solo Productos</option>
-        </select>
-        <select name="stock" class="form-control" onchange="this.form.submit()">
-            <option value="">Todos los niveles</option>
-            <option value="bajo"    {{ request('stock') === 'bajo'    ? 'selected' : '' }}>Necesitan reposición (bajo + agotado)</option>
-            <option value="agotado" {{ request('stock') === 'agotado' ? 'selected' : '' }}>Solo agotados</option>
-        </select>
-        @if(request('buscar') || request('stock') || ($tipo ?? 'todos') !== 'todos')
-            <a href="{{ route('reportes.stock') }}" class="btn btn-light text-muted"><i class="fas fa-times mr-1"></i>Limpiar</a>
-        @endif
-    </form>
-</div>
+<form method="GET" id="formStock" class="filter-bar flex-wrap" style="gap:.6rem">
+    <div class="search-box flex-grow-1" style="min-width:220px;">
+        <i class="fas fa-search"></i>
+        <input type="text" name="buscar" id="inBuscar" class="form-control" autocomplete="off"
+               data-sugerencias="{{ ['materia' => 'insumos', 'producto' => 'productos'][$tipo ?? 'todos'] ?? 'stock' }}"
+               placeholder="Buscar insumo o producto…" value="{{ request('buscar') }}">
+    </div>
+    <label class="fb-label mb-0">Mostrar</label>
+    <select name="tipo" class="form-control" style="width:auto;" onchange="this.form.submit()">
+        <option value="todos"    {{ $tipo === 'todos'    ? 'selected' : '' }}>Todo el inventario</option>
+        <option value="materia"  {{ $tipo === 'materia'  ? 'selected' : '' }}>Solo materia prima</option>
+        <option value="producto" {{ $tipo === 'producto' ? 'selected' : '' }}>Solo productos</option>
+    </select>
+    <label class="fb-label mb-0">Nivel</label>
+    <select name="stock" class="form-control" style="width:auto;" onchange="this.form.submit()">
+        <option value="">Todos los niveles</option>
+        <option value="bajo"    {{ request('stock') === 'bajo'    ? 'selected' : '' }}>Necesitan reposición (bajo + agotado)</option>
+        <option value="agotado" {{ request('stock') === 'agotado' ? 'selected' : '' }}>Solo agotados</option>
+    </select>
+    <button type="submit" class="btn btn-light"><i class="fas fa-filter mr-1"></i>Filtrar</button>
+    @if(request('buscar') || request('stock') || ($tipo ?? 'todos') !== 'todos')
+        <a href="{{ route('reportes.stock') }}" class="btn btn-light text-muted"><i class="fas fa-times mr-1"></i>Limpiar</a>
+    @endif
+</form>
 
 @if($materias->count() > 0)
 <div class="rp-section-title"><i class="fas fa-wheat-awn text-secondary"></i>Materia Prima</div>
@@ -125,14 +131,14 @@
                 <div class="lr-subtitle">{{ $m->proveedor->nombre ?? 'Sin proveedor' }}</div>
             </div>
             <div class="lr-meta">
-                <div class="lm-item"><span class="lm-label">Stock</span><span class="lm-value {{ $m->nivel === 'ok' ? '' : 'text-danger' }}">{{ \App\Support\Cantidad::fmt($m->stock_actual) }} {{ $m->unidad->abreviatura }}</span></div>
-                <div class="lm-item"><span class="lm-label">Mínimo</span><span class="lm-value">{{ \App\Support\Cantidad::fmt($m->stock_minimo) }} {{ $m->unidad->abreviatura }}</span></div>
+                <div class="lm-item"><span class="lm-label">Stock</span><span class="lm-value {{ $m->nivel === 'ok' ? '' : 'text-danger' }}">{{ \App\Support\Cantidad::conUnidad($m->stock_actual, $m->unidad->abreviatura) }}</span></div>
+                <div class="lm-item"><span class="lm-label">Mínimo</span><span class="lm-value">{{ \App\Support\Cantidad::conUnidad($m->stock_minimo, $m->unidad->abreviatura) }}</span></div>
                 <div class="lm-item"><span class="lm-label">Costo Unit.</span><span class="lm-value">S/ {{ number_format($m->costo_unitario, 2) }}</span></div>
             </div>
             <div class="lr-side">
                 <span class="lr-amount">S/ {{ number_format($m->valor, 2) }}</span>
                 @if($m->reponer > 0)
-                    <div class="reponer-hint">Reponer ≈ {{ \App\Support\Cantidad::fmt($m->reponer) }} {{ $m->unidad->abreviatura }}</div>
+                    <div class="reponer-hint">Reponer ≈ {{ \App\Support\Cantidad::conUnidad($m->reponer, $m->unidad->abreviatura) }}</div>
                 @endif
                 <div class="sk-acciones">
                     @if($puedeKardex)<a href="{{ route('reportes.kardex', ['item' => 'materia-'.$m->id]) }}" class="btn btn-outline-info" title="Ver su kardex"><i class="fas fa-file-invoice"></i></a>@endif
@@ -186,17 +192,6 @@
 
 @push('scripts')
 <script>
-    // Búsqueda automática: al dejar de escribir medio segundo, se filtra sola.
-    (function () {
-        const input = document.getElementById('inBuscar');
-        const form  = document.getElementById('formStock');
-        let timer;
-        input.addEventListener('input', function () {
-            clearTimeout(timer);
-            timer = setTimeout(() => form.submit(), 500);
-        });
-        // Mantiene el cursor al final tras recargar si se estaba escribiendo
-        if (input.value) { input.focus(); input.setSelectionRange(input.value.length, input.value.length); }
-    })();
+    // El buscador muestra sugerencias de insumos y productos (ver layout: data-sugerencias).
 </script>
 @endpush

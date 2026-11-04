@@ -253,6 +253,116 @@ No necesita migración. Las cantidades de insumos se muestran limpias: `25.000 k
 - Los movimientos nuevos de conteo/ajuste ya escriben "(-0.8)" en vez de "(-0.800)"; los
   textos que ya estaban guardados antes no cambian.
 
+## ✅ Vuelta 13 (unidad más cómoda: 0.5 L → 500 mL)
+
+No necesita migración. Al mostrar una cantidad, el sistema pasa a la unidad más fácil de leer:
+`0.5 L` → `500 mL`, `0.25 kg` → `250 g`, `1500 mL` → `1.5 L`, `2000 g` → `2 kg` (1.5 L se queda igual).
+Solo cambia cómo se muestra; en la base de datos y en los formularios todo sigue en la unidad del insumo.
+- `Cantidad::conUnidad()` y `fmtCantU()` (JavaScript).
+- Aplicado en materia prima, ajuste, movimientos, conteo físico, compras, órdenes automáticas,
+  producción, recetas, dashboard, reportes de stock y kardex (pantalla y PDF) y correo de stock bajo.
+
+## ✅ Vuelta 14 (solo el admin cambia contraseñas)
+
+No necesita migración. **Borrar** `app/Http/Middleware/ExigirCambioPassword.php` (ya no se usa).
+- Los usuarios ya no pueden cambiar su contraseña: en *Mi perfil* ven un aviso de que la administra
+  el administrador. Siguen pudiendo cambiar su foto, nombre, apodo, correo y usuario.
+- El admin sí cambia la suya en *Mi perfil* (pidiendo la actual) y la de los demás en *Editar usuario*:
+  escribiéndola o con **Generar contraseña** (se muestra una sola vez).
+- Ya no existe la "contraseña temporal" que obligaba a cambiarla al entrar.
+- `php artisan usuario:clave admin` sigue sirviendo si el admin olvida la suya.
+
+## ✅ Vuelta 15 (Producción y Recetas)
+
+No necesita migración.
+
+**Producción**
+- **¿Qué producir hoy?** (arriba de *Nueva producción*): productos en su mínimo o cerca, cuánto venden
+  al día (promedio de 7 días), cantidad sugerida en tandas completas y si alcanzan los insumos
+  (y cuál falta). Botón "Producir N" que llena el formulario. En el listado, un aviso lleva ahí.
+- Al elegir un producto: **para cuántas unidades alcanzan los insumos** (y cuál limita, con
+  "Usar el máximo") y **costo de los insumos** de la tanda y por unidad.
+- Mensaje claro si no alcanza: "No alcanzan los insumos: Harina (necesitas 3 kg, hay 2.5 kg).
+  Con lo que hay puedes producir hasta 250 unidades." Al guardar se bloquea cada insumo para que
+  dos producciones a la vez no dejen el stock en negativo.
+- "Producir" desde la ficha del producto abre el formulario con ese producto elegido.
+- Listado con el ícono y color de la categoría y las unidades producidas hoy.
+
+**Recetas**
+- Cada receta muestra cuánto cuesta una unidad, a cuánto se vende y el % de ganancia, y avisa si
+  un insumo está inactivo, no tiene costo o si cuesta más de lo que se vende.
+- Las cantidades se pueden escribir en **g o mL** (se guardan en kg o L); al editar, lo menor a
+  1 kg/L aparece en g/mL. Costo de la tanda y por unidad mientras se edita.
+- **Copiar los ingredientes de otro producto** y no se permite repetir un insumo.
+- Buscador y filtro (con receta, sin receta, con avisos).
+- Nuevo `app/Support/PlanProduccion.php` con los cálculos.
+
+## ✅ Vuelta 16 (rediseño: Nueva producción, Ver detalle, Editar receta, Editar producto)
+
+No necesita migración.
+
+- **Nueva producción** en 3 pasos: (1) elegir el producto en fichas con buscador (marca "Sugerido" y
+  "Sin receta"), (2) cantidad con − / + por tandas y botones "1, 2, 3 tandas" y "Máximo", (3) fecha y
+  nota. A la derecha, un resumen fijo: alcanza para, stock después, costo de insumos, ganancia
+  estimada e insumos con barra. Empieza con 1 tanda.
+- **Ver detalle de producción**: cabecera con el producto, tandas, costo de insumos, valor de venta y
+  ganancia estimada; insumos **realmente descontados** (no la receta actual) con su costo y cómo quedó
+  el stock; "Qué pasó"; botones Ver producto y **Repetir producción**.
+- **Editar receta** ahora es una pantalla propia (`/produccion/recetas/{producto}/editar`): filas
+  numeradas con insumo, cantidad, unidad (g/kg, mL/L) y costo; stock y costo de cada insumo; panel
+  con rendimiento, costo de la tanda y por unidad, y % de ganancia con barra; copiar de otro producto.
+- **Nuevo / Editar producto** comparten un formulario por secciones (información, foto con vista
+  previa y arrastrar, precio y ganancia con barra, stock, interruptor de disponible) y una columna con
+  la vista previa del catálogo y lo que falta (precio, costo, receta).
+
+## ✅ Vuelta 17 (listas desplegables de los filtros)
+
+Solo cambia `resources/views/layouts/app.blade.php`. Las listas desplegables (Categoría, Estado,
+Ordenar, etc.) tienen ahora su propia flecha con espacio reservado, así el texto elegido
+("Galletas y dulces") ya no queda tapado por la flecha en ningún navegador. Además, en las barras de
+búsqueda cada etiqueta queda pegada a su lista (ya no queda "ORDENAR" sola al final de una línea).
+
+## ✅ Vuelta 18 (buscadores con sugerencias)
+
+No necesita migración. En todos los buscadores (Productos, Materia prima, Categorías, Usuarios,
+Clientes, Proveedores, Recetas, Historial y Reporte de stock):
+- Al hacer clic se despliega la lista completa (con el estilo del sistema, en claro u oscuro; ya no
+  aparece el autocompletar negro del navegador).
+- Mientras escribes, la lista se va achicando y resalta lo escrito; no importan tildes ni mayúsculas
+  ("frances" encuentra "Pan francés") y se puede escribir en desorden ("pan yem").
+- Clic o ↑ ↓ + Enter en una sugerencia busca al instante; Esc cierra; Enter sin elegir busca lo escrito.
+- Nuevo `SugerenciasController` (`/sugerencias/{fuente}`); cada lista pide el mismo permiso que su pantalla.
+- Las listas desplegables en modo oscuro vuelven a mostrar su flecha.
+- **Reporte de kardex**: el buscador del insumo/producto ya no usa la lista del navegador (la negra):
+  muestra los 46 insumos y productos con su stock y se achica al escribir; al elegir carga su kardex.
+- **Reporte de stock**: buscador con el mismo estilo de los demás (ícono, etiquetas y botón Filtrar);
+  las sugerencias siguen a "Mostrar" (solo insumos, solo productos o todo).
+
+## ✅ Vuelta 19 (Inventario)
+
+> **Después de copiar, ejecuta `php artisan migrate`** (agrega `es_control` y marca como "insumos de control" a harina, azúcar, sal, levadura, manteca, mantequilla, huevo, leche, aceite y margarina).
+
+- **Stock protegido:** en *Editar insumo* el stock ya no se escribe a mano; solo cambia con compras, producción, ajustes o conteo. El stock inicial de un insumo nuevo queda como movimiento en el kardex.
+- **Ajuste claro:** dos opciones — *Merma o pérdida* (con motivo: vencido, roto, mal estado, otro) o *Corrección por conteo*. Se puede escribir en g/mL; muestra antes → después y la pérdida en S/.
+- **Ficha del insumo** (clic en la tarjeta): stock, días que alcanza, consumo de 14 días, recetas donde se usa, últimas compras, últimos movimientos y último conteo.
+- **Listado:** resumen (insumos, stock bajo, agotados, valor del almacén), filtro por stock, orden por urgencia / días / valor, "Alcanza para N días" y etiqueta *Control*.
+- **Nuevo / Editar insumo** por secciones con vista previa.
+- **Movimientos de materia prima y de productos:** periodos rápidos (hoy, 7, 30 días, todo), buscador, filtro por motivo, resumen con valor en S/ y lista agrupada por día con saldo antes → después.
+- **Conteo físico:** modo *Insumos de control* (rápido, para el PER) o *Todos*; progreso, diferencia en vivo con su valor, PER en vivo, conteo a ciegas, botón "= Coincide", confirmación antes de guardar.
+- **Historial y detalle del conteo:** PER de cada conteo (insumos con diferencia ÷ contados × 100), gráfico de tendencia, faltante/sobrante en S/.
+
+## ✅ Vuelta 20 (Nuevo / Editar insumo y búsqueda del conteo)
+
+- **Nuevo / Editar insumo:** la unidad se elige con un clic (Peso, Líquidos, Por pieza); avisa al instante si el nombre ya existe o se parece a otro (y el servidor tampoco deja repetirlo); muestra las conversiones (0.5 kg = 500 g, S/ por g, cuánto cuesta cada compra); al editar sugiere el stock mínimo según el consumo (3 días) y avisa si cambias la unidad de un insumo que ya tiene recetas o movimientos; lista de revisión antes de guardar.
+- **Conteo físico fuera del menú:** se entra con el botón "Conteo físico" de Materia Prima (o desde el Dashboard). Solo aparece en el menú para quien tiene permiso de conteo pero no de Materia Prima.
+- **Búsqueda del conteo:** sin tildes y con varias palabras ("har tri"), resalta lo encontrado, botón para borrar (o Esc), filtros Por contar / Contados / Con diferencia con sus números, "Mostrando X de Y", Enter salta a escribir la cantidad y vuelve al buscador, "/" abre el buscador, y si no encuentra en los de control ofrece buscar en todos los insumos.
+
+## ✅ Vuelta 21 (Detalles de movimientos e historial)
+
+- **Historial de conteos:** el botón "Nuevo Conteo" ahora es **Regresar** (vuelve a la pantalla del conteo).
+- **Movimientos de materia prima y de productos:** cada movimiento tiene su flecha (verde ↑ si el stock subió, roja ↓ si bajó, ⇅ en ajustes), flecha de color entre el stock de antes y el de después, y en la cabecera de cada día cuántos subieron y cuántos bajaron. El resumen de arriba usa las mismas flechas. En celular la cantidad queda al lado del nombre.
+- **Al entrar a cualquiera de los dos movimientos** se muestra **Todo** (antes eran 7 días); los botones Hoy / 7 / 30 días siguen para filtrar.
+
 ## 🔲 Lo que falta
 
 ### A. Configuración (no es código)

@@ -283,6 +283,7 @@ class DatabaseSeeder extends Seeder
                 'stock_actual' => $inicial, 'stock_minimo' => $minimo,
                 'cantidad_reposicion' => $prov ? $reposicion : null,
                 'costo_unitario' => $costo, 'estado' => 'activo',
+                'es_control' => in_array($c, self::INSUMOS_CONTEO, true),   // los 10 del conteo del PER
             ] + $ts);
 
             $this->mp[$c] = ['id' => $id, 'nombre' => $nombre, 'unidad' => $abrev, 'prov' => $prov,

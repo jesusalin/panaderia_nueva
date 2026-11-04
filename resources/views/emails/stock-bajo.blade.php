@@ -24,8 +24,8 @@
                 @foreach($insumos as $i)
                 <tr style="border-bottom:1px solid #eee;">
                     <td>{{ $i->nombre }}</td>
-                    <td>{{ \App\Support\Cantidad::fmt($i->stock_actual) }} {{ $i->unidad->abreviatura ?? '' }}</td>
-                    <td>{{ \App\Support\Cantidad::fmt($i->stock_minimo) }}</td>
+                    <td>{{ \App\Support\Cantidad::conUnidad($i->stock_actual, $i->unidad->abreviatura) }}</td>
+                    <td>{{ \App\Support\Cantidad::conUnidad($i->stock_minimo, $i->unidad->abreviatura ?? '') }}</td>
                     <td style="color:{{ $i->stock_actual <= 0 ? '#c0392b' : '#a5680d' }}; font-weight:bold;">{{ $i->stock_actual <= 0 ? 'Agotado' : 'Bajo' }}</td>
                 </tr>
                 @endforeach

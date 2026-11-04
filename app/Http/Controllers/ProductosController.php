@@ -175,8 +175,14 @@ class ProductosController extends Controller
 
     public function edit(Producto $producto) {
         $categorias = Categoria::where('estado','activo')->orderBy('nombre')->get();
+        // Si su categoría está inactiva, igual debe aparecer para no cambiarla sin querer
+        $categorias = Categoria::where('estado', 'activo')->orWhere('id', $producto->id_categoria)->orderBy('nombre')->get();
         $costoReceta = $producto->costoSegunReceta();
-        return view('productos.edit', compact('producto','categorias','costoReceta'));
+        $vendidos30 = (int) VentaDetalle::where('id_producto', $producto->id)
+            ->whereHas('venta', fn ($v) => $v->where('estado', 'completada')->where('fecha_venta', '>=', now()->subDays(30)))
+            ->sum('cantidad');
+        $tieneReceta = $producto->receta()->exists();
+        return view('productos.edit', compact('producto','categorias','costoReceta','vendidos30','tieneReceta'));
     }
 
     public function update(Request $request, Producto $producto) {

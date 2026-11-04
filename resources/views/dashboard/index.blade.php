@@ -280,7 +280,7 @@
                 @endif
             </div>
             @if($u->hasPermiso('inventario.movimientos'))
-            <div class="ac-foot"><a href="{{ route('movimientos.index') }}">Ver movimientos del día →</a></div>
+            <div class="ac-foot"><a href="{{ route('movimientos.index', ['periodo' => 'hoy']) }}">Ver movimientos del día →</a></div>
             @endif
         </div>
     </div>
@@ -409,7 +409,7 @@
                         @if($c->stock <= 0)<span class="badge-soft badge-soft-danger ml-1">Agotado</span>@else<span class="badge-soft badge-soft-warning ml-1">Bajo</span>@endif
                     </div>
                     <div class="ai-barra"><div class="ai-fill {{ $c->stock <= 0 ? 'rojo' : 'ambar' }}" style="width: {{ max($pct, 3) }}%"></div></div>
-                    <div class="ai-dato">{{ $fmt($c->stock) }} / {{ $fmt($c->minimo) }} {{ $c->unidad }}</div>
+                    <div class="ai-dato">{{ \App\Support\Cantidad::conUnidad($c->stock, $c->unidad) }} / {{ \App\Support\Cantidad::conUnidad($c->minimo, $c->unidad) }}</div>
                     <div>
                         @if($c->dias !== null)
                             <span class="ai-dias {{ $c->dias < 1 ? 'urgente' : 'pronto' }}" title="Según el consumo promedio de los últimos 7 días">

@@ -122,7 +122,7 @@
                 @foreach($producto->receta->detalles as $d)
                     <tr>
                         <td>{{ $d->materia->nombre ?? '—' }}</td>
-                        <td class="text-right">{{ \App\Support\Cantidad::fmt($d->cantidad) }} {{ $d->materia->unidad->abreviatura ?? '' }}</td>
+                        <td class="text-right">{{ \App\Support\Cantidad::conUnidad($d->cantidad, $d->materia->unidad->abreviatura) }}</td>
                         <td class="text-right">S/ {{ number_format($d->cantidad * ($d->materia->costo_unitario ?? 0), 2) }}</td>
                     </tr>
                 @endforeach

@@ -9,8 +9,8 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 
 /**
- * "Mi perfil": cada usuario (sea o no admin) cambia su foto, nombre, apodo,
- * correo y su propia contraseña.
+ * "Mi perfil": cada usuario cambia su foto, nombre, apodo, correo y usuario.
+ * La contraseña solo la cambia el administrador.
  */
 class PerfilController extends Controller
 {
@@ -57,11 +57,12 @@ class PerfilController extends Controller
     public function password(Request $request)
     {
         $u = $request->user();
+        // Solo el administrador cambia contraseñas (la suya aquí y la de los demás en Usuarios)
+        abort_unless($u->isAdmin(), 403, 'Solo el administrador puede cambiar contraseñas.');
         $reglas = [
-            'password' => 'required|string|min:6|confirmed',
+            'password_actual' => 'required|current_password',
+            'password'        => 'required|string|min:6|confirmed',
         ];
-        // Si entra con una contraseña temporal del admin no se le pide la actual
-        if (!$u->debe_cambiar_password) $reglas['password_actual'] = 'required|current_password';
 
         $request->validate($reglas, [
             'password_actual.current_password' => 'La contraseña actual no es correcta.',

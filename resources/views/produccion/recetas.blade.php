@@ -9,7 +9,7 @@
 
 @push('styles')
 <style>
-    .rec-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-bottom: 1.25rem; }
+    .rec-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-bottom: 1.25rem; }
     .rec-stat {
         background: #fff; border-radius: 12px; padding: 1rem 1.1rem; box-shadow: 0 2px 12px rgba(0,0,0,.05);
         border-left: 4px solid #dee2e6; display: flex; align-items: center; gap: .8rem;
@@ -28,6 +28,23 @@
     .rec-stat.con .rst-icon      { background: rgba(46,204,113,.14); color: #1e8e5a; }
     .rec-stat.sin      { border-left-color: #f39c12; }
     .rec-stat.sin .rst-icon      { background: rgba(243,156,18,.14); color: #b9770e; }
+    .rec-stat.aviso    { border-left-color: #e74c3c; }
+    .rec-stat.aviso .rst-icon    { background: rgba(231,76,60,.12); color: #c0392b; }
+    a.rec-stat { text-decoration: none; color: inherit; }
+    a.rec-stat:hover { box-shadow: 0 4px 16px rgba(0,0,0,.08); }
+
+    .rec-card-media > i { color: var(--cat-color, #b5451b) !important; }
+    .rec-costo { margin: 0 1.1rem .6rem; padding: .55rem .75rem; background: #f7f5f3; border-radius: 9px; font-size: .78rem; color: #6c757d;
+        display: flex; flex-wrap: wrap; gap: .2rem .9rem; align-items: center; }
+    .rec-costo b { color: #1a1a2e; }
+    .rec-costo .rc-margen { margin-left: auto; font-weight: 800; padding: .1rem .5rem; border-radius: 20px; background: rgba(46,204,113,.14); color: #1e8e5a; }
+    .rec-costo .rc-margen.baja { background: rgba(243,156,18,.16); color: #a5680d; }
+    .rec-costo .rc-margen.perdida { background: rgba(231,76,60,.14); color: #c0392b; }
+    body.dark-mode .rec-costo { background: #24243b; color: #b0b0cc; }
+    body.dark-mode .rec-costo b { color: #f0f0f7; }
+    .rec-avisos { margin: 0 1.1rem .7rem; padding: .45rem .7rem; border-radius: 9px; background: rgba(231,76,60,.08); color: #b3261e; font-size: .76rem; }
+    .rec-avisos i { margin-right: .3rem; }
+
 
     /* Tarjeta de receta (reusa .item-card pero con el ícono de producto en vez de foto grande) */
     .rec-card-media {
@@ -36,8 +53,8 @@
     }
     body.dark-mode .rec-card-media { background: #24243b; }
     .rec-card-media img { width: 100%; height: 100%; object-fit: cover; }
-    .rec-card-media i { font-size: 1.8rem; color: #b5451b; }
-    body.dark-mode .rec-card-media i { color: #ff9d6e; }
+    .rec-card-media > i { font-size: 1.8rem; color: #b5451b; }
+    body.dark-mode .rec-card-media > i { color: #ff9d6e; }
     .rec-card-media .ic-badge { position: absolute; top: .5rem; right: .5rem; }
 
     .rec-ing-list { padding: .3rem 1.1rem .8rem; }
@@ -57,25 +74,9 @@
     .rec-sin-receta { text-align: center; padding: 1.6rem 1rem; color: #adb5bd; font-size: .85rem; }
     .rec-sin-receta i { font-size: 1.6rem; display: block; margin-bottom: .5rem; opacity: .5; }
 
-    /* Modal */
-    #modalReceta .modal-content { border-radius: 14px; overflow: hidden; border: none; }
-    #modalReceta .modal-header {
-        background: linear-gradient(135deg, #b5451b, #8a3213); color: #fff; border: none;
-    }
-    #modalReceta .modal-header .close { color: #fff; opacity: .8; text-shadow: none; }
-    #modalReceta .modal-header .close:hover { opacity: 1; }
-    body.dark-mode #modalReceta .modal-content { background: #1f1f33; }
-    body.dark-mode #modalReceta .modal-body label { color: #d5d5e2; }
-    body.dark-mode #modalReceta .modal-footer { border-top-color: #33334d; }
 
-    .modal-ing-row {
-        display: flex; align-items: center; gap: .5rem; padding: .5rem; background: #f7f5f3; border-radius: 10px; margin-bottom: .5rem;
-    }
-    body.dark-mode .modal-ing-row { background: #24243b; }
-    .modal-ing-row select { flex: 2; }
-    .modal-ing-row input { flex: 1; }
-
-    @media (max-width: 768px) { .rec-stats { grid-template-columns: 1fr; } }
+    @media (max-width: 992px) { .rec-stats { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 576px) { .rec-stats { grid-template-columns: 1fr; } }
 </style>
 @endpush
 
@@ -99,23 +100,38 @@
         <div class="rst-icon"><i class="fas fa-check-circle"></i></div>
         <div><div class="rst-value">{{ $stats['con_receta'] }}</div><div class="rst-label">Con receta</div></div>
     </div>
-    <div class="rec-stat sin">
+    <a href="{{ route('produccion.recetas', ['estado' => 'sin']) }}" class="rec-stat sin">
         <div class="rst-icon"><i class="fas fa-exclamation-triangle"></i></div>
         <div><div class="rst-value">{{ $stats['sin_receta'] }}</div><div class="rst-label">Sin receta</div></div>
-    </div>
+    </a>
+    <a href="{{ route('produccion.recetas', ['estado' => 'aviso']) }}" class="rec-stat aviso">
+        <div class="rst-icon"><i class="fas fa-exclamation-circle"></i></div>
+        <div><div class="rst-value">{{ $stats['con_aviso'] }}</div><div class="rst-label">Con avisos</div></div>
+    </a>
 </div>
+
+<form method="GET" action="{{ route('produccion.recetas') }}" class="filter-bar flex-wrap" style="gap:.6rem">
+    <div class="search-box flex-grow-1" style="min-width:220px;">
+        <i class="fas fa-search"></i>
+        <input type="text" name="buscar" data-sugerencias="productos" autocomplete="off" class="form-control" placeholder="Buscar producto..." value="{{ request('buscar') }}">
+    </div>
+    <label class="fb-label mb-0">Mostrar</label>
+    <select name="estado" class="form-control" style="width:auto;" onchange="this.form.submit()">
+        <option value="">Todos</option>
+        <option value="con"   {{ request('estado') === 'con'   ? 'selected' : '' }}>Con receta</option>
+        <option value="sin"   {{ request('estado') === 'sin'   ? 'selected' : '' }}>Sin receta</option>
+        <option value="aviso" {{ request('estado') === 'aviso' ? 'selected' : '' }}>Con avisos</option>
+    </select>
+    <button type="submit" class="btn btn-light"><i class="fas fa-filter mr-1"></i>Filtrar</button>
+    @if(request('buscar') || request('estado'))
+        <a href="{{ route('produccion.recetas') }}" class="btn btn-light text-muted"><i class="fas fa-times mr-1"></i>Limpiar</a>
+    @endif
+</form>
 
 <div class="card-grid">
     @forelse($productos as $producto)
-    @php
-        $catLower = mb_strtolower($producto->categoria->nombre ?? '');
-        $iconoP = 'fa-bread-slice';
-        if (str_contains($catLower, 'pastel') || str_contains($catLower, 'torta')) $iconoP = 'fa-birthday-cake';
-        elseif (str_contains($catLower, 'galleta'))  $iconoP = 'fa-cookie';
-        elseif (str_contains($catLower, 'empanada')) $iconoP = 'fa-cheese';
-        elseif (str_contains($catLower, 'bebida') || str_contains($catLower, 'café')) $iconoP = 'fa-mug-hot';
-    @endphp
-    <div class="item-card">
+    @php $iconoP = $producto->categoria->icono_final ?? 'fa-bread-slice'; @endphp
+    <div class="item-card" style="--cat-color: {{ $producto->categoria->color_final ?? '#b5451b' }}">
         <div class="rec-card-media">
             @if($producto->imagen)
                 <img src="{{ asset('storage/'.$producto->imagen) }}" alt="{{ $producto->nombre }}">
@@ -123,7 +139,9 @@
                 <i class="fas {{ $iconoP }}"></i>
             @endif
             <span class="ic-badge">
-                @if($producto->receta)
+                @if($producto->receta && $producto->avisos_receta)
+                    <span class="badge-soft badge-soft-danger"><i class="fas fa-exclamation-circle mr-1"></i>Revisar</span>
+                @elseif($producto->receta)
                     <span class="badge-soft badge-soft-success"><i class="fas fa-check mr-1"></i>Receta OK</span>
                 @else
                     <span class="badge-soft badge-soft-secondary">Sin receta</span>
@@ -141,10 +159,24 @@
                 @foreach($producto->receta->detalles as $d)
                 <div class="rec-ing-row">
                     <span class="ri-nombre">{{ $d->materia->nombre }}</span>
-                    <span class="ri-cant">{{ $d->cantidad }} {{ $d->materia->unidad->abreviatura }}</span>
+                    <span class="ri-cant">{{ \App\Support\Cantidad::conUnidad($d->cantidad, $d->materia->unidad->abreviatura) }}</span>
                 </div>
                 @endforeach
             </div>
+            @if($producto->costo_receta !== null)
+                <div class="rec-costo">
+                    <span>Cuesta <b>S/ {{ number_format($producto->costo_receta, 2) }}</b> c/u</span>
+                    <span>Se vende a <b>S/ {{ number_format($producto->precio_venta, 2) }}</b></span>
+                    @if($producto->margen_receta !== null)
+                        <span class="rc-margen {{ $producto->margen_receta < 0 ? 'perdida' : ($producto->margen_receta < 20 ? 'baja' : '') }}">
+                            {{ $producto->margen_receta < 0 ? 'Pierdes' : 'Ganas' }} {{ abs($producto->margen_receta) }}%
+                        </span>
+                    @endif
+                </div>
+            @endif
+            @if($producto->avisos_receta)
+                <div class="rec-avisos"><i class="fas fa-exclamation-triangle"></i>{{ ucfirst(implode('; ', array_unique($producto->avisos_receta))) }}.</div>
+            @endif
             <div class="rec-rendimiento">
                 Rinde: <strong>{{ $producto->receta->rendimiento }} unidades</strong>
                 @if($producto->receta->descripcion)
@@ -159,19 +191,15 @@
         @endif
 
         <div class="item-card-footer">
-            <button class="btn btn-sm btn-outline-warning btn-block btn-editar-receta"
-                data-id="{{ $producto->id }}"
-                data-nombre="{{ $producto->nombre }}"
-                data-rendimiento="{{ $producto->receta->rendimiento ?? 1 }}"
-                data-descripcion="{{ $producto->receta->descripcion ?? '' }}">
+            <a href="{{ route('produccion.receta.editar', $producto) }}" class="btn btn-sm btn-outline-warning btn-block">
                 <i class="fas fa-edit mr-1"></i>{{ $producto->receta ? 'Editar' : 'Crear' }} receta
-            </button>
+            </a>
         </div>
     </div>
     @empty
     <div class="empty-state" style="grid-column: 1 / -1;">
         <i class="fas fa-book"></i>
-        <p>No hay productos activos.</p>
+        <p>{{ request('buscar') || request('estado') ? 'Ningún producto coincide con ese filtro.' : 'No hay productos activos.' }}</p>
         @if(auth()->user()->hasPermiso('catalogo.productos'))
         <a href="{{ route('productos.create') }}" class="btn btn-primary"><i class="fas fa-plus mr-1"></i>Crear producto</a>
         @endif
@@ -179,130 +207,4 @@
     @endforelse
 </div>
 
-{{-- Modal Receta --}}
-<div class="modal fade" id="modalReceta" tabindex="-1">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <form action="{{ route('produccion.guardar-receta') }}" method="POST" id="formReceta">
-                @csrf
-                <div class="modal-header">
-                    <h5 class="modal-title"><i class="fas fa-book mr-2"></i>Receta: <span id="tituloProducto">—</span></h5>
-                    <button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
-                </div>
-                <div class="modal-body">
-                    <input type="hidden" name="id_producto" id="modalIdProducto">
-
-                    <div class="row">
-                        <div class="col-md-4 form-group">
-                            <label>Rendimiento (unidades) <span class="text-danger">*</span></label>
-                            <input type="number" name="rendimiento" id="modalRendimiento"
-                                class="form-control" min="1" value="1" required>
-                            <small class="text-muted">¿Cuántas unidades produce esta receta?</small>
-                        </div>
-                        <div class="col-md-8 form-group">
-                            <label>Descripción</label>
-                            <input type="text" name="descripcion" id="modalDescripcion"
-                                class="form-control" placeholder="Ej: Receta para pan francés clásico">
-                        </div>
-                    </div>
-
-                    <div class="d-flex justify-content-between align-items-center mb-2">
-                        <strong>Ingredientes</strong>
-                        <button type="button" class="btn btn-sm btn-success" id="btnAgregarIng">
-                            <i class="fas fa-plus mr-1"></i>Agregar ingrediente
-                        </button>
-                    </div>
-
-                    <div id="bodyIngredientes"></div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-light" data-dismiss="modal">Cancelar</button>
-                    <button type="submit" class="btn btn-warning">
-                        <i class="fas fa-save mr-1"></i>Guardar Receta
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-
-@php
-    $materiasJs = \App\Models\MateriaPrima::where('estado', 'activo')
-        ->with('unidad')
-        ->orderBy('nombre')
-        ->get()
-        ->map(function($m) {
-            return [
-                'id'          => $m->id,
-                'nombre'      => $m->nombre,
-                'abreviatura' => $m->unidad->abreviatura,
-            ];
-        });
-@endphp
-
-<script>
-const materias = @json($materiasJs);
-let ingIndex = 0;
-
-function agregarIngrediente(idMateria, cantidad) {
-    idMateria = idMateria || '';
-    cantidad  = cantidad  || '';
-
-    let options = materias.map(function(m) {
-        return '<option value="' + m.id + '"' + (m.id == idMateria ? ' selected' : '') + '>' + m.nombre + ' (' + m.abreviatura + ')</option>';
-    }).join('');
-
-    const html = '<div class="modal-ing-row fila-ing">'
-        + '<select name="ingredientes[' + ingIndex + '][id_materia]" class="form-control form-control-sm" required>'
-        + '<option value="">-- Seleccionar --</option>' + options
-        + '</select>'
-        + '<input type="number" name="ingredientes[' + ingIndex + '][cantidad]" '
-        + 'class="form-control form-control-sm" step="0.001" min="0.001" value="' + cantidad + '" required placeholder="Cantidad">'
-        + '<button type="button" class="btn btn-sm btn-outline-danger btn-quitar-ing"><i class="fas fa-times"></i></button>'
-        + '</div>';
-
-    document.getElementById('bodyIngredientes').insertAdjacentHTML('beforeend', html);
-    document.querySelector('#bodyIngredientes .fila-ing:last-child .btn-quitar-ing')
-        .addEventListener('click', function() { this.closest('.fila-ing').remove(); });
-    ingIndex++;
-}
-
-document.getElementById('btnAgregarIng').addEventListener('click', function() {
-    agregarIngrediente('', '');
-});
-
-document.querySelectorAll('.btn-editar-receta').forEach(function(btn) {
-    btn.addEventListener('click', function() {
-        const id          = this.dataset.id;
-        const nombre      = this.dataset.nombre;
-        const rendimiento = this.dataset.rendimiento;
-        const descripcion = this.dataset.descripcion;
-
-        document.getElementById('tituloProducto').textContent = nombre;
-        document.getElementById('modalIdProducto').value      = id;
-        document.getElementById('modalRendimiento').value     = rendimiento;
-        document.getElementById('modalDescripcion').value     = descripcion;
-        document.getElementById('bodyIngredientes').innerHTML = '';
-        ingIndex = 0;
-
-        fetch('/produccion/ingredientes/' + id)
-            .then(function(r) { return r.json(); })
-            .then(function(data) {
-                if (data && data.detalles && data.detalles.length > 0) {
-                    data.detalles.forEach(function(d) {
-                        const materia = materias.find(function(m) { return m.nombre === d.nombre; });
-                        agregarIngrediente(materia ? materia.id : '', d.cantidad);
-                    });
-                } else {
-                    agregarIngrediente('', '');
-                }
-            })
-            .catch(function() {
-                agregarIngrediente('', '');
-            });
-
-        $('#modalReceta').modal('show');
-    });
-});
-</script>
 @endsection

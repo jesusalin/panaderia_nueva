@@ -71,7 +71,8 @@ class RegistrarActividad
             'materia-prima.update'        => ['editar',   'Inventario', fn () => 'Editó el insumo ' . $n()],
             'materia-prima.destroy'       => ['eliminar', 'Inventario', fn () => 'Eliminó el insumo ' . $n()],
             'materia-prima.toggle-estado' => ['editar',   'Inventario', fn () => ucfirst($est()) . ' el insumo ' . $n()],
-            'materia-prima.ajuste.store'  => ['editar',   'Inventario', fn () => 'Ajustó el stock de ' . $n() . ' a ' . $in('stock_real')],
+            'materia-prima.ajuste.store'  => ['editar',   'Inventario', fn () => 'Ajustó el stock de ' . $n() . ' (' . ($in('tipo_ajuste') === 'merma'
+                ? 'merma de ' . $in('cantidad') . ($in('unidad') === 'sub' ? ' g/mL' : '') : 'conteo: ' . $in('stock_real') . ($in('unidad') === 'sub' ? ' g/mL' : '')) . ')'],
             'conteo-fisico.store'         => ['crear',    'Inventario', fn () => 'Registró un conteo físico de ' . collect($r->input('conteo', []))->filter(fn ($i) => ($i['stock_fisico'] ?? '') !== '' && ($i['stock_fisico'] ?? null) !== null)->count() . ' insumo(s)'],
             // Producción
             'produccion.store'          => ['crear',    'Producción', fn () => 'Registró producción de ' . $in('cantidad') . ' uds de "' . (Producto::find($r->input('id_producto'))->nombre ?? 'producto') . '"'],
@@ -100,7 +101,7 @@ class RegistrarActividad
             'usuarios.update'        => ['editar',   'Usuarios', fn () => 'Editó al usuario ' . $n() . ' (datos o permisos)'],
             'usuarios.destroy'       => ['eliminar', 'Usuarios', fn () => 'Eliminó al usuario ' . $n()],
             'usuarios.toggle-estado' => ['editar',   'Usuarios', fn () => ucfirst($est()) . ' al usuario ' . $n()],
-            'usuarios.clave-temporal'=> ['editar',   'Usuarios', fn () => 'Le dio una contraseña temporal a ' . $n()],
+            'usuarios.clave-temporal'=> ['editar',   'Usuarios', fn () => 'Le puso una contraseña nueva a ' . $n()],
             'perfil.update'          => ['editar',   'Perfil',   fn () => 'Actualizó sus datos de perfil'],
             'perfil.password'        => ['editar',   'Perfil',   fn () => 'Cambió su contraseña'],
             'backups.store'    => ['crear',    'Respaldos', fn () => 'Generó un respaldo de la base de datos'],

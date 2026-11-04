@@ -93,20 +93,22 @@
     <form method="GET" id="formKardex" class="form-inline flex-wrap" style="gap:.6rem;">
         <input type="hidden" name="periodo" value="{{ $periodo !== 'personalizado' ? $periodo : '' }}">
 
-        {{-- Buscador en vivo: escribe parte del nombre y elige. Funciona con un datalist
-             nativo (sin librerías externas); el valor real viaja en el campo oculto "item". --}}
+        {{-- Buscador con sugerencias (ver layout): al hacer clic muestra todos los insumos y
+             productos y se va achicando mientras se escribe; el valor real viaja en "item". --}}
         <input type="hidden" name="item" id="itemValor" value="{{ $itemActual }}">
-        <input type="text" id="itemBuscar" class="form-control" style="min-width:300px;" list="listaItems"
-               placeholder="Escribe para buscar un insumo o producto…" autocomplete="off"
-               value="{{ $item ? $item->nombre . ' · ' . ($tipoItem === 'materia' ? 'Insumo' : 'Producto') : '' }}">
-        <datalist id="listaItems">
-            @foreach($materias as $m)
-                <option value="{{ $m->nombre }} · Insumo" data-valor="materia-{{ $m->id }}"></option>
-            @endforeach
-            @foreach($productos as $p)
-                <option value="{{ $p->nombre }} · Producto" data-valor="producto-{{ $p->id }}"></option>
-            @endforeach
-        </datalist>
+        <div class="search-box" style="min-width:320px;">
+            <i class="fas fa-search"></i>
+            <input type="text" id="itemBuscar" class="form-control" autocomplete="off"
+                   data-sugerencias="kardex" data-sugerencias-lista="itemsKardex" data-sugerencias-valor="#itemValor"
+                   placeholder="Busca un insumo o producto…"
+                   value="{{ $item ? $item->nombre : '' }}">
+        </div>
+        @php
+            $itemsKardex = $materias->map(fn ($m) => ['t' => $m->nombre, 's' => 'Insumo · stock ' . \App\Support\Cantidad::conUnidad($m->stock_actual, $m->unidad->abreviatura ?? ''), 'i' => 'fa-wheat-awn', 'v' => 'materia-' . $m->id])
+                ->merge($productos->map(fn ($p) => ['t' => $p->nombre, 's' => 'Producto · stock ' . $p->stock_actual, 'i' => 'fa-bread-slice', 'v' => 'producto-' . $p->id]))
+                ->values();
+        @endphp
+        <script type="application/json" id="itemsKardex">@json($itemsKardex)</script>
 
         <details class="ml-1" {{ $periodo === 'personalizado' ? 'open' : '' }}>
             <summary class="text-muted small" style="cursor:pointer;">Fechas exactas</summary>
@@ -138,16 +140,16 @@
     <div class="rp-stat-grid">
         <div class="rp-stat">
             <div class="rp-label">Saldo inicial</div>
-            <div class="rp-value">{{ \App\Support\Cantidad::fmt($saldoInicial) }} {{ $unidad }}</div>
+            <div class="rp-value">{{ \App\Support\Cantidad::conUnidad($saldoInicial, $unidad) }}</div>
             <div class="rp-sub">al empezar el periodo</div>
         </div>
         <div class="rp-stat acc-success">
             <div class="rp-label">Entradas</div>
-            <div class="rp-value">+ {{ \App\Support\Cantidad::fmt($totalEntradas) }} {{ $unidad }}</div>
+            <div class="rp-value">+ {{ \App\Support\Cantidad::conUnidad($totalEntradas, $unidad) }}</div>
         </div>
         <div class="rp-stat acc-danger">
             <div class="rp-label">Salidas</div>
-            <div class="rp-value">− {{ \App\Support\Cantidad::fmt($totalSalidas) }} {{ $unidad }}</div>
+            <div class="rp-value">− {{ \App\Support\Cantidad::conUnidad($totalSalidas, $unidad) }}</div>
         </div>
         <div class="rp-stat {{ $stockBajo ? 'acc-danger' : 'acc-info' }}">
             <div class="rp-label">Saldo actual
@@ -157,8 +159,8 @@
                     </span>
                 @endif
             </div>
-            <div class="rp-value">{{ \App\Support\Cantidad::fmt($item->stock_actual) }} {{ $unidad }}</div>
-            <div class="rp-sub">mínimo: {{ \App\Support\Cantidad::fmt($item->stock_minimo) }} {{ $unidad }}</div>
+            <div class="rp-value">{{ \App\Support\Cantidad::conUnidad($item->stock_actual, $unidad) }}</div>
+            <div class="rp-sub">mínimo: {{ \App\Support\Cantidad::conUnidad($item->stock_minimo, $unidad) }}</div>
         </div>
         <div class="rp-stat acc-warn">
             <div class="rp-label">Valor del saldo</div>
@@ -180,8 +182,8 @@
         @foreach($porMotivo as $motivo => $d)
             <div class="kd-motivo">
                 {{ $motivos[$motivo] ?? ucfirst(str_replace('_', ' ', $motivo)) }}:
-                @if($d['entrada'] > 0)<b class="text-success">+{{ \App\Support\Cantidad::fmt($d['entrada']) }}</b>@endif
-                @if($d['salida'] > 0)<b class="text-danger">−{{ \App\Support\Cantidad::fmt($d['salida']) }}</b>@endif
+                @if($d['entrada'] > 0)<b class="text-success">+{{ \App\Support\Cantidad::conUnidad($d['entrada'], $unidad) }}</b>@endif
+                @if($d['salida'] > 0)<b class="text-danger">−{{ \App\Support\Cantidad::conUnidad($d['salida'], $unidad) }}</b>@endif
                 <span class="text-muted">({{ $d['cuenta'] }})</span>
             </div>
         @endforeach
@@ -214,7 +216,7 @@
             <tbody>
                 <tr class="kd-row-inicial">
                     <td colspan="5">Saldo inicial</td>
-                    <td class="text-right">{{ \App\Support\Cantidad::fmt($saldoInicial) }} {{ $unidad }}</td>
+                    <td class="text-right">{{ \App\Support\Cantidad::conUnidad($saldoInicial, $unidad) }}</td>
                     <td colspan="2"></td>
                 </tr>
                 @foreach($movimientos as $mov)
@@ -226,9 +228,9 @@
                         </span>
                     </td>
                     <td class="text-muted small">{{ $motivos[$mov->motivo] ?? ucfirst(str_replace('_', ' ', $mov->motivo)) }}</td>
-                    <td class="text-right text-success font-weight-bold">{{ $mov->entrada > 0 ? '+'.\App\Support\Cantidad::fmt($mov->entrada) : '' }}</td>
-                    <td class="text-right text-danger font-weight-bold">{{ $mov->salida > 0 ? '−'.\App\Support\Cantidad::fmt($mov->salida) : '' }}</td>
-                    <td class="text-right font-weight-bold">{{ \App\Support\Cantidad::fmt($mov->stock_despues) }} {{ $unidad }}</td>
+                    <td class="text-right text-success font-weight-bold">{{ $mov->entrada > 0 ? '+'.\App\Support\Cantidad::conUnidad($mov->entrada, $unidad) : '' }}</td>
+                    <td class="text-right text-danger font-weight-bold">{{ $mov->salida > 0 ? '−'.\App\Support\Cantidad::conUnidad($mov->salida, $unidad) : '' }}</td>
+                    <td class="text-right font-weight-bold">{{ \App\Support\Cantidad::conUnidad($mov->stock_despues, $unidad) }}</td>
                     <td class="text-muted small">{{ $mov->usuario->apodo ?? $mov->usuario->nombre ?? '—' }}</td>
                     <td class="text-muted small">{{ $mov->observacion }}</td>
                 </tr>
@@ -254,28 +256,7 @@
 
 @push('scripts')
 <script>
-    // Buscador en vivo del ítem: al elegir una opción del listado, carga el kardex solo.
-    (function () {
-        const buscar = document.getElementById('itemBuscar');
-        const valor  = document.getElementById('itemValor');
-        const form   = document.getElementById('formKardex');
-        const opciones = Array.from(document.querySelectorAll('#listaItems option'));
-
-        buscar.addEventListener('focus', () => buscar.select()); // para reemplazar el texto al escribir
-        buscar.addEventListener('change', function () {
-            const texto = buscar.value.trim();
-            if (texto === '') { valor.value = ''; form.submit(); return; }
-
-            let hallada = opciones.find(o => o.value.toLowerCase() === texto.toLowerCase());
-            if (!hallada) { // si lo escrito coincide con una sola opción, se toma esa
-                const parecidas = opciones.filter(o => o.value.toLowerCase().includes(texto.toLowerCase()));
-                if (parecidas.length === 1) hallada = parecidas[0];
-            }
-            if (hallada) { valor.value = hallada.dataset.valor; form.submit(); }
-        });
-        // Enter dentro del buscador no debe enviar el formulario con un ítem a medias
-        buscar.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); buscar.dispatchEvent(new Event('change')); } });
-    })();
+    // El buscador del ítem usa las sugerencias del layout (data-sugerencias).
 </script>
 @if($item && $movimientos->count() >= 2)
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>

@@ -29,7 +29,7 @@
 <form method="GET" action="{{ route('productos.index') }}" class="filter-bar flex-wrap" style="gap:.6rem">
     <div class="search-box flex-grow-1" style="min-width:220px;">
         <i class="fas fa-search"></i>
-        <input type="text" name="buscar" class="form-control" placeholder="Buscar por nombre o descripción..." value="{{ request('buscar') }}">
+        <input type="text" name="buscar" data-sugerencias="productos" autocomplete="off" class="form-control" placeholder="Buscar por nombre o descripción..." value="{{ request('buscar') }}">
     </div>
     <label class="fb-label mb-0">Categoría</label>
     <select name="categoria" class="form-control" style="width:auto;" onchange="this.form.submit()">

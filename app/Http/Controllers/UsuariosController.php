@@ -125,7 +125,7 @@ class UsuariosController extends Controller
         $data = $request->only(['nombre','apodo','usuario','email','id_rol','estado']);
         if ($request->filled('password')) {
             $data['password'] = Hash::make($request->password);
-            $data['debe_cambiar_password'] = $request->boolean('debe_cambiar_password');
+            $data['debe_cambiar_password'] = false;
         }
         $usuario->update($data);
 
@@ -135,16 +135,16 @@ class UsuariosController extends Controller
     }
 
     /**
-     * Cuando alguien olvida su contraseña: el admin le genera una TEMPORAL (se muestra
-     * una sola vez) y al entrar el sistema le obliga a elegir la suya. Las contraseñas
-     * se guardan cifradas sin vuelta atrás (hash), así nadie —ni el admin— puede leerlas.
+     * Cuando alguien olvida su contraseña: el admin le genera una nueva (se muestra una
+     * sola vez). Solo el admin cambia contraseñas; los usuarios no pueden cambiar la suya.
+     * Se guardan cifradas sin vuelta atrás (hash), así nadie —ni el admin— puede leerlas.
      */
     public function claveTemporal(Usuario $usuario) {
         if (auth()->id() === $usuario->id) {
             return back()->with('error', 'Tu propia contraseña la cambias en "Mi perfil".');
         }
         $clave = Usuario::generarClaveTemporal();
-        $usuario->update(['password' => $clave, 'debe_cambiar_password' => true]);
+        $usuario->update(['password' => $clave, 'debe_cambiar_password' => false]);
 
         return back()->with('clave_temporal', ['nombre' => $usuario->nombre, 'usuario' => $usuario->usuario, 'clave' => $clave]);
     }
