@@ -29,6 +29,63 @@ class MateriaPrima extends Model {
     }
 
     /**
+     * Costo promedio ponderado: mezcla lo que ya había (a su costo) con lo que entra (a su precio).
+     * Si no había stock, el costo es el precio de lo que entra.
+     */
+    public static function costoPromedio(float $stockAntes, float $costoAntes, float $cantidad, float $precio): float
+    {
+        if ($stockAntes <= 0 || $costoAntes <= 0) return round($precio, 4);
+        if ($cantidad <= 0) return round($costoAntes, 4);
+        return round(($stockAntes * $costoAntes + $cantidad * $precio) / ($stockAntes + $cantidad), 4);
+    }
+
+    /**
+     * Lo contrario: saca del promedio lo que había entrado (al anular una compra recibida).
+     * Si no queda stock o el resultado no tiene sentido, se deja el costo como está.
+     */
+    public static function costoSinEntrada(float $stockAntes, float $costoAntes, float $cantidad, float $precio): float
+    {
+        $queda = $stockAntes - $cantidad;
+        if ($queda <= 0.0005) return round($costoAntes, 4);
+        $costo = ($stockAntes * $costoAntes - $cantidad * $precio) / $queda;
+        return $costo > 0 ? round($costo, 4) : round($costoAntes, 4);
+    }
+
+    /**
+     * Precios de cada proveedor por insumo, según las compras (no anuladas).
+     * @return Collection id_materia => Collection de [id_proveedor, nombre, activo, precio (sin IGV), fecha, veces, promedio]
+     *         ordenado del más barato al más caro.
+     */
+    public static function preciosPorProveedor(iterable $ids): Collection
+    {
+        $ids = collect($ids)->unique()->values();
+        if ($ids->isEmpty()) return collect();
+
+        return CompraDetalle::query()
+            ->join('compras', 'compras.id', '=', 'compra_detalles.id_compra')
+            ->join('proveedores', 'proveedores.id', '=', 'compras.id_proveedor')
+            ->where('compras.estado', '!=', 'anulada')
+            ->whereIn('compra_detalles.id_materia', $ids)
+            ->orderByDesc('compras.fecha_compra')->orderByDesc('compras.id')
+            ->get(['compra_detalles.id_materia', 'compra_detalles.precio_unitario', 'compras.incluye_igv', 'compras.fecha_compra',
+                   'compras.id_proveedor', 'proveedores.nombre as proveedor', 'proveedores.estado as estado_proveedor'])
+            ->groupBy('id_materia')
+            ->map(fn ($filas) => $filas->groupBy('id_proveedor')->map(function ($f) {
+                $neto = fn ($d) => $d->incluye_igv ? round($d->precio_unitario / (1 + Compra::IGV), 2) : (float) $d->precio_unitario;
+                $ultimo = $f->first();
+                return [
+                    'id_proveedor' => (int) $ultimo->id_proveedor,
+                    'nombre'       => $ultimo->proveedor,
+                    'activo'       => $ultimo->estado_proveedor === 'activo',
+                    'precio'       => $neto($ultimo),
+                    'fecha'        => \Carbon\Carbon::parse($ultimo->fecha_compra),
+                    'veces'        => $f->count(),
+                    'promedio'     => round($f->avg(fn ($d) => $neto($d)), 2),
+                ];
+            })->sortBy('precio')->values());
+    }
+
+    /**
      * Consumo promedio por día de varios insumos (lo que sale por producción y mermas
      * en los últimos DIAS_CONSUMO días). @return Collection id_materia => cantidad/día
      */

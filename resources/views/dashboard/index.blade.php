@@ -242,7 +242,7 @@
 @endphp
 
 <div class="dash-greeting">
-    <h2>Hola, {{ $u->apodo ?? explode(' ', $u->nombre)[0] }} 👋</h2>
+    <h2>Hola, {{ $u->apodo ?? explode(' ', $u->nombre)[0] }}</h2>
     <p>{{ \Carbon\Carbon::now()->locale('es')->translatedFormat('l, d \d\e F \d\e Y') }}</p>
 </div>
 

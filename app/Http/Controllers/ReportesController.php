@@ -22,23 +22,42 @@ class ReportesController extends Controller
      */
     public function index()
     {
-        $insumosStockBajo = MateriaPrima::where('estado', 'activo')
-            ->whereColumn('stock_actual', '<=', 'stock_minimo')->count();
+        $u = auth()->user();
 
-        $productosStockBajo = Producto::where('estado', 'activo')
-            ->whereColumn('stock_actual', '<=', 'stock_minimo')->count();
+        // Stock
+        $insumosStockBajo = MateriaPrima::where('estado', 'activo')->whereColumn('stock_actual', '<=', 'stock_minimo')->count();
+        $productosStockBajo = Producto::where('estado', 'activo')->whereColumn('stock_actual', '<=', 'stock_minimo')->count();
+        $valorInsumos = (float) MateriaPrima::where('estado', 'activo')->selectRaw('SUM(stock_actual * costo_unitario) as v')->value('v');
+        $valorProductos = (float) Producto::where('estado', 'activo')->selectRaw('SUM(stock_actual * COALESCE(costo_produccion, 0)) as v')->value('v');
+        $movimientosHoy = MovimientoInventario::whereDate('created_at', today())->count();
 
-        $movimientosHoy = MovimientoInventario::whereDate('created_at', now())->count();
+        // Cierre diario: hoy y días con movimiento que quedaron sin cerrar (últimos 7)
+        $cierreHoy = \App\Models\CierreInventario::with('usuario')->whereDate('fecha', today())->first();
+        $diasConMov = MovimientoInventario::where('created_at', '>=', today()->subDays(7))->where('created_at', '<', today())
+            ->get(['created_at'])->map(fn ($m) => $m->created_at->toDateString())->unique();
+        $cerrados = \App\Models\CierreInventario::whereDate('fecha', '>=', today()->subDays(7))->get()->map(fn ($c) => $c->fecha->toDateString());
+        $sinCerrar = $diasConMov->diff($cerrados)->count();
 
-        // La exactitud del último conteo es el PROMEDIO de todas las filas de su
-        // lote (un conteo cuenta varios insumos a la vez), no la de una sola fila.
-        $ultimoLote = \App\Models\ConteoFisico::orderByDesc('created_at')->value('lote');
-        $exactitudUltimoConteo = $ultimoLote
-            ? round(\App\Models\ConteoFisico::where('lote', $ultimoLote)->get()->avg('exactitud'), 1)
-            : null;
+        // Mes actual: mermas y compras
+        $inicioMes = today()->startOfMonth();
+        $mermasMes = (float) MovimientoInventario::join('materia_prima', 'materia_prima.id', '=', 'movimientos_inventario.id_materia')
+            ->where('movimientos_inventario.motivo', 'merma')->where('movimientos_inventario.created_at', '>=', $inicioMes)
+            ->sum(\Illuminate\Support\Facades\DB::raw('movimientos_inventario.cantidad * materia_prima.costo_unitario'));
+        $comprasMes = (float) \App\Models\Compra::where('estado', '!=', 'anulada')->whereDate('fecha_compra', '>=', $inicioMes)->sum('total');
+        $comprasPorRecibir = \App\Models\Compra::where('estado', 'pendiente')->count();
+
+        // PER del último conteo (insumos con diferencia ÷ contados × 100)
+        $ultimoLote = \App\Models\ConteoFisico::orderByDesc('created_at')->orderByDesc('id')->value('lote');
+        $per = null; $fechaConteo = null;
+        if ($ultimoLote) {
+            $filas = \App\Models\ConteoFisico::where('lote', $ultimoLote)->get();
+            $per = $filas->count() ? round($filas->filter(fn ($f) => abs((float) $f->diferencia) > 0.0005)->count() / $filas->count() * 100, 1) : null;
+            $fechaConteo = $filas->first()?->created_at;
+        }
 
         return view('reportes.index', compact(
-            'insumosStockBajo', 'productosStockBajo', 'movimientosHoy', 'exactitudUltimoConteo'
+            'insumosStockBajo', 'productosStockBajo', 'valorInsumos', 'valorProductos', 'movimientosHoy',
+            'cierreHoy', 'sinCerrar', 'mermasMes', 'comprasMes', 'comprasPorRecibir', 'per', 'fechaConteo'
         ));
     }
 
@@ -108,6 +127,25 @@ class ReportesController extends Controller
 
         $materias  = $preparar($materias, true);
         $productos = $preparar($productos, false);
+
+        // Días que alcanza el stock de cada insumo (consumo de los últimos 14 días)
+        $consumo = MateriaPrima::consumoDiario($materias->pluck('id'));
+        $materias->each(function ($m) use ($consumo) {
+            $m->por_dia = $consumo[$m->id] ?? null;
+            $m->dias = $m->diasCobertura($m->por_dia);
+        });
+
+        // Orden elegido (por defecto: los críticos primero)
+        $orden = $request->get('orden');
+        if ($orden === 'dias') {
+            $materias = $materias->sortBy(fn ($m) => $m->dias === null ? PHP_INT_MAX : $m->dias)->values();
+        } elseif ($orden === 'valor') {
+            $materias = $materias->sortByDesc('valor')->values();
+            $productos = $productos->sortByDesc('valor')->values();
+        } elseif ($orden === 'nombre') {
+            $materias = $materias->sortBy(fn ($m) => mb_strtolower($m->nombre))->values();
+            $productos = $productos->sortBy(fn ($p) => mb_strtolower($p->nombre))->values();
+        }
 
         $valorMateria  = $materias->sum('valor');
         $valorProducto = $productos->sum('valor');

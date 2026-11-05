@@ -90,7 +90,10 @@ class Usuario extends Authenticatable {
             'items' => [
                 'reportes.resumen' => ['nombre' => 'Resumen de Reportes', 'desc' => 'Cifras clave de todos los reportes'],
                 'reportes.stock'   => ['nombre' => 'Reporte de Stock', 'desc' => 'Semáforo de stock y exportar PDF/Excel'],
+                'reportes.cierre'  => ['nombre' => 'Cierre Diario', 'desc' => 'Saldo inicial, entradas, salidas y saldo final del día; registrar el cierre'],
                 'reportes.kardex'  => ['nombre' => 'Reporte de Kardex', 'desc' => 'Kardex por insumo o producto, PDF/Excel'],
+                'reportes.mermas'  => ['nombre' => 'Reporte de Mermas', 'desc' => 'Pérdidas de insumos y productos en S/, por motivo'],
+                'reportes.compras' => ['nombre' => 'Reporte de Compras', 'desc' => 'Gasto por proveedor e insumo y variación de precios'],
             ],
         ],
         'ventas_clientes' => [

@@ -123,12 +123,12 @@
                         <label>Costo por <span class="lbl-unidad">unidad</span> <span class="text-danger">*</span></label>
                         <div class="pfm-money"><span>S/</span>
                             <input type="number" name="costo_unitario" id="inCosto" step="0.01" min="0" required class="form-control @error('costo_unitario') is-invalid @enderror"
-                                   value="{{ old('costo_unitario', $m->costo_unitario ?? '') }}" placeholder="0.00">
+                                   value="{{ old('costo_unitario', $m ? round((float) $m->costo_unitario, 2) : '') }}" placeholder="0.00">
                         </div>
                         @error('costo_unitario')<div class="text-danger small">{{ $message }}</div>@enderror
                         <span class="mp-conv" id="convCosto"></span>
                         @if($editar)
-                            <small class="text-muted">Se actualiza solo al recibir una compra con otro precio.</small>
+                            <small class="text-muted">Es el <b>costo promedio</b>: se recalcula solo al recibir cada compra (mezcla lo que había con lo que llega).</small>
                         @else
                             <small class="text-muted">Lo que pagas al proveedor por 1 <span class="lbl-unidad">unidad</span>.</small>
                         @endif

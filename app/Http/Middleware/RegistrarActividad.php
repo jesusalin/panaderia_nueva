@@ -85,9 +85,11 @@ class RegistrarActividad
             'proveedores.toggle-estado' => ['editar',   'Compras', fn () => ucfirst($est()) . ' el proveedor ' . $n()],
             'compras.store'             => ['crear',    'Compras', fn () => 'Registró una compra a "' . (Proveedor::find($r->input('id_proveedor'))->nombre ?? 'proveedor') . '"' . (($c = $mio(Compra::class)) ? " (compra #{$c->id})" : '')],
             'compras.recibir'           => ['editar',   'Compras', fn () => 'Recibió la compra ' . $id() . ' (entró al stock)'],
-            'compras.anular'            => ['eliminar', 'Compras', fn () => 'Anuló la compra ' . $id()],
+            'compras.anular'            => ['eliminar', 'Compras', fn () => 'Anuló la compra ' . $id() . ($in('motivo_anulacion') ? ' (' . $in('motivo_anulacion') . ')' : '')],
+            'reportes.cierre.guardar'   => ['crear',    'Reportes', fn () => 'Registró el cierre de inventario del ' . \Carbon\Carbon::parse($in('fecha') ?: today())->format('d/m/Y')],
             'ordenes-automaticas.generar'   => ['crear', 'Compras', fn () => 'Generó órdenes automáticas de reposición'],
             'ordenes-automaticas.convertir' => ['crear', 'Compras', fn () => 'Convirtió la orden automática ' . $id() . ' en compra'],
+            'ordenes-automaticas.convertir-varias' => ['crear', 'Compras', fn () => 'Convirtió ' . count((array) $r->input('ordenes', [])) . ' orden(es) automática(s) en compras'],
             'ordenes-automaticas.descartar' => ['eliminar', 'Compras', fn () => 'Descartó la orden automática ' . $id()],
             // Ventas y clientes
             'ventas.store'   => ['crear',    'Ventas', fn () => 'Registró la venta ' . (($v = $mio(Venta::class)) ? "{$v->numero_venta} por S/ " . number_format($v->total, 2) : '')],

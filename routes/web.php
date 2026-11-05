@@ -119,11 +119,13 @@ Route::middleware(['auth'])->group(function () {
     });
     Route::middleware(['modulo:compras.compras'])->group(function () {
         Route::resource('compras', ComprasController::class)->only(['index', 'create', 'store', 'show']);
+        Route::get('compras/{compra}/recibir', [ComprasController::class, 'recibirForm'])->name('compras.recibir.form');
         Route::put('compras/{compra}/recibir', [ComprasController::class, 'recibir'])->name('compras.recibir');
         Route::put('compras/{compra}/anular',  [ComprasController::class, 'anular'])->name('compras.anular');
     });
     Route::middleware(['modulo:compras.ordenes'])->group(function () {
         Route::get('ordenes-automaticas',  [OrdenesAutomaticasController::class, 'index'])->name('ordenes-automaticas.index');
+        Route::post('ordenes-automaticas/convertir-varias', [OrdenesAutomaticasController::class, 'convertirVarias'])->name('ordenes-automaticas.convertir-varias');
         Route::post('ordenes-automaticas/generar', [OrdenesAutomaticasController::class, 'generar'])->name('ordenes-automaticas.generar');
         Route::post('ordenes-automaticas/{ordenAutomatica}/convertir', [OrdenesAutomaticasController::class, 'convertir'])->name('ordenes-automaticas.convertir');
         Route::post('ordenes-automaticas/{ordenAutomatica}/descartar', [OrdenesAutomaticasController::class, 'descartar'])->name('ordenes-automaticas.descartar');
@@ -149,6 +151,22 @@ Route::middleware(['auth'])->group(function () {
         Route::get('reportes/stock',        [ReportesController::class, 'stock'])->name('reportes.stock');
         Route::get('reportes/stock/pdf',    [ReportesController::class, 'stockPdf'])->name('reportes.stock.pdf');
         Route::get('reportes/stock/excel',  [ReportesController::class, 'stockExcel'])->name('reportes.stock.excel');
+    });
+    Route::middleware(['modulo:reportes.cierre'])->group(function () {
+        Route::get('reportes/cierre',        [\App\Http\Controllers\CierreInventarioController::class, 'index'])->name('reportes.cierre');
+        Route::post('reportes/cierre',       [\App\Http\Controllers\CierreInventarioController::class, 'guardar'])->name('reportes.cierre.guardar');
+        Route::get('reportes/cierre/pdf',    [\App\Http\Controllers\CierreInventarioController::class, 'pdf'])->name('reportes.cierre.pdf');
+        Route::get('reportes/cierre/excel',  [\App\Http\Controllers\CierreInventarioController::class, 'excel'])->name('reportes.cierre.excel');
+    });
+    Route::middleware(['modulo:reportes.mermas'])->group(function () {
+        Route::get('reportes/mermas',        [\App\Http\Controllers\ReportesGestionController::class, 'mermas'])->name('reportes.mermas');
+        Route::get('reportes/mermas/pdf',    [\App\Http\Controllers\ReportesGestionController::class, 'mermasPdf'])->name('reportes.mermas.pdf');
+        Route::get('reportes/mermas/excel',  [\App\Http\Controllers\ReportesGestionController::class, 'mermasExcel'])->name('reportes.mermas.excel');
+    });
+    Route::middleware(['modulo:reportes.compras'])->group(function () {
+        Route::get('reportes/compras',       [\App\Http\Controllers\ReportesGestionController::class, 'compras'])->name('reportes.compras');
+        Route::get('reportes/compras/pdf',   [\App\Http\Controllers\ReportesGestionController::class, 'comprasPdf'])->name('reportes.compras.pdf');
+        Route::get('reportes/compras/excel', [\App\Http\Controllers\ReportesGestionController::class, 'comprasExcel'])->name('reportes.compras.excel');
     });
     Route::middleware(['modulo:reportes.kardex'])->group(function () {
         Route::get('reportes/kardex',       [ReportesController::class, 'kardex'])->name('reportes.kardex');

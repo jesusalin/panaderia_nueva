@@ -16,7 +16,7 @@ class MateriaPrimaController extends Controller
     public function index(Request $request) {
         $request->validate([
             'buscar'    => 'nullable|string|max:100',
-            'proveedor' => 'nullable|integer',
+            'proveedor' => ['nullable', 'regex:/^(\d+|ninguno)$/'],
             'estado'    => 'nullable|in:activo,inactivo',
             'stock'     => 'nullable|in:bajo,agotado,ok',
             'orden'     => 'nullable|in:nombre,urgente,dias,valor',
@@ -25,7 +25,8 @@ class MateriaPrimaController extends Controller
         $query = MateriaPrima::with(['unidad', 'proveedor'])
             ->withCount(['recetaDetalles', 'compraDetalles', 'movimientos', 'ordenesAutomaticas'])
             ->when($request->buscar, fn($q) => $q->where('nombre', 'like', '%'.$request->buscar.'%'))
-            ->when($request->proveedor, fn($q) => $q->where('id_proveedor', $request->proveedor))
+            ->when($request->proveedor === 'ninguno', fn($q) => $q->whereNull('id_proveedor'))
+            ->when($request->proveedor && $request->proveedor !== 'ninguno', fn($q) => $q->where('id_proveedor', $request->proveedor))
             ->when($request->estado, fn($q) => $q->where('estado', $request->estado))
             ->when($request->stock === 'bajo', fn($q) => $q->where('stock_actual', '>', 0)->whereColumn('stock_actual', '<=', 'stock_minimo'))
             ->when($request->stock === 'agotado', fn($q) => $q->where('stock_actual', '<=', 0))
@@ -92,7 +93,14 @@ class MateriaPrimaController extends Controller
 
         $ultimoConteo = $m->conteosFisicos()->latest('id')->first();
 
-        return view('materia_prima.show', compact('m', 'porDia', 'dias', 'consumoDias', 'recetas', 'compras', 'movimientos', 'ultimoConteo'));
+        // Cuánto cobra cada proveedor por este insumo (del más barato al más caro)
+        $preciosProv = MateriaPrima::preciosPorProveedor([$m->id])[$m->id] ?? collect();
+        if ($m->id_proveedor && !$preciosProv->contains('id_proveedor', $m->id_proveedor) && $m->proveedor) {
+            $preciosProv->push(['id_proveedor' => $m->id_proveedor, 'nombre' => $m->proveedor->nombre, 'activo' => $m->proveedor->estado === 'activo',
+                'precio' => null, 'fecha' => null, 'veces' => 0, 'promedio' => null]);
+        }
+
+        return view('materia_prima.show', compact('m', 'porDia', 'dias', 'consumoDias', 'recetas', 'compras', 'movimientos', 'ultimoConteo', 'preciosProv'));
     }
 
     public function create() {
@@ -139,6 +147,10 @@ class MateriaPrimaController extends Controller
         $datos = $request->validate($this->reglas($materiaPrima->id), $this->mensajes());
         $datos['es_control'] = $request->boolean('es_control');
         // El stock NO se cambia aquí (rompería el kardex): se usa "Ajustar stock" o el conteo físico
+        // El costo se muestra con 2 decimales: si no lo cambiaron, se conserva el promedio exacto
+        if (abs((float) $datos['costo_unitario'] - round((float) $materiaPrima->costo_unitario, 2)) < 0.005) {
+            unset($datos['costo_unitario']);
+        }
         $materiaPrima->update($datos);
         return redirect()->route('materia-prima.show', $materiaPrima)->with('success', 'Materia prima actualizada.');
     }

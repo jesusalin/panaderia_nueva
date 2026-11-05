@@ -561,6 +561,10 @@
             background-repeat: no-repeat; background-position: right .8rem center; background-size: 11px 8px;
         }
         .filter-bar select.form-control { flex-shrink: 0; max-width: 100%; }
+        /* ── Barra de acciones fija abajo (conteo físico, órdenes automáticas): no se mueve al bajar,
+              el pie de página queda encima de ella ── */
+        .barra-fija { position: fixed !important; bottom: 0; z-index: 1030; margin: 0 !important; border-radius: 14px 14px 0 0 !important; }
+        @media print { .barra-fija { position: static !important; } }
         /* ── Sugerencias de los buscadores (data-sugerencias) ── */
         .sug-wrap { position: relative; display: inline-block; }
         .sug-lista { position: absolute; top: calc(100% + 6px); left: 0; z-index: 1060; min-width: 100%; width: max(100%, 320px); max-width: 92vw;
@@ -860,12 +864,13 @@
                             @endif
                             @if(auth()->user()->hasPermiso('compras.compras'))
                             <li class="nav-item" data-menu-id="compras">
-                                <a href="{{ route('compras.index') }}" class="nav-link {{ request()->routeIs('compras.*') ? 'active' : '' }}">
+                                <a href="{{ route('compras.index') }}" class="nav-link {{ request()->routeIs('compras.*') || request()->routeIs('ordenes-automaticas.*') ? 'active' : '' }}">
                                     <i class="nav-icon fas fa-shopping-cart"></i><p>Compras</p>
                                 </a>
                             </li>
                             @endif
-                            @if(auth()->user()->hasPermiso('compras.ordenes'))
+                            {{-- Las órdenes automáticas se abren con el botón de Compras; solo salen en el menú si no se tiene esa pantalla --}}
+                            @if(auth()->user()->hasPermiso('compras.ordenes') && !auth()->user()->hasPermiso('compras.compras'))
                             <li class="nav-item" data-menu-id="ordenes-automaticas">
                                 <a href="{{ route('ordenes-automaticas.index') }}" class="nav-link {{ request()->routeIs('ordenes-automaticas.*') ? 'active' : '' }}">
                                     <i class="nav-icon fas fa-robot"></i><p>Órdenes Automáticas</p>
@@ -931,6 +936,13 @@
                                 </a>
                             </li>
                             @endif
+                            @if(auth()->user()->hasPermiso('reportes.cierre'))
+                            <li class="nav-item" data-menu-id="reportes-cierre">
+                                <a href="{{ route('reportes.cierre') }}" class="nav-link {{ request()->routeIs('reportes.cierre*') ? 'active' : '' }}">
+                                    <i class="nav-icon fas fa-calendar-check"></i><p>Cierre Diario</p>
+                                </a>
+                            </li>
+                            @endif
                             @if(auth()->user()->hasPermiso('reportes.stock'))
                             <li class="nav-item" data-menu-id="reportes-stock">
                                 <a href="{{ route('reportes.stock') }}" class="nav-link {{ request()->routeIs('reportes.stock*') ? 'active' : '' }}">
@@ -942,6 +954,20 @@
                             <li class="nav-item" data-menu-id="reportes-kardex">
                                 <a href="{{ route('reportes.kardex') }}" class="nav-link {{ request()->routeIs('reportes.kardex*') ? 'active' : '' }}">
                                     <i class="nav-icon fas fa-file-invoice"></i><p>Reporte de Kardex</p>
+                                </a>
+                            </li>
+                            @endif
+                            @if(auth()->user()->hasPermiso('reportes.mermas'))
+                            <li class="nav-item" data-menu-id="reportes-mermas">
+                                <a href="{{ route('reportes.mermas') }}" class="nav-link {{ request()->routeIs('reportes.mermas*') ? 'active' : '' }}">
+                                    <i class="nav-icon fas fa-trash-alt"></i><p>Reporte de Mermas</p>
+                                </a>
+                            </li>
+                            @endif
+                            @if(auth()->user()->hasPermiso('reportes.compras'))
+                            <li class="nav-item" data-menu-id="reportes-compras">
+                                <a href="{{ route('reportes.compras') }}" class="nav-link {{ request()->routeIs('reportes.compras*') ? 'active' : '' }}">
+                                    <i class="nav-icon fas fa-shopping-basket"></i><p>Reporte de Compras</p>
                                 </a>
                             </li>
                             @endif
@@ -1269,6 +1295,29 @@
             document.addEventListener('click', function (e) { if (!cont.contains(e.target)) cerrar(); });
             input.addEventListener('blur', function () { setTimeout(cerrar, 150); });
         });
+    })();
+
+    // Barra fija abajo: se alinea con el contenido (con o sin menú lateral) y deja espacio
+    // para que el pie de página se vea encima de ella al llegar al final.
+    (function () {
+        var barras = document.querySelectorAll('.barra-fija');
+        var cont = document.querySelector('.content-wrapper'), pie = document.querySelector('.main-footer');
+        if (!barras.length || !cont) return;
+        function ajustar() {
+            var r = cont.getBoundingClientRect(), margen = window.innerWidth < 576 ? 8 : 16, alto = 0;
+            barras.forEach(function (b) {
+                b.style.left = (r.left + margen) + 'px';
+                b.style.right = (document.documentElement.clientWidth - r.right + margen) + 'px';
+                alto = Math.max(alto, b.offsetHeight);
+            });
+            if (pie) pie.style.marginBottom = alto + 'px'; else cont.style.paddingBottom = alto + 'px';
+        }
+        ajustar();
+        window.addEventListener('resize', ajustar);
+        if (window.ResizeObserver) { var ro = new ResizeObserver(ajustar); ro.observe(cont); barras.forEach(function (b) { ro.observe(b); }); }
+        document.addEventListener('collapsed.lte.pushmenu', function () { setTimeout(ajustar, 320); });
+        document.addEventListener('shown.lte.pushmenu', function () { setTimeout(ajustar, 320); });
+        if (window.jQuery) jQuery(document).on('collapsed.lte.pushmenu shown.lte.pushmenu', function () { setTimeout(ajustar, 320); });
     })();
 
     // Filtros: junta cada etiqueta ("CATEGORÍA") con su lista para que no queden separadas

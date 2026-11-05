@@ -363,6 +363,51 @@ Clientes, Proveedores, Recetas, Historial y Reporte de stock):
 - **Movimientos de materia prima y de productos:** cada movimiento tiene su flecha (verde ↑ si el stock subió, roja ↓ si bajó, ⇅ en ajustes), flecha de color entre el stock de antes y el de después, y en la cabecera de cada día cuántos subieron y cuántos bajaron. El resumen de arriba usa las mismas flechas. En celular la cantidad queda al lado del nombre.
 - **Al entrar a cualquiera de los dos movimientos** se muestra **Todo** (antes eran 7 días); los botones Hoy / 7 / 30 días siguen para filtrar.
 
+## ✅ Vuelta 22 (lista de sugerencias en el buscador del conteo)
+
+- El buscador del **Conteo físico** ahora abre la **lista desplegable** como los demás buscadores: al hacer clic muestra todos los insumos y se va achicando mientras escribes (sin tildes, varias palabras, resaltado).
+- Cada sugerencia dice si está **por contar** (con lo que dice el sistema), **contado y coincide** o **contado con diferencia**, con su ícono de color. En conteo a ciegas no muestra lo del sistema.
+- **↑ ↓** para moverse, **Enter** o clic salta a la fila del insumo con el cursor listo para escribir lo contado; al dar Enter en la cantidad vuelve al buscador para el siguiente. **Esc** cierra la lista.
+
+## ✅ Vuelta 23 (Compras completo)
+
+> **Después de copiar, ejecuta `php artisan migrate`** (000026: guarda quién y cuándo recibió o anuló, el motivo, lo que llegó de verdad de cada insumo y si los precios incluyen IGV).
+
+- **Listado de compras:** resumen (por recibir y su monto, atrasadas de más de 3 días, gasto del mes comparado con los mismos días del mes anterior), franja **Por recibir** con botón Recibir, periodos rápidos, buscador (proveedor, insumo, factura o #número), filtros por proveedor y estado.
+- **Nueva compra:** buscador de insumos con lista (primero los del proveedor elegido, marca los de stock bajo), botones **Agregar sus insumos con stock bajo** y **Repetir su última compra**, cantidades en g/mL, precio comparado con el costo anterior (▲▼ %), opción **precios con IGV**, opción **El pedido ya llegó** (recibir al guardar). No deja repetir la misma factura del mismo proveedor, ni un insumo dos veces, ni fecha futura. Se abre ya rellena desde la ficha de un insumo, el reporte de stock o "Repetir compra".
+- **Detalle de la compra:** seguimiento (registrada → esperando → recibida / anulada, con quién y cuándo), variación de precio contra la compra anterior, contacto del proveedor, **Enviar pedido por WhatsApp**, **Imprimir** orden de compra, Repetir compra.
+- **Recibir:** pantalla para anotar lo que llegó de verdad (y el precio de la factura); si llegó distinto pide una nota y el total se recalcula. El stock y el kardex usan lo recibido.
+- **Anular:** pide el motivo; si ya estaba recibida devuelve el stock (kardex) y, si venía de una orden automática, la orden vuelve a pendientes.
+- **Proveedores:** tarjetas con insumos, compras, total comprado, última compra, pedidos por recibir y órdenes automáticas; llamar / WhatsApp / correo; **ficha del proveedor** (compras por mes, insumos que vende con su último precio, últimas compras); formulario por secciones con validación de **RUC** (11 números, 10/15/17/20, sin repetir) y nombre sin repetir.
+- **Órdenes automáticas:** se revisa el stock **solo al entrar**; agrupadas por proveedor con cantidad editable, días que alcanza el stock y costo estimado; **Convertir en compras** crea una compra por proveedor. No se repite una orden si el insumo ya viene en una compra por recibir ni si se descartó (mientras el stock no siga bajando).
+
+## ✅ Vuelta 24 (órdenes automáticas fuera del menú y barras fijas abajo)
+
+- **Órdenes automáticas fuera del menú:** se entra con el botón "Órdenes automáticas" de Compras (con el número de pendientes) o desde el Dashboard; dentro hay un botón para volver a Compras y el menú marca "Compras". Solo sale en el menú para quien tiene permiso de órdenes pero no de Compras.
+- **Barras de abajo fijas** (Conteo físico y Órdenes automáticas): ya no se suben al llegar al final; quedan pegadas al borde de la pantalla y el pie "Sistema de Gestión — Muruwasi" se muestra encima. Se acomodan con el menú abierto, contraído y en celular.
+
+## ✅ Vuelta 25 (un insumo con varios proveedores y costo promedio ponderado)
+
+> **Después de copiar, ejecuta `php artisan migrate`** (000027: el costo de los insumos pasa a guardarse con 4 decimales).
+
+- **Órdenes automáticas:** en cada insumo se elige **a quién pedirlo**. La lista muestra primero los proveedores que ya se lo vendieron con su último precio (★ el más barato) y luego los demás. Al cambiarlo, el insumo **se queda en su lugar** con la etiqueta "Se pedirá a …"; los totales de cada proveedor, el pie ("Compras a crear" con el detalle) y la confirmación se calculan según lo elegido, y la compra se arma con lo que cobró ese proveedor. Los insumos **sin proveedor** ahora también se pueden pedir eligiendo uno.
+- **Ficha del insumo → Precios por proveedor:** último precio y promedio de cada proveedor, cuál es el principal y cuál el más barato, diferencia en % y botón **Comprarle**.
+- **Nueva compra:** al elegir proveedor se propone **lo que ese proveedor cobró la última vez** y avisa si otro lo vende más barato.
+- **Costo promedio ponderado:** al recibir una compra el costo del insumo es el promedio entre lo que había (a su costo) y lo que llega (a su precio sin IGV); al anular una compra recibida se saca de ese promedio. Antes era el último precio. Se guarda con 4 decimales y se muestra con 2.
+
+## ✅ Vuelta 26 (Reportes)
+
+> **Después de copiar, ejecuta `php artisan migrate`** (000028: crea la tabla de cierres diarios y da los 3 reportes nuevos a quien ya tenía reportes).
+
+- **Cierre diario de inventario (nuevo, indicador TCI):** todos los insumos con saldo inicial, entradas, salidas, ajustes y saldo final del día, valorizado; avisa si algún insumo **no cuadra**. Botón **Cerrar el día** (guarda quién y a qué hora, con nota); si después llegan movimientos de ese día, avisa que hay que volver a cerrar. Navegación por días, filtros (con movimiento, bajo el mínimo, no cuadran), historial de 14 días (cerrado / sin cerrar), **PDF con firmas** y Excel. Está en el menú de Reportes.
+- **Reporte de mermas (nuevo):** lo perdido en S/ por insumo y producto, por motivo (vencido, roto, mal estado, otro), detalle con quién lo registró e **índice de merma** (perdido ÷ usado + perdido). PDF y Excel.
+- **Reporte de compras (nuevo):** gastado con y sin IGV, por proveedor (con %), por insumo (cantidad, precio promedio, mín–máx, primer → último precio y variación), gasto por día/semana/mes y lista de compras. Filtro por proveedor. PDF y Excel.
+- **Resumen de reportes:** indicadores del día (valor del almacén, stock bajo, cierre de hoy y días sin cerrar, mermas y compras del mes, PER del último conteo) y tarjetas de todos los reportes.
+- **Reporte de stock:** columna **Alcanza (días)** y orden (urgentes, menos días, mayor valor, nombre); también en PDF y Excel.
+- **Kardex:** el gráfico usa una versión fija de Chart.js.
+- Todos los reportes tienen periodos rápidos (este mes, mes anterior, 30 días, 3 meses, año, todo) o fechas exactas.
+- **Menú de Reportes:** Resumen, Cierre Diario, Stock, Kardex, **Mermas** y **Compras** (cada uno según los permisos del usuario).
+
 ## 🔲 Lo que falta
 
 ### A. Configuración (no es código)
@@ -396,7 +441,7 @@ sistema no los calcula: tiene que permitir hacer rápido las cuatro tareas medid
 |---|---|---|
 | **TPR** | Primeros 10 movimientos de la jornada | **Registro rápido** de entrada o salida de un insumo (insumo, tipo, cantidad, motivo) en una sola pantalla. Hoy solo hay compra completa o ajuste. |
 | **TCS** | 5 consultas de insumos distintos | **Buscador de stock** en el menú superior, disponible en cualquier pantalla. |
-| **TCI** | Cierre diario de inventario | **Cierre diario**: todos los insumos con saldo inicial, entradas, salidas y saldo final, exportable. |
+| **TCI** | Cierre diario de inventario | ✅ Hecho en la vuelta 26 (Reportes → Cierre diario). |
 | **PER** | Mismos 10 insumos fijos, stock registrado vs. contado | **Conteo físico de 10 insumos fijos** con "¿Coincide? Sí/No" y el PER calculado. |
 
 7. **Registro rápido de movimientos** (TPR).

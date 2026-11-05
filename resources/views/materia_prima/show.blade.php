@@ -36,7 +36,7 @@
         <a href="{{ route('materia-prima.ajuste', $m) }}" class="btn btn-light btn-sm"><i class="fas fa-balance-scale mr-1"></i>Ajustar stock</a>
         <a href="{{ route('materia-prima.edit', $m) }}" class="btn btn-light btn-sm"><i class="fas fa-edit mr-1"></i>Editar</a>
         @if(auth()->user()->hasPermiso('compras.compras') && $m->tieneStockBajo())
-            <a href="{{ route('compras.create') }}" class="btn btn-warning btn-sm"><i class="fas fa-shopping-cart mr-1"></i>Registrar compra</a>
+            <a href="{{ route('compras.create', ['materia' => $m->id]) }}" class="btn btn-warning btn-sm"><i class="fas fa-shopping-cart mr-1"></i>Registrar compra</a>
         @endif
         @if(auth()->user()->hasPermiso('reportes.kardex'))
             <a href="{{ route('reportes.kardex', ['item' => 'materia-' . $m->id]) }}" class="btn btn-outline-light btn-sm"><i class="fas fa-file-invoice mr-1"></i>Kardex completo</a>
@@ -93,6 +93,51 @@
             <p class="text-muted mb-0">Todavía no está en ninguna receta.</p>
         @endif
     </div>
+</div>
+
+@php
+    $conPrecio = $preciosProv->whereNotNull('precio');
+    $barato = $conPrecio->min('precio');
+    $puedeComprarProv = auth()->user()->hasPermiso('compras.compras');
+@endphp
+<div class="inv-box mb-3">
+    <h5><i class="fas fa-balance-scale-left"></i>Precios por proveedor</h5>
+    @if($preciosProv->count())
+        <div class="table-responsive">
+        <table class="inv-tabla">
+            <thead><tr><th>Proveedor</th><th class="text-right">Último precio</th><th class="text-right">Promedio</th><th class="text-right">Diferencia</th><th>Última compra</th><th></th></tr></thead>
+            <tbody>
+            @foreach($preciosProv as $pp)
+                @php $dif = $pp['precio'] !== null && $barato ? round(($pp['precio'] - $barato) / $barato * 100) : null; @endphp
+                <tr>
+                    <td>
+                        <b>{{ $pp['nombre'] }}</b>
+                        @if($pp['id_proveedor'] == $m->id_proveedor)<span class="badge-soft badge-soft-primary ml-1">principal</span>@endif
+                        @if($pp['precio'] !== null && $pp['precio'] == $barato && $conPrecio->count() > 1)<span class="badge-soft badge-soft-success ml-1">más barato</span>@endif
+                        @if(!$pp['activo'])<span class="badge-soft badge-soft-secondary ml-1">inactivo</span>@endif
+                    </td>
+                    <td class="text-right">{{ $pp['precio'] !== null ? 'S/ ' . number_format($pp['precio'], 2) : '—' }}<small class="text-muted">{{ $pp['precio'] !== null ? '/' . $u : '' }}</small></td>
+                    <td class="text-right text-muted">{{ $pp['promedio'] !== null ? 'S/ ' . number_format($pp['promedio'], 2) : '—' }}</td>
+                    <td class="text-right">
+                        @if($dif === null || $conPrecio->count() < 2)<span class="text-muted">—</span>
+                        @elseif($dif <= 0)<span class="inv-mas">el mejor</span>
+                        @else<span class="inv-menos">+{{ $dif }}%</span>@endif
+                    </td>
+                    <td class="small text-muted">{{ $pp['fecha'] ? $pp['fecha']->format('d/m/Y') . ' · ' . $pp['veces'] . ' compra' . ($pp['veces'] == 1 ? '' : 's') : 'Todavía no le compramos' }}</td>
+                    <td class="text-right">
+                        @if($puedeComprarProv && $pp['activo'])
+                            <a href="{{ route('compras.create', ['materia' => $m->id, 'proveedor' => $pp['id_proveedor']]) }}" class="btn btn-sm btn-light"><i class="fas fa-cart-plus mr-1"></i>Comprarle</a>
+                        @endif
+                    </td>
+                </tr>
+            @endforeach
+            </tbody>
+        </table>
+        </div>
+        <p class="small text-muted mt-2 mb-0">Precios sin IGV. El costo del insumo (S/ {{ number_format($m->costo_unitario, 2) }}) es el <b>promedio ponderado</b> de lo que hay en el almacén, por eso puede ser distinto al último precio.</p>
+    @else
+        <p class="text-muted mb-0">Todavía no hay compras de este insumo.</p>
+    @endif
 </div>
 
 <div class="inv-grid2">

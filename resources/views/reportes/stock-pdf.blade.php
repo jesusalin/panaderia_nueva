@@ -59,7 +59,7 @@
         <thead>
             <tr>
                 <th>Insumo</th><th>Proveedor</th><th class="num">Stock</th>
-                <th class="num">Mínimo</th><th class="num">Costo Unit.</th><th class="num">Valor Total</th><th>Estado</th><th class="num">Reponer</th>
+                <th class="num">Mínimo</th><th class="num">Alcanza</th><th class="num">Costo Unit.</th><th class="num">Valor Total</th><th>Estado</th><th class="num">Reponer</th>
             </tr>
         </thead>
         <tbody>
@@ -69,6 +69,7 @@
                 <td>{{ $m->proveedor->nombre ?? '—' }}</td>
                 <td class="num">{{ \App\Support\Cantidad::conUnidad($m->stock_actual, $m->unidad->abreviatura) }}</td>
                 <td class="num">{{ \App\Support\Cantidad::conUnidad($m->stock_minimo, $m->unidad->abreviatura) }}</td>
+                <td class="num">{{ $m->dias === null ? '—' : ($m->dias < 1 ? '< 1 día' : $m->dias . ' d') }}</td>
                 <td class="num">S/ {{ number_format($m->costo_unitario, 2) }}</td>
                 <td class="num">S/ {{ number_format($m->stock_actual * $m->costo_unitario, 2) }}</td>
                 <td>

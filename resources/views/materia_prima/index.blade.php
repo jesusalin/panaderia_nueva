@@ -51,6 +51,7 @@
     <label class="fb-label mb-0">Proveedor</label>
     <select name="proveedor" class="form-control" style="width:auto;" onchange="this.form.submit()">
         <option value="">Todos</option>
+        <option value="ninguno" {{ request('proveedor') === 'ninguno' ? 'selected' : '' }}>Sin proveedor</option>
         @foreach($proveedores as $pr)
             <option value="{{ $pr->id }}" {{ request('proveedor') == $pr->id ? 'selected' : '' }}>{{ $pr->nombre }}</option>
         @endforeach

@@ -38,6 +38,7 @@ class StockExport implements FromCollection, WithHeadings, WithMapping, WithStyl
                 'valor'      => $m->stock_actual * $m->costo_unitario,
                 'estado'     => ['agotado' => 'Agotado', 'bajo' => 'Stock bajo', 'ok' => 'Normal'][$m->nivel] ?? 'Normal',
                 'reponer'    => $m->reponer ?? 0,
+                'dias'       => $m->dias ?? null,
             ]);
         }
 
@@ -61,7 +62,7 @@ class StockExport implements FromCollection, WithHeadings, WithMapping, WithStyl
 
     public function headings(): array
     {
-        return ['Tipo', 'Nombre', 'Proveedor / Categoría', 'Stock', 'Unidad', 'Stock Mínimo', 'Costo Unitario', 'Valor Total', 'Estado', 'Cantidad a reponer'];
+        return ['Tipo', 'Nombre', 'Proveedor / Categoría', 'Stock', 'Unidad', 'Stock Mínimo', 'Costo Unitario', 'Valor Total', 'Estado', 'Cantidad a reponer', 'Alcanza (días)'];
     }
 
     public function map($fila): array
@@ -77,12 +78,13 @@ class StockExport implements FromCollection, WithHeadings, WithMapping, WithStyl
             round($fila->valor, 2),
             $fila->estado,
             $fila->reponer > 0 ? round($fila->reponer, 2) : '',
+            isset($fila->dias) && $fila->dias !== null ? $fila->dias : '',
         ];
     }
 
     public function columnWidths(): array
     {
-        return ['A' => 14, 'B' => 28, 'C' => 22, 'D' => 10, 'E' => 10, 'F' => 12, 'G' => 14, 'H' => 14, 'I' => 12, 'J' => 18];
+        return ['A' => 14, 'B' => 28, 'C' => 22, 'D' => 10, 'E' => 10, 'F' => 12, 'G' => 14, 'H' => 14, 'I' => 12, 'J' => 18, 'K' => 14];
     }
 
     public function styles(Worksheet $sheet)

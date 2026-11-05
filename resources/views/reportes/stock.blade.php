@@ -38,6 +38,8 @@
 </style>
 @endpush
 
+@include('partials.reportes-estilos')
+
 @section('content')
 
 @php
@@ -114,8 +116,15 @@
         <option value="bajo"    {{ request('stock') === 'bajo'    ? 'selected' : '' }}>Necesitan reposición (bajo + agotado)</option>
         <option value="agotado" {{ request('stock') === 'agotado' ? 'selected' : '' }}>Solo agotados</option>
     </select>
+    <label class="fb-label mb-0">Ordenar</label>
+    <select name="orden" class="form-control" style="width:auto;" onchange="this.form.submit()">
+        <option value="">Más urgentes primero</option>
+        <option value="dias"   {{ request('orden') === 'dias'   ? 'selected' : '' }}>Menos días de stock</option>
+        <option value="valor"  {{ request('orden') === 'valor'  ? 'selected' : '' }}>Mayor valor</option>
+        <option value="nombre" {{ request('orden') === 'nombre' ? 'selected' : '' }}>Nombre (A-Z)</option>
+    </select>
     <button type="submit" class="btn btn-light"><i class="fas fa-filter mr-1"></i>Filtrar</button>
-    @if(request('buscar') || request('stock') || ($tipo ?? 'todos') !== 'todos')
+    @if(request('buscar') || request('stock') || request('orden') || ($tipo ?? 'todos') !== 'todos')
         <a href="{{ route('reportes.stock') }}" class="btn btn-light text-muted"><i class="fas fa-times mr-1"></i>Limpiar</a>
     @endif
 </form>
@@ -134,6 +143,10 @@
                 <div class="lm-item"><span class="lm-label">Stock</span><span class="lm-value {{ $m->nivel === 'ok' ? '' : 'text-danger' }}">{{ \App\Support\Cantidad::conUnidad($m->stock_actual, $m->unidad->abreviatura) }}</span></div>
                 <div class="lm-item"><span class="lm-label">Mínimo</span><span class="lm-value">{{ \App\Support\Cantidad::conUnidad($m->stock_minimo, $m->unidad->abreviatura) }}</span></div>
                 <div class="lm-item"><span class="lm-label">Costo Unit.</span><span class="lm-value">S/ {{ number_format($m->costo_unitario, 2) }}</span></div>
+                <div class="lm-item" title="{{ $m->por_dia ? 'Se usan ≈ ' . \App\Support\Cantidad::conUnidad(round($m->por_dia, $m->por_dia >= 1 ? 2 : 3), $m->unidad->abreviatura) . ' al día' : 'Sin consumo en los últimos 14 días' }}">
+                    <span class="lm-label">Alcanza</span>
+                    <span class="lm-value {{ $m->dias !== null && $m->dias <= 2 ? 'text-danger' : '' }}">{{ $m->dias === null ? '—' : ($m->dias < 1 ? '< 1 día' : $m->dias . ' día' . ($m->dias == 1 ? '' : 's')) }}</span>
+                </div>
             </div>
             <div class="lr-side">
                 <span class="lr-amount">S/ {{ number_format($m->valor, 2) }}</span>
@@ -143,7 +156,7 @@
                 <div class="sk-acciones">
                     @if($puedeKardex)<a href="{{ route('reportes.kardex', ['item' => 'materia-'.$m->id]) }}" class="btn btn-outline-info" title="Ver su kardex"><i class="fas fa-file-invoice"></i></a>@endif
                     @if($puedeAjustar)<a href="{{ route('materia-prima.ajuste', $m) }}" class="btn btn-outline-warning" title="Ajustar stock"><i class="fas fa-balance-scale"></i></a>@endif
-                    @if($puedeComprar && $m->nivel !== 'ok')<a href="{{ route('compras.create') }}" class="btn btn-outline-primary" title="Registrar compra"><i class="fas fa-cart-plus"></i></a>@endif
+                    @if($puedeComprar && $m->nivel !== 'ok')<a href="{{ route('compras.create', ['materia' => $m->id]) }}" class="btn btn-outline-primary" title="Registrar compra"><i class="fas fa-cart-plus"></i></a>@endif
                 </div>
             </div>
         </div>

@@ -24,7 +24,14 @@
 
     .cf-barra { display: flex; gap: .7rem; align-items: center; flex-wrap: wrap; margin-bottom: .8rem; }
     .cf-barra .search-box { flex: 1; min-width: 220px; }
-    .cf-buscar { position: relative; }
+    .cf-buscar { position: relative; flex: 1 1 320px; max-width: 460px; }
+    .cf-buscar .sug-lista { width: 100%; min-width: 300px; }
+    .sug-item.cf-sug-pendientes .si-ic { background: #eef2f7; color: #6c7a89; }
+    .sug-item.cf-sug-ok .si-ic { background: rgba(46,204,113,.16); color: #1e8e5a; }
+    .sug-item.cf-sug-dif .si-ic { background: rgba(231,76,60,.13); color: #c0392b; }
+    .sug-item.activo .si-ic { background: #b5451b; color: #fff; }
+    .sug-vacio a { font-weight: 700; color: #b5451b; }
+    .cf-fila.cf-destacada { box-shadow: 0 0 0 3px rgba(181,69,27,.35); transition: box-shadow .3s; }
     .cf-buscar input { padding-right: 2.2rem; }
     .cf-limpiar { position: absolute; right: .45rem; top: 50%; transform: translateY(-50%); border: none; background: #eef0f3; color: #6c757d; width: 24px; height: 24px; border-radius: 50%; font-size: .72rem; display: none; cursor: pointer; }
     .cf-buscar.con-texto .cf-limpiar { display: block; }
@@ -67,7 +74,7 @@
         .cf-entrada { grid-column: 1 / -1; }
     }
 
-    .cf-pie { position: sticky; bottom: 0; z-index: 5; background: #fff; border-radius: 14px; box-shadow: 0 -6px 22px rgba(0,0,0,.08); padding: .9rem 1.2rem; margin-top: 1rem;
+    .cf-pie {  z-index: 5; background: #fff; border-radius: 14px; box-shadow: 0 -6px 22px rgba(0,0,0,.08); padding: .9rem 1.2rem; margin-top: 1rem;
         display: grid; grid-template-columns: auto auto auto minmax(180px, 1fr) auto; gap: 1.2rem; align-items: center; }
     body.dark-mode .cf-pie { background: #1a1a2c; }
     .cf-pie .cp-dato small { display: block; font-size: .66rem; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; color: #8a8a9d; }
@@ -127,7 +134,7 @@
     <div class="cf-barra">
         <div class="search-box cf-buscar">
             <i class="fas fa-search"></i>
-            <input type="text" id="cfBuscar" class="form-control" placeholder="Buscar insumo… (Enter para contarlo)" autocomplete="off"
+            <input type="text" id="cfBuscar" class="form-control" placeholder="Buscar insumo para contarlo…" autocomplete="off"
                    value="{{ request('q') }}" aria-label="Buscar insumo en la lista">
             <button type="button" id="cfLimpiar" class="cf-limpiar" title="Borrar búsqueda (Esc)" aria-label="Borrar búsqueda"><i class="fas fa-times"></i></button>
         </div>
@@ -176,7 +183,7 @@
         @endif
     </div>
 
-    <div class="cf-pie">
+    <div class="cf-pie barra-fija">
         <div class="cp-dato"><small>Contados</small><b id="pContados">0</b> / {{ $materias->count() }}<div class="cf-progreso"><span id="pBarra" style="width:0"></span></div></div>
         <div class="cp-dato"><small>Con diferencia</small><b id="pDif">0</b></div>
         <div class="cp-dato"><small>PER</small><b id="pPer">—</b></div>
@@ -303,15 +310,90 @@
     }
 
     function primeraVisible() { return filas.find(f => f.style.display !== 'none'); }
-    function limpiar() { $('cfBuscar').value = ''; filtrar(); $('cfBuscar').focus(); }
+    function limpiar() { $('cfBuscar').value = ''; filtrar(); $('cfBuscar').focus(); if (typeof pintarSug === 'function') pintarSug(); }
 
-    $('cfBuscar').addEventListener('input', () => filtrar());
-    $('cfBuscar').addEventListener('keydown', e => {
-        if (e.key === 'Enter' || e.key === 'ArrowDown') {
-            e.preventDefault();
-            const f = primeraVisible(); if (f) { f.querySelector('.cf-input').focus(); f.scrollIntoView({ block: 'center', behavior: 'smooth' }); }
-        } else if (e.key === 'Escape') { limpiar(); }
+    // ── Lista desplegable de sugerencias (igual que los demás buscadores del sistema) ──
+    // Al hacer clic muestra todos los insumos; mientras escribes se va achicando.
+    // Al elegir uno, salta a su fila para escribir lo contado.
+    const buscador = $('cfBuscar');
+    const sug = document.createElement('div');
+    sug.className = 'sug-lista'; sug.setAttribute('role', 'listbox'); sug.id = 'cfSugerencias';
+    buscador.parentElement.appendChild(sug);
+    buscador.setAttribute('role', 'combobox'); buscador.setAttribute('aria-autocomplete', 'list'); buscador.setAttribute('aria-controls', 'cfSugerencias');
+    let sugVis = [], activo = -1;
+
+    function marcarHtml(txt, palabras) {
+        const n = norm(txt), marcas = new Array(txt.length).fill(false);
+        palabras.forEach(p => { let i = n.indexOf(p); while (p && i !== -1) { for (let k = i; k < i + p.length; k++) marcas[k] = true; i = n.indexOf(p, i + 1); } });
+        let html = '', abierto = false;
+        for (let k = 0; k < txt.length; k++) {
+            if (marcas[k] && !abierto) { html += '<mark>'; abierto = true; }
+            if (!marcas[k] && abierto) { html += '</mark>'; abierto = false; }
+            html += esc(txt[k]);
+        }
+        return html + (abierto ? '</mark>' : '');
+    }
+    function detalleFila(f) {
+        const e = estado(f), ciego = $('cfCiego').checked;
+        const sistema = ciego ? '' : ' · sistema: ' + f.querySelector('.cs-valor').textContent.trim();
+        if (e === 'pendientes') return { ic: 'fa-hourglass-half', t: 'Por contar' + sistema };
+        if (e === 'dif') return { ic: 'fa-exclamation', t: 'Contado · ' + f.querySelector('.cf-dif').textContent.trim().replace(/\s+/g, ' ') };
+        return { ic: 'fa-check', t: 'Contado · coincide' };
+    }
+    function pintarSug() {
+        const q = buscador.value.trim();
+        const palabras = norm(q).split(/\s+/).filter(Boolean);
+        sugVis = filas.filter(f => palabras.every(p => f.dataset.norm.includes(p)));
+        activo = -1;
+        let html = '<div class="sug-cab"><span>' + (palabras.length ? 'Coincidencias' : 'Todos los insumos') + '</span><span>' + sugVis.length + ' de ' + filas.length + '</span></div>';
+        if (!sugVis.length) {
+            html += '<div class="sug-vacio"><i class="fas fa-search mr-1"></i>Nada coincide con "' + esc(q) + '"'
+                + ($('cfEnTodos') && !filas.some(f => f.classList.contains('contado')) ? '<br><a href="' + $('cfEnTodos').href + '">Buscar en todos los insumos</a>' : '') + '</div>';
+        } else {
+            html += '<div class="sug-items">' + sugVis.slice(0, 80).map((f, i) => {
+                const d = detalleFila(f);
+                return '<div class="sug-item cf-sug-' + estado(f) + '" role="option" data-i="' + i + '"><span class="si-ic"><i class="fas ' + d.ic + '"></i></span>'
+                    + '<span><span class="si-t d-block">' + marcarHtml(f.querySelector('.cf-n').dataset.txt, palabras) + '</span><span class="si-s">' + esc(d.t) + '</span></span></div>';
+            }).join('') + '</div><div class="sug-pie">↑ ↓ para moverte · Enter para contarlo · Esc para cerrar</div>';
+        }
+        sug.innerHTML = html;
+        sug.classList.add('abierta');
+        buscador.setAttribute('aria-expanded', 'true');
+    }
+    function cerrarSug() { sug.classList.remove('abierta'); buscador.setAttribute('aria-expanded', 'false'); activo = -1; }
+    function moverSug(n) {
+        const items = sug.querySelectorAll('.sug-item'); if (!items.length) return;
+        activo = (n + items.length) % items.length;
+        items.forEach((el, i) => el.classList.toggle('activo', i === activo));
+        items[activo].scrollIntoView({ block: 'nearest' });
+    }
+    function irAFila(f) {
+        if (!f) return;
+        cerrarSug();
+        buscador.value = f.querySelector('.cf-n').dataset.txt;   // deja solo esa fila a la vista
+        filtrar();
+        f.scrollIntoView({ block: 'center', behavior: 'smooth' });
+        const inp = f.querySelector('.cf-input'); inp.focus(); inp.select();
+        f.classList.add('cf-destacada'); setTimeout(() => f.classList.remove('cf-destacada'), 1200);
+    }
+
+    buscador.addEventListener('input', () => { filtrar(); pintarSug(); });
+    buscador.addEventListener('focus', pintarSug);
+    buscador.addEventListener('click', pintarSug);
+    buscador.addEventListener('blur', () => setTimeout(cerrarSug, 150));
+    buscador.addEventListener('keydown', e => {
+        const abierta = sug.classList.contains('abierta');
+        if (e.key === 'ArrowDown') { e.preventDefault(); if (!abierta) pintarSug(); moverSug(activo + 1); }
+        else if (e.key === 'ArrowUp' && abierta) { e.preventDefault(); moverSug(activo - 1); }
+        else if (e.key === 'Enter') { e.preventDefault(); irAFila(activo >= 0 ? sugVis[activo] : (sugVis[0] || primeraVisible())); }
+        else if (e.key === 'Escape') { if (abierta) cerrarSug(); else limpiar(); }
     });
+    sug.addEventListener('mousedown', e => {
+        const it = e.target.closest('.sug-item'); if (!it) return;
+        e.preventDefault(); irAFila(sugVis[+it.dataset.i]);
+    });
+    document.addEventListener('click', e => { if (!buscador.parentElement.contains(e.target)) cerrarSug(); });
+
     $('cfLimpiar').addEventListener('click', limpiar);
     $('cfVerTodo').addEventListener('click', () => {
         filtro = 'todos';

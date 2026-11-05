@@ -259,9 +259,10 @@
     // El buscador del ítem usa las sugerencias del layout (data-sugerencias).
 </script>
 @if($item && $movimientos->count() >= 2)
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <script>
     (function () {
+        if (typeof Chart === 'undefined') return;   // sin internet no se puede cargar el gráfico; lo demás sigue funcionando
         const oscuro = document.body.classList.contains('dark-mode');
         const texto  = oscuro ? '#b0b0cc' : '#6c757d';
         const rejilla = oscuro ? 'rgba(255,255,255,.08)' : 'rgba(0,0,0,.06)';

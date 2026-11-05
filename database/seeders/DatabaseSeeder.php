@@ -52,7 +52,8 @@ class DatabaseSeeder extends Seeder
     private array $pr = [];              // código => [id, nombre, precio, ...]
     private array $recetas = [];         // código producto => [rend, [código insumo => cantidad]]
     private array $stockMp = [];         // código => float
-    private array $costoMp = [];         // código => último precio
+    private array $costoMp = [];         // código => costo promedio ponderado (lo que vale lo que hay)
+    private array $precioMp = [];        // código => último precio pagado (base para el precio de la próxima compra)
     private array $stockPr = [];         // código => int
     private array $movimientos = [];     // filas de movimientos_inventario (en orden)
     private array $kardex = [];          // filas de kardex_productos (en orden)
@@ -132,7 +133,7 @@ class DatabaseSeeder extends Seeder
                 'inventario.materia_prima', 'inventario.movimientos', 'inventario.conteo', 'inventario.kardex',
                 'compras.proveedores', 'compras.compras', 'compras.ordenes',
                 'produccion.produccion', 'produccion.recetas',
-                'reportes.resumen', 'reportes.stock', 'reportes.kardex',
+                'reportes.resumen', 'reportes.cierre', 'reportes.stock', 'reportes.kardex', 'reportes.mermas', 'reportes.compras',
             ],
         ];
         foreach ($permisosDemo as $usuario => $claves) {
@@ -290,6 +291,7 @@ class DatabaseSeeder extends Seeder
                              'id_prov' => $prov ? $idProv[$prov] : null, 'minimo' => $minimo, 'repo' => $reposicion];
             $this->stockMp[$c] = $inicial;
             $this->costoMp[$c] = $costo;
+            $this->precioMp[$c] = $costo;
         }
 
         foreach ($productos as $c => [$cat, $nombre, $desc, $precio, $minimo, $objetivo, $demanda]) {
@@ -469,7 +471,7 @@ class DatabaseSeeder extends Seeder
             }
 
             $usuario = $d % 2 === 0 ? 'almacenero' : 'cmamani';
-            $precio  = $this->costoMp[$c];
+            $precio  = $this->precioMp[$c];
             $cant    = $m['repo'];
             $sub     = round($cant * $precio, 2);
             $igv     = round($sub * 0.18, 2);
@@ -508,8 +510,8 @@ class DatabaseSeeder extends Seeder
      */
     private function compraManual(Carbon $dia, int $d): void
     {
-        $items = [['harina', 50, round($this->costoMp['harina'] * (1 + mt_rand(-4, 4) / 100), 2)],
-                  ['azucar', 25, round($this->costoMp['azucar'] * (1 + mt_rand(-4, 4) / 100), 2)]];
+        $items = [['harina', 50, round($this->precioMp['harina'] * (1 + mt_rand(-4, 4) / 100), 2)],
+                  ['azucar', 25, round($this->precioMp['azucar'] * (1 + mt_rand(-4, 4) / 100), 2)]];
         $t = $this->tick($dia->copy()->setTime(15, 0));
         if (!$t) return;
 
@@ -536,16 +538,21 @@ class DatabaseSeeder extends Seeder
         }
     }
 
-    /** Igual que ComprasController@recibir: entra al stock y actualiza el último precio. */
+    /** Igual que ComprasController@recibir: entra al stock y recalcula el costo promedio ponderado. */
     private function recibirCompra(int $idCompra, array $items, Carbon $hora, string $usuario): void
     {
         $t = $this->tick($hora);
         if (!$t) return;
         foreach ($items as [$c, $cant, $precio]) {
+            $this->costoMp[$c] = \App\Models\MateriaPrima::costoPromedio($this->stockMp[$c], $this->costoMp[$c], $cant, $precio);
+            $this->precioMp[$c] = $precio;
             $this->movimientoMp($c, 'entrada', 'compra', $cant, $idCompra, "Compra #{$idCompra}", $usuario, $t);
-            $this->costoMp[$c] = $precio;
         }
-        DB::table('compras')->where('id', $idCompra)->update(['estado' => 'recibida', 'updated_at' => $t]);
+        DB::table('compras')->where('id', $idCompra)->update([
+            'estado' => 'recibida', 'recibida_at' => $t, 'id_usuario_recibe' => $this->u[$usuario], 'updated_at' => $t,
+        ]);
+        // llegó completo: lo recibido es igual a lo pedido
+        DB::table('compra_detalles')->where('id_compra', $idCompra)->update(['cantidad_recibida' => DB::raw('cantidad')]);
         $this->act($usuario, 'editar', 'Compras', "Recibió la compra #{$idCompra} (entró al stock)", $t);
     }
 
