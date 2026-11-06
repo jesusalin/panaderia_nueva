@@ -111,7 +111,7 @@
                 <button type="submit" id="btnGuardarProv" class="btn {{ $editar ? 'btn-warning' : 'btn-primary' }} pfm-guardar">
                     <i class="fas fa-save mr-1"></i>{{ $editar ? 'Guardar cambios' : 'Crear proveedor' }}
                 </button>
-                <a href="{{ $editar ? route('proveedores.show', $p) : route('proveedores.index') }}" class="btn btn-link btn-block btn-sm text-muted">Cancelar</a>
+                <a href="{{ $volver ?? route('proveedores.index') }}" class="btn btn-link btn-block btn-sm text-muted">Cancelar</a>
             </div>
         </div>
     </div>

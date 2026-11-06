@@ -24,7 +24,9 @@
     </div>
 </div>
 
+@php $volver = \App\Support\Volver::url(route('productos.index')); @endphp
 <form action="{{ route('productos.update', $producto) }}" method="POST" enctype="multipart/form-data" id="formProducto">
+    <input type="hidden" name="volver" value="{{ $volver }}">
     @csrf @method('PUT')
     @include('productos.partials._form')
 </form>

@@ -18,7 +18,9 @@
         </div>
     </div>
     <div class="cat-form-body">
+        @php $volver = \App\Support\Volver::url(route('categorias.index')); @endphp
         <form action="{{ route('categorias.update', $categoria) }}" method="POST">@csrf @method('PUT')
+            <input type="hidden" name="volver" value="{{ $volver }}">
             <div class="form-group">
                 <label>Nombre <span class="text-danger">*</span></label>
                 <input type="text" name="nombre" class="form-control @error('nombre') is-invalid @enderror"
@@ -38,7 +40,7 @@
                 </select>
             </div>
             <div class="form-actions">
-                <a href="{{ route('categorias.index') }}" class="btn btn-light">Cancelar</a>
+                <a href="{{ $volver }}" class="btn btn-light">Cancelar</a>
                 <button type="submit" class="btn btn-warning"><i class="fas fa-save mr-1"></i>Actualizar</button>
             </div>
         </form>

@@ -139,7 +139,9 @@ Route::middleware(['auth'])->group(function () {
     // ── Módulo: Ventas ───────────────────────────────────────────
     Route::middleware(['modulo:ventas'])->group(function () {
         Route::get('ventas/exportar-excel', [VentasController::class, 'exportarExcel'])->name('ventas.exportar-excel');
-        Route::resource('ventas', VentasController::class)->only(['index', 'create', 'store', 'show', 'destroy']);
+        // Las ventas no se eliminan: se anulan (queda el registro y el stock vuelve)
+        Route::resource('ventas', VentasController::class)->only(['index', 'create', 'store', 'show']);
+        Route::get('ventas/{venta}/ticket', [VentasController::class, 'ticket'])->name('ventas.ticket');
         Route::put('ventas/{venta}/anular', [VentasController::class, 'anular'])->name('ventas.anular');
         Route::get('ventas/{venta}/pdf', [VentasController::class, 'pdf'])->name('ventas.pdf');
     });
@@ -157,6 +159,11 @@ Route::middleware(['auth'])->group(function () {
         Route::post('reportes/cierre',       [\App\Http\Controllers\CierreInventarioController::class, 'guardar'])->name('reportes.cierre.guardar');
         Route::get('reportes/cierre/pdf',    [\App\Http\Controllers\CierreInventarioController::class, 'pdf'])->name('reportes.cierre.pdf');
         Route::get('reportes/cierre/excel',  [\App\Http\Controllers\CierreInventarioController::class, 'excel'])->name('reportes.cierre.excel');
+    });
+    Route::middleware(['modulo:reportes.ventas'])->group(function () {
+        Route::get('reportes/ventas',        [\App\Http\Controllers\ReportesGestionController::class, 'ventas'])->name('reportes.ventas');
+        Route::get('reportes/ventas/pdf',    [\App\Http\Controllers\ReportesGestionController::class, 'ventasPdf'])->name('reportes.ventas.pdf');
+        Route::get('reportes/ventas/excel',  [\App\Http\Controllers\ReportesGestionController::class, 'ventasExcel'])->name('reportes.ventas.excel');
     });
     Route::middleware(['modulo:reportes.mermas'])->group(function () {
         Route::get('reportes/mermas',        [\App\Http\Controllers\ReportesGestionController::class, 'mermas'])->name('reportes.mermas');

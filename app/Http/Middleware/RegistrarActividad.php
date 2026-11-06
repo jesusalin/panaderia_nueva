@@ -93,8 +93,7 @@ class RegistrarActividad
             'ordenes-automaticas.descartar' => ['eliminar', 'Compras', fn () => 'Descartó la orden automática ' . $id()],
             // Ventas y clientes
             'ventas.store'   => ['crear',    'Ventas', fn () => 'Registró la venta ' . (($v = $mio(Venta::class)) ? "{$v->numero_venta} por S/ " . number_format($v->total, 2) : '')],
-            'ventas.anular'  => ['eliminar', 'Ventas', fn () => 'Anuló la venta ' . $n()],
-            'ventas.destroy' => ['eliminar', 'Ventas', fn () => 'Eliminó la venta ' . $n()],
+            'ventas.anular'  => ['eliminar', 'Ventas', fn () => 'Anuló la venta ' . $n() . ($in('motivo_anulacion') ? ' (' . $in('motivo_anulacion') . ')' : '')],
             'clientes.store'   => ['crear',    'Clientes', fn () => 'Registró al cliente "' . $in('nombre') . '"'],
             'clientes.update'  => ['editar',   'Clientes', fn () => 'Editó al cliente ' . $n()],
             'clientes.destroy' => ['eliminar', 'Clientes', fn () => 'Eliminó al cliente ' . $n()],

@@ -103,7 +103,7 @@
         </thead>
         <tbody>
             @foreach($clientes as $cliente)
-            <tr class="{{ ($cliente->estado ?? 'activo') !== 'activo' ? 'cli-row-inactiva' : '' }}">
+            <tr class="clic-fila {{ ($cliente->estado ?? 'activo') !== 'activo' ? 'cli-row-inactiva' : '' }}" data-href="{{ route('clientes.show', $cliente) }}" data-clic=".js-ver-detalle" tabindex="0" aria-label="Ver cliente {{ $cliente->nombre }}">
                 <td>
                     <div class="d-flex align-items-center gap-2">
                         <div class="cli-type-icon" style="background:{{ $cliente->color_tipo }};"><i class="fas {{ $cliente->icono }}"></i></div>
@@ -127,7 +127,7 @@
                         <a href="{{ route('clientes.show', $cliente) }}" class="btn btn-icon btn-info js-ver-detalle" data-titulo-detalle="{{ $cliente->nombre }}" title="Ver detalle">
                             <i class="fas fa-eye"></i>
                         </a>
-                        <a href="{{ route('clientes.edit', $cliente) }}" class="btn btn-icon btn-warning" title="Editar">
+                        <a href="{{ route('clientes.edit', ['cliente' => $cliente, 'volver' => request()->fullUrl()]) }}" class="btn btn-icon btn-warning" title="Editar">
                             <i class="fas fa-edit"></i>
                         </a>
                         @if($cliente->nombre !== 'Cliente General')

@@ -1,159 +1,53 @@
+{{-- Resumen de una venta para la ventana rápida (js-ver-detalle). La página completa es ventas/show. --}}
+@php
+    $anulada = $venta->estado === 'anulada';
+    $m = $venta->medio;
+@endphp
 <style>
-    .venta-topbar { height: 5px; background: linear-gradient(90deg, #1e8e5a, #6ee7a5); }
-    .venta-head { display: flex; align-items: center; gap: 1rem; padding: 1.4rem 1.5rem; }
-    .venta-head .ch-icon {
-        width: 54px; height: 54px; border-radius: 14px; display: flex; align-items: center; justify-content: center;
-        font-size: 1.4rem; color: #fff; background: linear-gradient(135deg, #1a1a2e, #1e8e5a); flex-shrink: 0;
-        box-shadow: 0 4px 10px rgba(30,142,90,.3);
-    }
-    .venta-head h5 { margin: 0; font-weight: 800; }
-    .venta-head p { margin: .1rem 0 0; color: #8a8a9d; font-size: .85rem; }
-    .info-strip { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; padding: 0 1.5rem 1.4rem; }
-    .info-strip .is-item { border-left: 3px solid #dcf0e4; padding-left: .7rem; }
-    .info-strip .is-item .is-label { font-size: .68rem; text-transform: uppercase; letter-spacing: .03em; color: #adb5bd; font-weight: 700; }
-    .info-strip .is-item .is-value { font-size: .95rem; font-weight: 700; color: #1a1a2e; }
-    body.dark-mode .info-strip .is-item { border-left-color: #1e3a2c; }
-    body.dark-mode .info-strip .is-item .is-value { color: #f0f0f7; }
-    @media (max-width: 767px) { .info-strip { grid-template-columns: repeat(2, 1fr); } }
-
-    .venta-note { background: rgba(30,142,90,.06); border-left: 3px solid #1e8e5a; border-radius: 8px; padding: .9rem 1.1rem; display: flex; gap: .6rem; align-items: flex-start; }
-    .venta-note i { color: #1e8e5a; margin-top: .15rem; }
-    body.dark-mode .venta-note { background: rgba(30,142,90,.14); }
-
-    .venta-table thead th { background: rgba(30,142,90,.05) !important; }
-    body.dark-mode .venta-table thead th { background: rgba(30,142,90,.1) !important; }
-
-    .action-icon-chip {
-        width: 34px; height: 34px; border-radius: 9px; display: inline-flex; align-items: center; justify-content: center;
-        background: rgba(30,142,90,.12); color: #1e8e5a; margin-right: .6rem; flex-shrink: 0;
-    }
-
-    .prod-form-card { border: none; border-radius: 14px; box-shadow: 0 4px 24px rgba(0,0,0,.06); overflow: hidden; }
-    .prod-form-body { padding: 1.5rem; }
-
-    @media print {
-        .col-lg-8.venta-print-col { flex: 0 0 100% !important; max-width: 100% !important; }
-        .venta-topbar { background: #000 !important; height: 2px !important; }
-        .ch-icon { background: #f0f0f0 !important; color: #000 !important; box-shadow: none !important; }
-    }
+    .vd-cab { display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; margin-bottom: .9rem; }
+    .vd-cab b { font-size: 1.5rem; color: #1a1a2e; }
+    body.dark-mode .vd-cab b { color: #f0f0f7; }
+    .vd-cab small { display: block; color: #8a8a9d; font-size: .8rem; }
+    .vd-tabla { width: 100%; font-size: .88rem; }
+    .vd-tabla td { padding: .35rem 0; border-bottom: 1px dashed #eee5dd; }
+    .vd-tabla td.num { text-align: right; white-space: nowrap; }
+    .vd-tot { display: flex; justify-content: space-between; font-size: .82rem; color: #8a8a9d; margin-top: .25rem; }
+    .vd-tot.tt { font-size: 1rem; font-weight: 800; color: #1a1a2e; }
+    body.dark-mode .vd-tot.tt { color: #f0f0f7; }
+    .vd-chip { display: inline-flex; align-items: center; gap: .3rem; border-radius: 20px; padding: .18rem .6rem; font-size: .74rem; font-weight: 700; background: #f3f0ec; color: #555; }
 </style>
-<div class="row">
-    <div class="col-lg-8 venta-print-col">
-        <div class="card prod-form-card mb-3">
-            <div class="venta-topbar"></div>
-            <div class="venta-head">
-                <div class="ch-icon"><i class="fas fa-file-invoice"></i></div>
-                <div class="flex-grow-1">
-                    <h5>Comprobante {{ $venta->numero_venta }}</h5>
-                    <p>{{ $venta->cliente->nombre ?? 'Cliente general' }}</p>
-                </div>
-                <span class="badge-soft {{ $venta->estado === 'completada' ? 'badge-soft-success' : 'badge-soft-danger' }}" style="font-size:.85rem;">
-                    {{ strtoupper($venta->estado) }}
-                </span>
-            </div>
-
-            <div class="info-strip">
-                <div class="is-item">
-                    <div class="is-label">Cliente</div>
-                    <div class="is-value">{{ $venta->cliente->nombre ?? 'General' }}</div>
-                </div>
-                <div class="is-item">
-                    <div class="is-label">Fecha</div>
-                    <div class="is-value">{{ $venta->fecha_venta->format('d/m/Y H:i') }}</div>
-                </div>
-                <div class="is-item">
-                    <div class="is-label">Vendedor</div>
-                    <div class="is-value">{{ $venta->usuario->nombre }}</div>
-                </div>
-                <div class="is-item">
-                    <div class="is-label">Total</div>
-                    <div class="is-value text-success">S/ {{ number_format($venta->total, 2) }}</div>
-                </div>
-            </div>
-
-            <div class="table-card m-3 mt-0" style="box-shadow:none;border:1px solid #f0f0f0;">
-                <div class="table-responsive">
-                <table class="table table-modern venta-table mb-0">
-                    <thead>
-                        <tr>
-                            <th>Producto</th>
-                            <th class="text-center">Cant.</th>
-                            <th class="text-right">P. Unit.</th>
-                            <th class="text-right">Subtotal</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach($venta->detalles as $d)
-                        <tr>
-                            <td class="row-title">{{ $d->producto->nombre }}</td>
-                            <td class="text-center">{{ $d->cantidad }}</td>
-                            <td class="text-right">S/ {{ number_format($d->precio_unitario, 2) }}</td>
-                            <td class="text-right font-weight-bold">S/ {{ number_format($d->subtotal, 2) }}</td>
-                        </tr>
-                        @endforeach
-                    </tbody>
-                </table>
-                </div>
-                <div class="p-3" style="border-top:1px solid #f0f0f0;">
-                    <div class="row justify-content-end">
-                        <div class="col-md-6">
-                            <div class="d-flex justify-content-between text-muted small mb-1">
-                                <span>Subtotal</span><span>S/ {{ number_format($venta->subtotal, 2) }}</span>
-                            </div>
-                            <div class="d-flex justify-content-between text-muted small mb-2">
-                                <span>IGV (18%)</span><span>S/ {{ number_format($venta->igv, 2) }}</span>
-                            </div>
-                            <div class="d-flex justify-content-between align-items-center" style="border-top:1px solid #e5e0da;padding-top:.5rem;">
-                                <span class="font-weight-bold">Total</span>
-                                <span class="font-weight-bold text-success" style="font-size:1.2rem;">S/ {{ number_format($venta->total, 2) }}</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+<div class="vd-cab">
+    <div>
+        <b style="{{ $anulada ? 'text-decoration:line-through;opacity:.6' : '' }}">S/ {{ number_format($venta->total, 2) }}</b>
+        <small>{{ $venta->numero_venta }} · {{ $venta->fecha_venta->format('d/m/Y H:i') }} · {{ $venta->usuario->nombre ?? '—' }}</small>
+        <small>{{ $venta->cliente->nombre ?? 'Cliente General' }}</small>
     </div>
-
-    <div class="col-lg-4 no-print">
-        <div class="card prod-form-card">
-            <div class="venta-topbar"></div>
-            <div class="prod-form-body">
-                <h6 class="font-weight-bold mb-3 d-flex align-items-center">
-                    <span class="action-icon-chip"><i class="fas fa-bolt"></i></span>Acciones
-                </h6>
-
-                @if($venta->estado === 'completada')
-                <form action="{{ route('ventas.anular', $venta) }}" method="POST" class="js-confirm mb-2"
-                    data-confirm-title="¿Anular esta venta?"
-                    data-confirm="Esta acción no se puede deshacer.">
-                    @csrf @method('PUT')
-                    <button class="btn btn-outline-danger btn-block">
-                        <i class="fas fa-ban mr-2"></i>Anular Venta
-                    </button>
-                </form>
-                @else
-                <div class="venta-note mb-2"><i class="fas fa-info-circle"></i><span>Esta venta ya fue anulada</span></div>
-                @endif
-
-                <hr class="detalle-divider">
-
-                <div class="dropdown mb-2">
-                    <button type="button" class="btn btn-outline-secondary btn-block dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                        <i class="fas fa-print mr-2"></i>Imprimir
-                    </button>
-                    <div class="dropdown-menu w-100">
-                        <a class="dropdown-item" href="#" onclick="imprimirDetalle('a4'); return false;">
-                            <i class="fas fa-file mr-2 text-muted"></i>Hoja completa (A4)
-                        </a>
-                        <a class="dropdown-item" href="#" onclick="imprimirDetalle('boleta'); return false;">
-                            <i class="fas fa-receipt mr-2 text-muted"></i>Boleta / Ticket angosto
-                        </a>
-                    </div>
-                </div>
-                <a href="{{ route('ventas.pdf', $venta) }}" target="_blank" class="btn btn-outline-secondary btn-block">
-                    <i class="fas fa-file-pdf mr-2"></i>Descargar PDF
-                </a>
-            </div>
-        </div>
+    <div class="text-right">
+        <span class="vd-chip"><i class="fas {{ $m['icono'] }}" style="color: {{ $m['color'] }}"></i>{{ $m['texto'] }}</span>
+        <div class="mt-1"><span class="badge-soft {{ $anulada ? 'badge-soft-danger' : 'badge-soft-success' }}">{{ $anulada ? 'Anulada' : 'Completada' }}</span></div>
     </div>
+</div>
+@if($anulada && $venta->motivo_anulacion)
+    <div class="alert alert-secondary small py-2"><i class="fas fa-ban mr-1"></i>Anulada: “{{ $venta->motivo_anulacion }}”</div>
+@endif
+<table class="vd-tabla">
+    @foreach($venta->detalles as $d)
+        <tr>
+            <td><b>{{ $d->cantidad }}</b> × {{ $d->producto->nombre ?? 'Producto eliminado' }} <span class="text-muted small">S/ {{ number_format($d->precio_unitario, 2) }}</span></td>
+            <td class="num font-weight-bold">S/ {{ number_format($d->subtotal, 2) }}</td>
+        </tr>
+    @endforeach
+</table>
+<div class="vd-tot mt-2"><span>IGV (18 %) incluido</span><span>S/ {{ number_format($venta->igv, 2) }}</span></div>
+@if($venta->tipo_pago === 'efectivo' && $venta->monto_recibido !== null)
+    <div class="vd-tot"><span>Recibido · vuelto</span><span>S/ {{ number_format($venta->monto_recibido, 2) }} · S/ {{ number_format($venta->vuelto ?? 0, 2) }}</span></div>
+@endif
+@if($venta->numero_operacion)
+    <div class="vd-tot"><span>N° de operación</span><span>{{ $venta->numero_operacion }}</span></div>
+@endif
+<div class="vd-tot tt"><span>Total</span><span>S/ {{ number_format($venta->total, 2) }}</span></div>
+<div class="d-flex flex-wrap mt-3" style="gap:.4rem">
+    <a href="{{ route('ventas.show', $venta) }}" class="btn btn-primary btn-sm"><i class="fas fa-external-link-alt mr-1"></i>Abrir venta</a>
+    <a href="{{ route('ventas.ticket', $venta) }}" target="_blank" class="btn btn-light btn-sm"><i class="fas fa-receipt mr-1"></i>Ticket</a>
+    <a href="{{ route('ventas.pdf', $venta) }}" target="_blank" class="btn btn-light btn-sm"><i class="fas fa-file-pdf mr-1 text-danger"></i>PDF</a>
 </div>

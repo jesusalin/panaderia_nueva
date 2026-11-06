@@ -408,6 +408,28 @@ Clientes, Proveedores, Recetas, Historial y Reporte de stock):
 - Todos los reportes tienen periodos rápidos (este mes, mes anterior, 30 días, 3 meses, año, todo) o fechas exactas.
 - **Menú de Reportes:** Resumen, Cierre Diario, Stock, Kardex, **Mermas** y **Compras** (cada uno según los permisos del usuario).
 
+## ✅ Vuelta 27 (Ventas)
+
+> **Después de copiar, ejecuta `php artisan migrate`** (000029: agrega recibido, vuelto, n° de operación y datos de anulación a las ventas, y da el Reporte de Ventas a quien ya tenía reportes).
+
+- **IGV corregido:** los precios de venta **ya incluyen el IGV** (como exige la ley en Perú para precios al consumidor). Antes se sumaba 18 % encima y se cobraba de más (11 panes de S/ 0.20 salían S/ 2.60 en vez de S/ 2.20). Ahora el total es la suma y se muestra "IGV (18 %) incluido". Las ventas antiguas mantienen sus montos.
+- **Las ventas se hacen desde Productos (venta rápida):** se quitó la pantalla "Nueva venta" (si alguien entra a esa dirección, lo lleva a Productos). Se abre con el botón flotante de abajo (muestra el total). En la venta rápida: **buscador para agregar cualquier producto** aunque no esté en la página o filtro: busca por palabras en cualquier orden y por categoría ("yema pan", "pastelería"), ignora tildes, resalta lo encontrado, muestra imagen, precio, stock y cuántos ya van en la venta; al entrar muestra los más vendidos; **"3 pan" agrega 3 de una vez**; flechas y Enter para elegir, Esc limpia. Debajo, botones de los 6 más vendidos para agregarlos con un toque, cantidades editables con tope de stock, cliente (por defecto Cliente General), medio de pago con botones, **recibido y vuelto** con billetes rápidos, n° de operación para Yape/Plin/tarjeta y nota. Las tarjetas muestran cuántos van en la venta. El carrito usa el precio y stock de ese momento; si la venta falla no se pierde (vuelve abierto con el error) y se vacía solo cuando se registró. Al cobrar sale el aviso con **Imprimir ticket**. Atajos: F2 abre y busca, F9 cobra, Esc cierra.
+- **Ventas:** caja de hoy (total, vs. ayer, ticket promedio, lo más vendido) y montos por medio de pago; periodos rápidos, búsqueda por n°, cliente o producto, filtros por pago, estado, vendedor y fechas; lista agrupada por día con el total de cada día.
+- **Detalle de la venta:** productos, pago (recibido, vuelto, operación), seguimiento (quién registró y quién anuló), ticket y PDF.
+- **Anular en vez de eliminar:** las ventas ya no se borran; se anulan **escribiendo el motivo**. Los productos vuelven al stock, queda en el kardex y se ve quién y cuándo la anuló.
+- **Ticket de 80 mm** para impresora térmica (se abre la impresión sola). Número de venta correlativo `V-000001` que no se repite.
+- **Reporte de ventas (nuevo):** vendido con y sin IGV, comparación con el periodo anterior, ventas por día/semana/mes y **por hora (hora pico)**, productos más vendidos con **costo, ganancia y margen**, por medio de pago, por día de la semana, mejores clientes, por vendedor y por categoría. PDF y Excel. En el menú de Reportes y en el Resumen.
+- El Excel de ventas incluye pago, n° de operación, recibido, vuelto y motivo de anulación.
+
+## ✅ Vuelta 28 (tocar la tarjeta para ver más y "Cancelar" que regresa bien)
+
+- **Cancelar en Editar y Ajustar stock** (insumos y productos): regresa a la **lista** desde donde se abrió (con sus filtros), ya no a la ficha. Solo vuelve a la ficha si se entró desde la ficha. Si no se sabe de dónde se vino, va a la lista. Lo mismo al guardar. Antes fallaba porque el sistema tomaba como “página anterior” la última que se cargó en segundo plano.
+- **Lo mismo en Editar de Proveedores, Categorías, Clientes y Usuarios:** Cancelar y Guardar regresan a la lista desde donde se abrió (con su búsqueda y filtros); si se entró desde la ficha, a la ficha. Antes, al editar un proveedor se iba a su ficha.
+- **Toda la tarjeta o fila se puede tocar** para ver más, no solo el nombre. Al pasar el mouse se levanta, se marca el nombre y aparece "Ver ficha"; con el teclado se entra con Enter y con Ctrl + clic se abre en otra pestaña. Los botones, interruptores y enlaces de adentro siguen funcionando igual. Aplica en:
+  - Materia prima y Productos (abre la ficha), Proveedores, Categorías, Compras y Ventas.
+  - Clientes y Producción (abre el detalle en la ventana).
+  - **Movimientos de materia prima y de productos:** cada movimiento abre lo que lo originó: la compra, la venta o la producción; si fue un ajuste o una merma, la ficha del insumo o producto.
+
 ## 🔲 Lo que falta
 
 ### A. Configuración (no es código)

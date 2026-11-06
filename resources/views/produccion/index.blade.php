@@ -141,7 +141,7 @@
                 $iconoProd = $p->producto->categoria->icono_final ?? 'fa-bread-slice';
                 $colorProd = $p->producto->categoria->color_final ?? '#b5451b';
             @endphp
-            <tr style="--cat-color: {{ $colorProd }}">
+            <tr class="clic-fila" style="--cat-color: {{ $colorProd }}" data-href="{{ route('produccion.show', $p) }}" data-clic=".js-ver-detalle" tabindex="0" aria-label="Ver producción #{{ $p->id }}">
                 <td class="text-muted small">#{{ $p->id }}</td>
                 <td>
                     <div class="d-flex align-items-center gap-2">

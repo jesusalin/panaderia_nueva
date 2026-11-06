@@ -131,7 +131,7 @@ class UsuariosController extends Controller
 
         $this->sincronizarPermisos($usuario, $request->input('permisos', []));
 
-        return redirect()->route('usuarios.index')->with('success','Usuario actualizado.');
+        return redirect()->to(\App\Support\Volver::url(route('usuarios.index')))->with('success','Usuario actualizado.');
     }
 
     /**

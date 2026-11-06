@@ -45,6 +45,9 @@ class ReportesController extends Controller
             ->sum(\Illuminate\Support\Facades\DB::raw('movimientos_inventario.cantidad * materia_prima.costo_unitario'));
         $comprasMes = (float) \App\Models\Compra::where('estado', '!=', 'anulada')->whereDate('fecha_compra', '>=', $inicioMes)->sum('total');
         $comprasPorRecibir = \App\Models\Compra::where('estado', 'pendiente')->count();
+        $ventasMesQ = \App\Models\Venta::where('estado', 'completada')->where('fecha_venta', '>=', $inicioMes);
+        $ventasMes = (float) (clone $ventasMesQ)->sum('total');
+        $ventasMesN = (clone $ventasMesQ)->count();
 
         // PER del último conteo (insumos con diferencia ÷ contados × 100)
         $ultimoLote = \App\Models\ConteoFisico::orderByDesc('created_at')->orderByDesc('id')->value('lote');
@@ -57,7 +60,7 @@ class ReportesController extends Controller
 
         return view('reportes.index', compact(
             'insumosStockBajo', 'productosStockBajo', 'valorInsumos', 'valorProductos', 'movimientosHoy',
-            'cierreHoy', 'sinCerrar', 'mermasMes', 'comprasMes', 'comprasPorRecibir', 'per', 'fechaConteo'
+            'cierreHoy', 'sinCerrar', 'mermasMes', 'comprasMes', 'comprasPorRecibir', 'ventasMes', 'ventasMesN', 'per', 'fechaConteo'
         ));
     }
 

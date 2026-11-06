@@ -55,7 +55,7 @@ class ProductosMejorasTest extends TestCase
         $p = Producto::factory()->create(['stock_actual' => 50]);
 
         $this->actingAs($this->admin)->post(route('productos.ajuste.store', $p), ['tipo_ajuste' => 'merma', 'cantidad' => 6, 'observacion' => 'Se quemó una bandeja'])
-            ->assertRedirect(route('productos.show', $p));
+            ->assertRedirect(route('productos.index'));
         $this->assertSame(44, (int) $p->fresh()->stock_actual);
         $this->assertDatabaseHas('kardex_productos', ['id_producto' => $p->id, 'tipo' => 'salida', 'motivo' => 'ajuste_manual', 'cantidad' => 6, 'stock_antes' => 50, 'stock_despues' => 44]);
 
@@ -95,10 +95,23 @@ class ProductosMejorasTest extends TestCase
         Producto::factory()->create(['nombre' => 'Pan grande', 'stock_actual' => 80, 'stock_minimo' => 5]);
 
         $this->actingAs($this->admin)->get(route('productos.index', ['stock' => 'bajo']))->assertOk()
-            ->assertSee('Torta chica')->assertDontSee('Pan grande');
+            ->assertSee('Torta chica')->assertDontSee('">Pan grande</a>', false);   // el nombre sí va en el buscador de la venta rápida
         $this->actingAs($this->admin)->get(route('productos.index', ['orden' => 'vendidos']))->assertOk();
         $this->actingAs($this->admin)->get(route('productos.show', $bajo))->assertOk()->assertSee('Últimos movimientos');
         $this->actingAs($this->admin)->get(route('productos.ajuste', $bajo))->assertOk();
         $this->actingAs($this->admin)->get(route('productos.edit', $bajo))->assertOk()->assertSee('Ajustar');
+    }
+
+    public function test_cancelar_en_ajuste_y_editar_vuelve_a_la_lista(): void
+    {
+        $p = Producto::factory()->create(['stock_actual' => 10]);
+        $lista = route('productos.index', ['categoria' => $p->id_categoria]);
+        // Desde la lista (con filtros): Cancelar regresa a la lista, no a la ficha
+        $this->actingAs($this->admin)->get(route('productos.ajuste', ['producto' => $p, 'volver' => $lista]))
+            ->assertOk()->assertSee('href="' . e($lista) . '" class="btn btn-light">Cancelar', false);
+        $this->actingAs($this->admin)->get(route('productos.edit', $p))->assertOk()->assertSee('href="' . route('productos.index') . '" class="btn btn-link', false);
+        // Desde la ficha: regresa a la ficha
+        $this->actingAs($this->admin)->withHeader('referer', route('productos.show', $p))->get(route('productos.ajuste', $p))
+            ->assertOk()->assertSee('href="' . route('productos.show', $p) . '" class="btn btn-light">Cancelar', false);
     }
 }

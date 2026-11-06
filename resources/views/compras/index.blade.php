@@ -4,16 +4,6 @@
     <li class="breadcrumb-item active">Compras</li>
 @endsection
 
-@push('scripts')
-<script>
-// Toda la fila abre la compra (menos los botones que tiene dentro)
-document.querySelectorAll('.cp-fila[data-href]').forEach(function (f) {
-    f.style.cursor = 'pointer';
-    f.addEventListener('click', function (e) { if (!e.target.closest('a, button')) location.href = f.dataset.href; });
-    f.addEventListener('keydown', function (e) { if (e.key === 'Enter' && e.target === f) location.href = f.dataset.href; });
-});
-</script>
-@endpush
 
 @include('partials.compras-estilos')
 
@@ -142,7 +132,7 @@ document.querySelectorAll('.cp-fila[data-href]').forEach(function (f) {
             $est = $nombreEstado($c);
             $insumos = $c->detalles->map(fn ($d) => $d->materia->nombre ?? '?');
         @endphp
-        <div class="cp-fila {{ $est }}" data-href="{{ route('compras.show', $c) }}" role="link" tabindex="0" aria-label="Ver compra {{ $c->codigo }}">
+        <div class="cp-fila clic-fila {{ $est }}" data-href="{{ route('compras.show', $c) }}" role="link" tabindex="0" aria-label="Ver compra {{ $c->codigo }}">
             <div class="cf-ic {{ $est }}"><i class="fas {{ $iconoEstado[$est] }}"></i></div>
             <div style="min-width:0">
                 <div class="cf-t">{{ $c->proveedor->nombre ?? '—' }} <small class="text-muted font-weight-normal">{{ $c->codigo }}</small></div>
@@ -185,13 +175,3 @@ document.querySelectorAll('.cp-fila[data-href]').forEach(function (f) {
 @endif
 @endsection
 
-@push('scripts')
-<script>
-// Toda la fila abre la compra (menos los botones que tiene dentro)
-document.querySelectorAll('.cp-fila[data-href]').forEach(function (f) {
-    f.style.cursor = 'pointer';
-    f.addEventListener('click', function (e) { if (!e.target.closest('a, button')) location.href = f.dataset.href; });
-    f.addEventListener('keydown', function (e) { if (e.key === 'Enter' && e.target === f) location.href = f.dataset.href; });
-});
-</script>
-@endpush

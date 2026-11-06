@@ -260,7 +260,7 @@
                     <a href="{{ route('actividad.index', ['usuario' => $u->id]) }}" class="btn btn-icon btn-info" title="Ver historial de actividad">
                         <i class="fas fa-history"></i>
                     </a>
-                    <a href="{{ route('usuarios.edit', $u) }}" class="btn btn-icon btn-warning" title="Editar">
+                    <a href="{{ route('usuarios.edit', ['usuario' => $u, 'volver' => request()->fullUrl()]) }}" class="btn btn-icon btn-warning" title="Editar">
                         <i class="fas fa-edit"></i>
                     </a>
                     @if(auth()->id() === $u->id)

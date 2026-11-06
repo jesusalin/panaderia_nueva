@@ -15,8 +15,10 @@
         <div><b>{{ $proveedor->compras_count }}</b><span>compras</span></div>
     </div>
 </div>
+@php $volver = \App\Support\Volver::url(route('proveedores.index')); @endphp
 <form action="{{ route('proveedores.update', $proveedor) }}" method="POST" id="formProveedor">
     @csrf @method('PUT')
+    <input type="hidden" name="volver" value="{{ $volver }}">
     @include('proveedores._form')
 </form>
 @endsection

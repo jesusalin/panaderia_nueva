@@ -54,9 +54,26 @@ class ProductosController extends Controller
         $categorias = Categoria::orderBy('nombre')->get();
 
         // Solo se necesita si el usuario puede vender (para el carrito de compra rápida)
-        $clientes = auth()->user()->hasModulo('ventas') ? Cliente::orderBy('nombre')->get() : collect();
+        $puedeVender = auth()->user()->hasModulo('ventas');
+        $clientes = $puedeVender ? Cliente::where(fn ($q) => $q->where('estado', 'activo')->orWhereNull('estado'))->orderBy('nombre')->get() : collect();
+        $idGeneral = $puedeVender ? (Cliente::where('nombre', 'Cliente General')->value('id') ?? $clientes->first()?->id) : null;
+        // Todos los productos que se pueden vender (con su stock de ahora), para buscar en la venta rápida
+        // aunque no estén en la página o filtro que se está viendo
+        $catalogoVenta = $puedeVender
+            ? Producto::where('estado', 'activo')->with('categoria')
+                ->withSum(['ventaDetalles as vendidos_30' => fn ($q) => $q->whereHas('venta',
+                    fn ($v) => $v->where('estado', 'completada')->where('fecha_venta', '>=', $desde30))], 'cantidad')
+                ->orderBy('nombre')->get()
+                ->map(fn ($p) => [
+                    'id' => $p->id, 'n' => $p->nombre, 'precio' => (float) $p->precio_venta, 'stock' => (int) $p->stock_actual,
+                    'cat' => $p->categoria->nombre ?? '', 'ic' => $p->categoria->icono_final ?? 'fa-bread-slice',
+                    'col' => $p->categoria->color_final ?? '#b5451b', 'v30' => (int) $p->vendidos_30,
+                    'img' => $p->imagen ? asset('storage/' . $p->imagen) : null,
+                ])->values()
+            : collect();
+        $ultimaVenta = $puedeVender && session('ultima_venta') ? \App\Models\Venta::find(session('ultima_venta')) : null;
 
-        return view('productos.index', compact('productos', 'categorias', 'clientes', 'stats'));
+        return view('productos.index', compact('productos', 'categorias', 'clientes', 'stats', 'idGeneral', 'catalogoVenta', 'ultimaVenta'));
     }
 
     /** Ficha del producto: datos, ganancia, receta con su costo, ventas y últimos movimientos. */
@@ -132,7 +149,7 @@ class ProductosController extends Controller
         if (isset($resultado['error'])) {
             return back()->withInput()->with('error', $resultado['error']);
         }
-        return redirect()->route('productos.show', $producto)
+        return redirect()->to(\App\Support\Volver::url(route('productos.index')))
             ->with('success', "Stock de \"{$producto->nombre}\" ajustado: {$resultado['antes']} → {$resultado['despues']} uds (quedó en el kardex).");
     }
 
@@ -209,7 +226,7 @@ class ProductosController extends Controller
 
         // El stock NO se cambia aquí (rompería el kardex): se usa "Ajustar stock"
         $producto->update($data);
-        return redirect()->route('productos.index')->with('success','Producto actualizado.');
+        return redirect()->to(\App\Support\Volver::url(route('productos.index')))->with('success', "Producto \"{$producto->nombre}\" actualizado.");
     }
 
     public function toggleEstado(Producto $producto) {

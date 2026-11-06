@@ -61,6 +61,9 @@
     @if($u->hasPermiso('reportes.compras'))
         <a href="{{ route('reportes.compras') }}" class="rh-kpi" style="--c:#d4880f"><small>Compras del mes</small><b>S/ {{ number_format($comprasMes, 2) }}</b><span>{{ $comprasPorRecibir }} por recibir</span></a>
     @endif
+    @if($u->hasPermiso('reportes.ventas'))
+        <a href="{{ route('reportes.ventas') }}" class="rh-kpi" style="--c:#27ae60"><small>Ventas del mes</small><b>S/ {{ number_format($ventasMes, 2) }}</b><span>{{ $ventasMesN }} venta(s) · IGV incluido</span></a>
+    @endif
     @if($u->hasPermiso('inventario.conteo'))
         <a href="{{ route('conteo-fisico.historial') }}" class="rh-kpi" style="--c:{{ $per === null ? '#6c757d' : ($per <= 10 ? '#1e8e5a' : ($per <= 30 ? '#d4880f' : '#c0392b')) }}"><small>PER último conteo</small><b>{{ $per !== null ? $per . ' %' : '—' }}</b><span>{{ $fechaConteo ? $fechaConteo->format('d/m/Y') : 'sin conteos' }} · 0 % es lo ideal</span></a>
     @endif
@@ -119,7 +122,14 @@
         @endif
     </a>
     @endif
-    @if($u->hasModulo('ventas'))
+    @if($u->hasPermiso('reportes.ventas'))
+    <a href="{{ route('reportes.ventas') }}" class="rep-card" style="--c:#27ae60">
+        <div class="rc-top"><div class="rc-icon"><i class="fas fa-chart-line"></i></div><h5>Ventas</h5></div>
+        <p>Ingresos por día y por hora, productos más vendidos con su ganancia, medios de pago, clientes y vendedores.</p>
+        <span class="rc-alert ok"><i class="fas fa-coins"></i>Este mes: S/ {{ number_format($ventasMes, 2) }}</span>
+        <div class="rc-exp"><i class="fas fa-file-pdf"></i>PDF <i class="fas fa-file-excel ml-1"></i>Excel</div>
+    </a>
+    @elseif($u->hasModulo('ventas'))
     <a href="{{ route('ventas.exportar-excel') }}" class="rep-card" style="--c:#27ae60">
         <div class="rc-top"><div class="rc-icon"><i class="fas fa-file-excel"></i></div><h5>Historial de ventas</h5></div>
         <p>Descarga el historial completo de ventas en Excel, para evidencia o cuadrar caja.</p>

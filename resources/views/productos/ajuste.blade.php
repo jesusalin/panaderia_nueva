@@ -43,8 +43,10 @@
         </div>
     </div>
     <div class="prod-form-body">
+        @php $volver = \App\Support\Volver::url(route('productos.index')); @endphp
         <form action="{{ route('productos.ajuste.store', $producto) }}" method="POST" id="formAjuste">
             @csrf
+            <input type="hidden" name="volver" value="{{ $volver }}">
             <div class="aj-tipos">
                 <label class="aj-tipo">
                     <input type="radio" name="tipo_ajuste" value="merma" {{ $tipo === 'merma' ? 'checked' : '' }}>
@@ -81,7 +83,7 @@
             </div>
 
             <div class="form-actions">
-                <a href="{{ route('productos.show', $producto) }}" class="btn btn-light">Cancelar</a>
+                <a href="{{ $volver }}" class="btn btn-light">Cancelar</a>
                 <button type="submit" class="btn btn-primary"><i class="fas fa-check mr-1"></i>Registrar ajuste</button>
             </div>
         </form>

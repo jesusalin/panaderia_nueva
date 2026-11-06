@@ -59,8 +59,10 @@
 </div>
 
 <div class="row justify-content-center"><div class="col-lg-8 col-xl-7">
+@php $volver = \App\Support\Volver::url(route('materia-prima.index')); @endphp
 <form action="{{ route('materia-prima.ajuste.store', $m) }}" method="POST" id="formAjuste">
     @csrf
+    <input type="hidden" name="volver" value="{{ $volver }}">
     <div class="pfm-card">
         <div class="pfm-card-body">
             <div class="aj-tipos">
@@ -126,7 +128,7 @@
             <div class="aj-valor" id="ajValor"></div>
 
             <button type="submit" class="btn btn-primary pfm-guardar mt-3"><i class="fas fa-check mr-1"></i>Registrar ajuste</button>
-            <a href="{{ route('materia-prima.show', $m) }}" class="btn btn-link btn-block btn-sm text-muted">Cancelar</a>
+            <a href="{{ $volver }}" class="btn btn-link btn-block btn-sm text-muted">Cancelar</a>
         </div>
     </div>
 </form>

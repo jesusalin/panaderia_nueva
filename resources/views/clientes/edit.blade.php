@@ -19,8 +19,10 @@
                 </div>
             </div>
             <div class="prod-form-body">
+                @php $volver = \App\Support\Volver::url(route('clientes.index')); @endphp
                 <form action="{{ route('clientes.update', $cliente) }}" method="POST" id="formCliente">
                     @csrf @method('PUT')
+                    <input type="hidden" name="volver" value="{{ $volver }}">
 
                     <label class="section-label"><i class="fas fa-store mr-1"></i> Datos del cliente</label>
                     <div class="row">
@@ -95,7 +97,7 @@
                     </div>
 
                     <div class="form-actions">
-                        <a href="{{ route('clientes.index') }}" class="btn btn-light">Cancelar</a>
+                        <a href="{{ $volver }}" class="btn btn-light">Cancelar</a>
                         <button type="submit" class="btn btn-primary"><i class="fas fa-save mr-1"></i>Actualizar</button>
                     </div>
                 </form>

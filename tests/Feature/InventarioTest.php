@@ -45,7 +45,7 @@ class InventarioTest extends TestCase
     public function test_editar_no_cambia_el_stock(): void
     {
         $this->actingAs($this->admin)->put(route('materia-prima.update', $this->harina), $this->datos(['nombre' => 'Harina extra', 'stock_actual' => 999]))
-            ->assertRedirect(route('materia-prima.show', $this->harina));
+            ->assertRedirect(route('materia-prima.index'));
         $this->harina->refresh();
         $this->assertSame('Harina extra', $this->harina->nombre);
         $this->assertEquals(10, (float) $this->harina->stock_actual);
@@ -55,7 +55,7 @@ class InventarioTest extends TestCase
     {
         $this->actingAs($this->admin)->post(route('materia-prima.ajuste.store', $this->harina), [
             'tipo_ajuste' => 'merma', 'motivo_merma' => 'roto', 'cantidad' => 500, 'unidad' => 'sub',
-        ])->assertRedirect(route('materia-prima.show', $this->harina));
+        ])->assertRedirect(route('materia-prima.index'));
         $this->assertEquals(9.5, (float) $this->harina->fresh()->stock_actual);
         $this->assertDatabaseHas('movimientos_inventario', ['id_materia' => $this->harina->id, 'tipo' => 'salida', 'motivo' => 'merma']);
 

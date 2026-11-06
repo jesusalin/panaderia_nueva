@@ -31,8 +31,20 @@
                     $ruta = $item ? ($tipoItem === 'materia'
                         ? (auth()->user()->hasPermiso('inventario.materia_prima') ? route('materia-prima.show', $item) : null)
                         : (auth()->user()->hasPermiso('catalogo.productos') ? route('productos.show', $item) : null)) : null;
+                    // Al tocar el movimiento se abre lo que lo originó (compra, venta, producción) o, si no, la ficha
+                    $u_ = auth()->user(); $ref = $mv->referencia_id; $destino = null; $enVentana = false; $textoDestino = '';
+                    if ($ref && $mv->motivo === 'produccion' && $u_->hasPermiso('produccion.produccion')) {
+                        $destino = route('produccion.show', $ref); $enVentana = true; $textoDestino = 'Ver la producción';
+                    } elseif ($ref && $tipoItem === 'materia' && in_array($mv->motivo, ['compra', 'devolucion'], true) && $u_->hasPermiso('compras.compras')) {
+                        $destino = route('compras.show', $ref); $textoDestino = 'Ver la compra';
+                    } elseif ($ref && $tipoItem === 'producto' && in_array($mv->motivo, ['venta', 'devolucion'], true) && $u_->hasPermiso('ventas')) {
+                        $destino = route('ventas.show', $ref); $enVentana = true; $textoDestino = 'Ver la venta';
+                    } elseif ($ruta) {
+                        $destino = $ruta; $textoDestino = 'Ver la ficha de ' . $item->nombre;
+                    }
                 @endphp
-                <div class="inv-mov">
+                <div class="inv-mov {{ $destino ? 'clic-fila' : '' }}" @if($destino) data-href="{{ $destino }}" @if($enVentana) data-clic=".js-ver-detalle" @endif tabindex="0" title="{{ $textoDestino }}" aria-label="{{ $textoDestino }}" @endif>
+                    @if($destino && $enVentana)<a href="{{ $destino }}" class="js-ver-detalle d-none" data-titulo-detalle="{{ $textoDestino }}" tabindex="-1" aria-hidden="true"></a>@endif
                     <span class="im-hora">{{ $mv->created_at->format('H:i') }}</span>
                     <span class="im-ic {{ $clase }}" title="{{ ucfirst($mv->tipo) }}"><i class="fas {{ $iconos[$mv->motivo] ?? 'fa-exchange-alt' }}"></i></span>
                     <span class="im-nombre">

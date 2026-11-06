@@ -94,6 +94,7 @@ class Usuario extends Authenticatable {
                 'reportes.kardex'  => ['nombre' => 'Reporte de Kardex', 'desc' => 'Kardex por insumo o producto, PDF/Excel'],
                 'reportes.mermas'  => ['nombre' => 'Reporte de Mermas', 'desc' => 'Pérdidas de insumos y productos en S/, por motivo'],
                 'reportes.compras' => ['nombre' => 'Reporte de Compras', 'desc' => 'Gasto por proveedor e insumo y variación de precios'],
+                'reportes.ventas'  => ['nombre' => 'Reporte de Ventas', 'desc' => 'Ingresos, horas pico, productos más vendidos y margen'],
             ],
         ],
         'ventas_clientes' => [

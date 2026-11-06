@@ -100,7 +100,8 @@
             if ($m->ordenes_automaticas_count > 0)  $usosMateria[] = 'órdenes automáticas';
             $bloqueadoMateria = count($usosMateria) > 0;
         @endphp
-        <div class="item-card mp-card {{ $m->estado !== 'activo' ? 'is-inactive' : '' }}">
+        <div class="item-card mp-card clic-tarjeta {{ $m->estado !== 'activo' ? 'is-inactive' : '' }}" data-href="{{ route('materia-prima.show', $m) }}" role="link" tabindex="0" aria-label="Ver ficha de {{ $m->nombre }}">
+            <span class="clic-ver">Ver ficha <i class="fas fa-chevron-right ml-1"></i></span>
             <a href="{{ route('materia-prima.show', $m) }}" class="item-card-media" style="text-decoration:none;" title="Ver ficha del insumo">
                 <i class="fas fa-wheat-awn"></i>
                 @if($m->es_control)<span class="mp-control" title="Se cuenta en el conteo rápido del PER">Control</span>@endif
@@ -154,10 +155,10 @@
                     </button>
                 </form>
                 <div class="btn-icon-group">
-                    <a href="{{ route('materia-prima.ajuste', $m) }}" class="btn btn-icon btn-info" title="Ajustar stock (merma o conteo)">
+                    <a href="{{ route('materia-prima.ajuste', ['materiaPrima' => $m, 'volver' => request()->fullUrl()]) }}" class="btn btn-icon btn-info" title="Ajustar stock (merma o conteo)">
                         <i class="fas fa-balance-scale"></i>
                     </a>
-                    <a href="{{ route('materia-prima.edit', $m) }}" class="btn btn-icon btn-warning" title="Editar">
+                    <a href="{{ route('materia-prima.edit', ['materia_prima' => $m, 'volver' => request()->fullUrl()]) }}" class="btn btn-icon btn-warning" title="Editar">
                         <i class="fas fa-edit"></i>
                     </a>
                     @if($bloqueadoMateria)

@@ -83,8 +83,8 @@ class ClientesController extends Controller
             'distrito'   => 'nullable|string|max:100',
             'referencia' => 'nullable|string|max:255',
         ]);
-        $cliente->update($request->all());
-        return redirect()->route('clientes.index')
+        $cliente->update($request->except('volver'));
+        return redirect()->to(\App\Support\Volver::url(route('clientes.index')))
             ->with('success', 'Cliente actualizado correctamente.');
     }
 

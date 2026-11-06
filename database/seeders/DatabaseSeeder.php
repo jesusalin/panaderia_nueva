@@ -126,14 +126,14 @@ class DatabaseSeeder extends Seeder
         // suyos desde la migración 000017 (convertidos a pantallas por la 000021).
         $permisosDemo = [
             // Maria (Ventas): vende desde el carrito de Productos y atiende clientes
-            'mquispe' => ['ventas', 'clientes', 'catalogo.productos'],
+            'mquispe' => ['ventas', 'clientes', 'catalogo.productos', 'reportes.ventas'],
             'jrojas'  => ['ventas', 'clientes'],
             // Carlos (Almacén): inventario, compras, producción y reportes de stock/kardex
             'cmamani' => [
                 'inventario.materia_prima', 'inventario.movimientos', 'inventario.conteo', 'inventario.kardex',
                 'compras.proveedores', 'compras.compras', 'compras.ordenes',
                 'produccion.produccion', 'produccion.recetas',
-                'reportes.resumen', 'reportes.cierre', 'reportes.stock', 'reportes.kardex', 'reportes.mermas', 'reportes.compras',
+                'reportes.resumen', 'reportes.cierre', 'reportes.stock', 'reportes.kardex', 'reportes.mermas', 'reportes.compras', 'reportes.ventas',
             ],
         ];
         foreach ($permisosDemo as $usuario => $claves) {
@@ -608,16 +608,24 @@ class DatabaseSeeder extends Seeder
             if (!$t) return;   // sería en el futuro
 
             $usuario  = mt_rand(1, 5) === 1 ? 'admin' : 'mquispe';
-            $subtotal = 0;
-            foreach ($detalles as $p => $cant) $subtotal += $this->pr[$p]['precio'] * $cant;
-            $subtotal = round($subtotal, 2);
-            $igv = round($subtotal * 0.18, 2);
+            // Igual que VentasController: los precios ya incluyen el IGV
+            $total = 0;
+            foreach ($detalles as $p => $cant) $total += round($this->pr[$p]['precio'] * $cant, 2);
+            $tot = \App\Models\Venta::totales($total);
+            // En efectivo el cliente paga con un billete o monedas y se le da vuelto
+            $recibido = null;
+            if ($pago === 'efectivo') {
+                foreach ([1, 2, 5, 10, 20, 50, 100, 200] as $b) { if ($b >= $tot['total']) { $recibido = mt_rand(0, 2) ? (float) $b : $tot['total']; break; } }
+                $recibido ??= ceil($tot['total'] / 10) * 10;
+            }
 
             $idVenta = DB::table('ventas')->insertGetId([
                 'id_usuario' => $this->u[$usuario], 'id_cliente' => $this->clientes[$cliente],
                 'numero_venta' => 'TMP-' . uniqid(), 'fecha_venta' => $t,
-                'subtotal' => $subtotal, 'igv' => $igv, 'total' => $subtotal + $igv,
-                'tipo_pago' => $pago, 'estado' => 'completada', 'observaciones' => $obs,
+                'subtotal' => $tot['subtotal'], 'igv' => $tot['igv'], 'total' => $tot['total'],
+                'tipo_pago' => $pago, 'monto_recibido' => $recibido, 'vuelto' => $recibido !== null ? round($recibido - $tot['total'], 2) : null,
+                'numero_operacion' => in_array($pago, ['yape', 'plin'], true) ? (string) mt_rand(10000000, 99999999) : null,
+                'estado' => 'completada', 'observaciones' => $obs,
                 'created_at' => $t, 'updated_at' => $t,
             ]);
             $numero = 'V-' . str_pad($idVenta, 6, '0', STR_PAD_LEFT);
@@ -631,7 +639,7 @@ class DatabaseSeeder extends Seeder
                 ]);
                 $this->movimientoPr($p, 'salida', 'venta', -$cant, $idVenta, "Venta {$numero}", $usuario, $t);
             }
-            $this->act($usuario, 'crear', 'Ventas', "Registró la venta {$numero} por S/ " . number_format($subtotal + $igv, 2), $t);
+            $this->act($usuario, 'crear', 'Ventas', "Registró la venta {$numero} por S/ " . number_format($tot['total'], 2), $t);
         }
     }
 

@@ -35,7 +35,7 @@ class VentasExport implements FromQuery, WithHeadings, WithMapping, WithStyles, 
     {
         return [
             'N° Venta', 'Fecha', 'Cliente', 'Vendedor',
-            'Tipo de Pago', 'Subtotal', 'IGV', 'Total', 'Estado',
+            'Pago', 'N° operación', 'Op. gravada', 'IGV (incluido)', 'Total', 'Recibido', 'Vuelto', 'Estado', 'Motivo de anulación',
         ];
     }
 
@@ -46,11 +46,15 @@ class VentasExport implements FromQuery, WithHeadings, WithMapping, WithStyles, 
             $venta->fecha_venta->format('d/m/Y H:i'),
             $venta->cliente->nombre ?? 'General',
             $venta->usuario->nombre ?? '—',
-            ucfirst($venta->tipo_pago),
+            $venta->medio['texto'],
+            $venta->numero_operacion ?? '',
             round($venta->subtotal, 2),
             round($venta->igv, 2),
             round($venta->total, 2),
+            $venta->monto_recibido !== null ? round($venta->monto_recibido, 2) : '',
+            $venta->vuelto !== null ? round($venta->vuelto, 2) : '',
             ucfirst($venta->estado),
+            $venta->motivo_anulacion ?? '',
         ];
     }
 
@@ -58,7 +62,7 @@ class VentasExport implements FromQuery, WithHeadings, WithMapping, WithStyles, 
     {
         return [
             'A' => 14, 'B' => 18, 'C' => 26, 'D' => 20,
-            'E' => 14, 'F' => 12, 'G' => 12, 'H' => 12, 'I' => 14,
+            'E' => 12, 'F' => 14, 'G' => 13, 'H' => 14, 'I' => 12, 'J' => 11, 'K' => 10, 'L' => 13, 'M' => 30,
         ];
     }
 

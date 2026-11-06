@@ -684,6 +684,28 @@
         body.dark-mode .stock-gauge .sg-track { background: #33334d; }
         body.dark-mode .stock-gauge .sg-labels { color: #9a9ac0; }
         body.dark-mode .stock-gauge .sg-labels strong { color: #f0f0f7; }
+
+        /* ── Tarjetas y filas que se abren con un toque (data-href) ── */
+        [data-href] { cursor: pointer; -webkit-tap-highlight-color: rgba(181,69,27,.08); }
+        .clic-tarjeta { position: relative; transition: transform .14s ease, box-shadow .14s ease, border-color .14s ease, background-color .14s ease !important; }
+        .clic-tarjeta:hover { transform: translateY(-3px); box-shadow: 0 10px 26px rgba(26,26,46,.13) !important; }
+        .clic-tarjeta:active { transform: translateY(-1px) scale(.992); }
+        .clic-tarjeta:focus-visible { outline: 2.5px solid #b5451b; outline-offset: 3px; }
+        .clic-tarjeta:hover .item-card-title, .clic-tarjeta:hover .item-card-title a, .clic-tarjeta:hover .cat-name a, .clic-tarjeta:hover .pv-nombre { color: #b5451b !important; }
+        .clic-tarjeta .clic-ver { position: absolute; top: .55rem; right: .55rem; z-index: 3; background: rgba(255,255,255,.95); color: #b5451b; border-radius: 20px;
+            font-size: .7rem; font-weight: 800; padding: .2rem .6rem; box-shadow: 0 2px 8px rgba(0,0,0,.12); opacity: 0; transform: translateY(-3px);
+            transition: opacity .14s, transform .14s; pointer-events: none; white-space: nowrap; }
+        .clic-tarjeta:hover .clic-ver, .clic-tarjeta:focus-visible .clic-ver { opacity: 1; transform: none; }
+        body.dark-mode .clic-tarjeta .clic-ver { background: #2c2c44; color: #ffb38f; }
+        @media (hover: none) { .clic-tarjeta .clic-ver { display: none; } }
+        .clic-fila { transition: background-color .12s ease, box-shadow .12s ease; }
+        .clic-fila:hover { background-color: #fdf6f1 !important; box-shadow: inset 3px 0 0 #b5451b; }
+        .clic-fila:active { background-color: #fbeee5 !important; }
+        .clic-fila:focus-visible { outline: 2px solid #b5451b; outline-offset: -2px; }
+        body.dark-mode .clic-fila:hover { background-color: #26263e !important; }
+        tr.clic-fila:hover > td { background-color: transparent; }
+        .clic-fila .clic-chev { color: #d6cbc2; transition: color .12s, transform .12s; }
+        .clic-fila:hover .clic-chev { color: #b5451b; transform: translateX(2px); }
     </style>
     @stack('styles')
     <script>
@@ -968,6 +990,13 @@
                             <li class="nav-item" data-menu-id="reportes-compras">
                                 <a href="{{ route('reportes.compras') }}" class="nav-link {{ request()->routeIs('reportes.compras*') ? 'active' : '' }}">
                                     <i class="nav-icon fas fa-shopping-basket"></i><p>Reporte de Compras</p>
+                                </a>
+                            </li>
+                            @endif
+                            @if(auth()->user()->hasPermiso('reportes.ventas'))
+                            <li class="nav-item" data-menu-id="reportes-ventas">
+                                <a href="{{ route('reportes.ventas') }}" class="nav-link {{ request()->routeIs('reportes.ventas*') ? 'active' : '' }}">
+                                    <i class="nav-icon fas fa-chart-line"></i><p>Reporte de Ventas</p>
                                 </a>
                             </li>
                             @endif
@@ -1719,6 +1748,35 @@
     });
 </script>
 
+<script>
+    // Tarjetas y filas con data-href: se abren tocando cualquier parte (no solo el nombre).
+    // Los botones, enlaces, interruptores y formularios de adentro siguen haciendo lo suyo.
+    // data-clic=".selector" usa un enlace de adentro (por ejemplo, el que abre el detalle en ventana).
+    (function () {
+        const INTERNOS = 'a, button, input, select, textarea, label, form, summary, details, [data-toggle], [data-no-clic]';
+        function abrir(el, nuevaPestana) {
+            const obj = el.dataset.clic ? el.querySelector(el.dataset.clic) : null;
+            if (obj && !nuevaPestana) { obj.click(); return; }
+            if (nuevaPestana) window.open(el.dataset.href, '_blank'); else location.href = el.dataset.href;
+        }
+        document.addEventListener('click', function (e) {
+            const el = e.target.closest('[data-href]');
+            if (!el) return;
+            const interno = e.target.closest(INTERNOS);
+            if (interno && el.contains(interno) && interno !== el) return;
+            if (window.getSelection && String(window.getSelection()).length > 2) return;   // estaba seleccionando texto
+            abrir(el, e.ctrlKey || e.metaKey);
+        });
+        document.addEventListener('auxclick', function (e) {
+            const el = e.target.closest('[data-href]');
+            if (el && e.button === 1 && !e.target.closest(INTERNOS)) { e.preventDefault(); window.open(el.dataset.href, '_blank'); }
+        });
+        document.addEventListener('keydown', function (e) {
+            const el = e.target.closest && e.target.closest('[data-href]');
+            if (el && e.target === el && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); abrir(el, false); }
+        });
+    })();
+</script>
 @stack('scripts')
 </body>
 </html>

@@ -20,7 +20,9 @@
     </div>
 
     <div class="usuario-form-body">
+        @php $volver = \App\Support\Volver::url(route('usuarios.index')); @endphp
         <form action="{{ route('usuarios.update', $usuario) }}" method="POST">@csrf @method('PUT')
+            <input type="hidden" name="volver" value="{{ $volver }}">
 
             <label class="section-label"><i class="fas fa-id-card mr-1"></i> Información personal</label>
             <div class="row">
@@ -109,7 +111,7 @@
             @include('usuarios.partials._permisos', ['modulos' => $modulos, 'seleccionados' => $permisosActuales])
 
             <div class="form-actions">
-                <a href="{{ route('usuarios.index') }}" class="btn btn-light">Cancelar</a>
+                <a href="{{ $volver }}" class="btn btn-light">Cancelar</a>
                 <button type="submit" class="btn btn-warning"><i class="fas fa-save mr-1"></i>Actualizar</button>
             </div>
         </form>

@@ -86,7 +86,7 @@
             $tieneHistorial = count($usosProveedor) > 0 || \App\Models\OrdenAutomatica::where('id_proveedor', $p->id)->exists();
             $estaActivo = $p->estado === 'activo';
         @endphp
-        <div class="item-card pv-card {{ !$estaActivo ? 'is-inactive' : '' }}">
+        <div class="item-card pv-card clic-tarjeta {{ !$estaActivo ? 'is-inactive' : '' }}" data-href="{{ route('proveedores.show', $p) }}" role="link" tabindex="0" aria-label="Ver proveedor {{ $p->nombre }}">
             <div class="item-card-body">
                 <div class="pv-cab">
                     <div class="pv-avatar {{ $estaActivo ? '' : 'inactivo' }}">{{ $p->getIniciales() }}</div>
@@ -134,7 +134,7 @@
                     @if($estaActivo && auth()->user()->hasPermiso('compras.compras'))
                         <a href="{{ route('compras.create', ['proveedor' => $p->id]) }}" class="btn btn-icon btn-primary" title="Nueva compra a este proveedor"><i class="fas fa-cart-plus"></i></a>
                     @endif
-                    <a href="{{ route('proveedores.edit', $p) }}" class="btn btn-icon btn-warning" title="Editar"><i class="fas fa-edit"></i></a>
+                    <a href="{{ route('proveedores.edit', ['proveedor' => $p, 'volver' => request()->fullUrl()]) }}" class="btn btn-icon btn-warning" title="Editar"><i class="fas fa-edit"></i></a>
                     @if($estaActivo)
                         <button type="button" class="btn btn-icon btn-secondary is-locked js-blocked"
                             data-blocked-title="Desactívalo primero"

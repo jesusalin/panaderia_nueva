@@ -7,6 +7,8 @@ use App\Models\Compra;
 use App\Models\KardexProducto;
 use App\Models\MovimientoInventario;
 use App\Models\Proveedor;
+use App\Models\Usuario;
+use App\Models\Venta;
 use App\Support\Cantidad;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
@@ -14,7 +16,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Maatwebsite\Excel\Facades\Excel;
 
-/** Reportes de gestión: Mermas (pérdidas) y Compras (gasto y precios). */
+/** Reportes de gestión: Mermas (pérdidas), Compras (gasto y precios) y Ventas (ingresos y margen). */
 class ReportesGestionController extends Controller
 {
     public const PERIODOS = ['mes' => 'Este mes', 'anterior' => 'Mes anterior', '30' => 'Últimos 30 días', '90' => 'Últimos 3 meses', 'anio' => 'Este año', 'todo' => 'Todo'];
@@ -232,5 +234,136 @@ class ReportesGestionController extends Controller
         return Excel::download(new TablaExport('Compras por insumo',
             ['Insumo', 'Cantidad', 'Unidad', 'Compras', 'Gasto sin IGV (S/)', 'Precio prom.', 'Precio mín.', 'Precio máx.', 'Primer precio', 'Último precio', 'Variación', 'Proveedores'],
             $filas, 'Reporte de compras — ' . $d['textoPeriodo']), 'reporte-compras-' . now()->format('Y-m-d') . '.xlsx');
+    }
+
+    // ═══════════════════════════════ VENTAS ═══════════════════════════════
+
+    public const DIAS_SEMANA = [1 => 'Lunes', 2 => 'Martes', 3 => 'Miércoles', 4 => 'Jueves', 5 => 'Viernes', 6 => 'Sábado', 7 => 'Domingo'];
+
+    private function datosVentas(Request $request): array
+    {
+        [$desde, $hasta, $periodo, $textoPeriodo] = $this->periodo($request);
+        $idVendedor = $request->integer('vendedor') ?: null;
+
+        $todas = Venta::with(['cliente', 'usuario', 'detalles.producto.categoria'])
+            ->when($desde, fn ($q) => $q->where('fecha_venta', '>=', $desde))->where('fecha_venta', '<=', $hasta)
+            ->when($idVendedor, fn ($q) => $q->where('id_usuario', $idVendedor))
+            ->orderBy('fecha_venta')->get();
+        $ventas = $todas->where('estado', 'completada')->values();
+        $anuladas = $todas->where('estado', 'anulada');
+
+        // Por producto: unidades, ingreso, costo (con el costo de producción actual) y ganancia sin IGV
+        $porProducto = $ventas->flatMap->detalles->groupBy('id_producto')->map(function ($g) {
+            $p = $g->first()->producto;
+            $cant = (int) $g->sum('cantidad');
+            $ingreso = round($g->sum('subtotal'), 2);
+            $costoU = (float) ($p->costo_produccion ?? 0);
+            $neto = round($ingreso / (1 + Venta::IGV), 2);
+            return [
+                'id' => $g->first()->id_producto, 'nombre' => $p->nombre ?? 'Producto eliminado', 'categoria' => $p?->categoria?->nombre ?? '—',
+                'cantidad' => $cant, 'ingreso' => $ingreso, 'neto' => $neto,
+                'costo' => $costoU > 0 ? round($cant * $costoU, 2) : null,
+                'ganancia' => $costoU > 0 ? round($neto - $cant * $costoU, 2) : null,
+                'margen' => $costoU > 0 && $neto > 0 ? round(($neto - $cant * $costoU) / $neto * 100) : null,
+            ];
+        })->sortByDesc('ingreso')->values();
+
+        $total = round($ventas->sum('total'), 2);
+        $conCosto = $porProducto->whereNotNull('costo');
+        $tot = [
+            'total'     => $total,
+            'neto'      => round($ventas->sum('subtotal'), 2),
+            'igv'       => round($ventas->sum('igv'), 2),
+            'n'         => $ventas->count(),
+            'unidades'  => (int) $porProducto->sum('cantidad'),
+            'ticket'    => $ventas->count() ? round($total / $ventas->count(), 2) : 0,
+            'anuladas'  => $anuladas->count(),
+            'monto_anulado' => round($anuladas->sum('total'), 2),
+            'costo'     => round($conCosto->sum('costo'), 2),
+            'ganancia'  => round($conCosto->sum('ganancia'), 2),
+            'sin_costo' => $porProducto->whereNull('costo')->count(),
+        ];
+        $tot['margen'] = $conCosto->sum('neto') > 0 ? round($tot['ganancia'] / $conCosto->sum('neto') * 100) : null;
+
+        // Comparación con el periodo anterior del mismo largo
+        $anterior = null;
+        if ($desde) {
+            $largo = $desde->diffInSeconds($hasta);
+            $antHasta = $desde->copy()->subSecond();
+            $antDesde = $antHasta->copy()->subSeconds($largo);
+            $antTotal = (float) Venta::where('estado', 'completada')->whereBetween('fecha_venta', [$antDesde, $antHasta])
+                ->when($idVendedor, fn ($q) => $q->where('id_usuario', $idVendedor))->sum('total');
+            $anterior = ['total' => round($antTotal, 2), 'desde' => $antDesde, 'hasta' => $antHasta,
+                'variacion' => $antTotal > 0 ? round(($total - $antTotal) / $antTotal * 100) : null];
+        }
+
+        // Ingresos en el tiempo: por día, semana o mes según el largo del periodo
+        $inicio = $desde ?? ($ventas->first()?->fecha_venta?->copy()->startOfDay() ?? today());
+        $dias = $inicio->diffInDays($hasta);
+        $agrupar = $dias > 92 ? 'mes' : ($dias > 31 ? 'semana' : 'dia');
+        $clave = fn ($f) => match ($agrupar) { 'mes' => $f->format('Y-m'), 'semana' => $f->copy()->startOfWeek()->format('Y-m-d'), default => $f->format('Y-m-d') };
+        $porTiempo = $ventas->groupBy(fn ($v) => $clave($v->fecha_venta))->map(fn ($g, $k) => [
+            'etiqueta' => match ($agrupar) {
+                'mes' => ucfirst(Carbon::parse($k . '-01')->locale('es')->translatedFormat('M Y')),
+                'semana' => 'Sem. ' . Carbon::parse($k)->format('d/m'),
+                default => Carbon::parse($k)->format('d/m'),
+            },
+            'total' => round($g->sum('total'), 2), 'n' => $g->count(),
+        ])->sortKeys()->values();
+
+        // Horas pico y días de la semana
+        $porHora = $ventas->groupBy(fn ($v) => (int) $v->fecha_venta->format('G'))->map(fn ($g, $h) => ['hora' => $h, 'total' => round($g->sum('total'), 2), 'n' => $g->count()])->sortKeys();
+        if ($porHora->isNotEmpty()) {
+            $porHora = collect(range($porHora->keys()->min(), $porHora->keys()->max()))->map(fn ($h) => $porHora[$h] ?? ['hora' => $h, 'total' => 0, 'n' => 0])->values();
+        }
+        $horaPico = $porHora->sortByDesc('total')->first();
+        $porDiaSemana = collect(self::DIAS_SEMANA)->map(function ($texto, $d) use ($ventas) {
+            $g = $ventas->filter(fn ($v) => $v->fecha_venta->dayOfWeekIso === $d);
+            return ['texto' => $texto, 'total' => round($g->sum('total'), 2), 'n' => $g->count()];
+        });
+
+        $porMedio = $ventas->groupBy('tipo_pago')->map(fn ($g, $k) => Venta::MEDIOS[$k] ?? Venta::MEDIOS['otro'])->map(fn ($m, $k) => $m + [
+            'clave' => $k, 'total' => round($ventas->where('tipo_pago', $k)->sum('total'), 2), 'n' => $ventas->where('tipo_pago', $k)->count(),
+        ])->sortByDesc('total')->values();
+        $porCliente = $ventas->groupBy('id_cliente')->map(fn ($g) => [
+            'id' => $g->first()->id_cliente, 'nombre' => $g->first()->cliente->nombre ?? 'Cliente General',
+            'n' => $g->count(), 'total' => round($g->sum('total'), 2), 'ultima' => $g->max('fecha_venta'),
+        ])->sortByDesc('total')->values();
+        $porVendedor = $ventas->groupBy('id_usuario')->map(fn ($g) => [
+            'nombre' => $g->first()->usuario->nombre ?? '—',
+            'n' => $g->count(), 'total' => round($g->sum('total'), 2), 'anuladas' => $anuladas->where('id_usuario', $g->first()->id_usuario)->count(),
+        ])->sortByDesc('total')->values();
+        $porCategoria = $porProducto->groupBy('categoria')->map(fn ($g, $c) => ['nombre' => $c, 'ingreso' => round($g->sum('ingreso'), 2), 'cantidad' => $g->sum('cantidad')])
+            ->sortByDesc('ingreso')->values();
+
+        $vendedores = Usuario::whereIn('id', Venta::select('id_usuario')->distinct())->orderBy('nombre')->get(['id', 'nombre']);
+        return compact('desde', 'hasta', 'periodo', 'textoPeriodo', 'idVendedor', 'vendedores', 'ventas', 'anuladas', 'tot', 'anterior',
+            'porProducto', 'porTiempo', 'agrupar', 'porHora', 'horaPico', 'porDiaSemana', 'porMedio', 'porCliente', 'porVendedor', 'porCategoria');
+    }
+
+    public function ventas(Request $request)
+    {
+        return view('reportes.ventas', $this->datosVentas($request));
+    }
+
+    public function ventasPdf(Request $request)
+    {
+        return Pdf::loadView('reportes.ventas-pdf', $this->datosVentas($request))->setPaper('a4')->stream('reporte-ventas-' . now()->format('Y-m-d') . '.pdf');
+    }
+
+    public function ventasExcel(Request $request)
+    {
+        $d = $this->datosVentas($request);
+        $filas = $d['porProducto']->map(fn ($p) => [
+            $p['nombre'], $p['categoria'], $p['cantidad'], $p['ingreso'], $p['neto'],
+            $p['costo'] ?? '', $p['ganancia'] ?? '', $p['margen'] !== null ? $p['margen'] . '%' : 'sin costo',
+            $d['tot']['total'] > 0 ? round($p['ingreso'] / $d['tot']['total'] * 100, 1) . '%' : '',
+        ])->all();
+        $filas[] = [];
+        $filas[] = ['TOTAL', '', $d['tot']['unidades'], $d['tot']['total'], $d['tot']['neto'], $d['tot']['costo'], $d['tot']['ganancia'],
+            $d['tot']['margen'] !== null ? $d['tot']['margen'] . '%' : '', $d['tot']['n'] . ' ventas'];
+        return Excel::download(new TablaExport('Ventas por producto',
+            ['Producto', 'Categoría', 'Unidades', 'Ingreso con IGV (S/)', 'Ingreso sin IGV (S/)', 'Costo (S/)', 'Ganancia (S/)', 'Margen', '% de las ventas'],
+            $filas, 'Reporte de ventas — ' . $d['textoPeriodo']), 'reporte-ventas-' . now()->format('Y-m-d') . '.xlsx');
     }
 }

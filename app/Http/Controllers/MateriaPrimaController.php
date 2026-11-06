@@ -152,7 +152,7 @@ class MateriaPrimaController extends Controller
             unset($datos['costo_unitario']);
         }
         $materiaPrima->update($datos);
-        return redirect()->route('materia-prima.show', $materiaPrima)->with('success', 'Materia prima actualizada.');
+        return redirect()->to(\App\Support\Volver::url(route('materia-prima.index')))->with('success', "Insumo \"{$materiaPrima->nombre}\" actualizado.");
     }
 
     private function reglas(?int $ignorar = null): array {
@@ -267,7 +267,7 @@ class MateriaPrimaController extends Controller
         if (isset($resultado['error'])) {
             return back()->withInput()->with('error', $resultado['error']);
         }
-        return redirect()->route('materia-prima.show', $materiaPrima)->with('success',
+        return redirect()->to(\App\Support\Volver::url(route('materia-prima.index')))->with('success',
             "Stock de \"{$materiaPrima->nombre}\" ajustado: " . Cantidad::conUnidad($resultado['antes'], $resultado['u'])
             . ' → ' . Cantidad::conUnidad($resultado['despues'], $resultado['u']) . ' (quedó en el kardex).');
     }

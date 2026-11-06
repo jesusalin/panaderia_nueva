@@ -127,7 +127,7 @@ class ProveedoresController extends Controller
         $datos = $this->validar($request, $proveedor->id);
         if ($request->filled('estado')) $datos['estado'] = $request->estado === 'inactivo' ? 'inactivo' : 'activo';
         $proveedor->update($datos);
-        return redirect()->route('proveedores.show', $proveedor)->with('success', 'Proveedor actualizado.');
+        return redirect()->to(\App\Support\Volver::url(route('proveedores.index')))->with('success', 'Proveedor actualizado.');
     }
 
     private function validar(Request $request, ?int $ignorar = null): array

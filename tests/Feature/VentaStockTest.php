@@ -83,7 +83,7 @@ class VentaStockTest extends TestCase
         $this->assertSame(45, $producto->fresh()->stock_actual);
 
         $venta = Venta::first();
-        $response = $this->actingAs($this->usuario)->put(route('ventas.anular', $venta));
+        $response = $this->actingAs($this->usuario)->put(route('ventas.anular', $venta), ['motivo_anulacion' => 'Error de prueba']);
 
         $response->assertRedirect();
         $this->assertSame('anulada', $venta->fresh()->estado);
@@ -104,10 +104,10 @@ class VentaStockTest extends TestCase
         ]);
 
         $venta = Venta::first();
-        $this->actingAs($this->usuario)->put(route('ventas.anular', $venta));
+        $this->actingAs($this->usuario)->put(route('ventas.anular', $venta), ['motivo_anulacion' => 'Error de prueba']);
 
         // Segundo intento de anular: no debe volver a sumar stock.
-        $response = $this->actingAs($this->usuario)->put(route('ventas.anular', $venta));
+        $response = $this->actingAs($this->usuario)->put(route('ventas.anular', $venta), ['motivo_anulacion' => 'Error de prueba']);
 
         $response->assertSessionHasErrors('error');
         $this->assertSame(50, $producto->fresh()->stock_actual);

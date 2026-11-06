@@ -52,7 +52,7 @@ class CategoriasController extends Controller
     public function update(Request $request, Categoria $categoria) {
         $datos = $request->validate($this->reglas($categoria));
         $categoria->update($datos);
-        return redirect()->route('categorias.index')->with('success','Categoría actualizada.');
+        return redirect()->to(\App\Support\Volver::url(route('categorias.index')))->with('success','Categoría actualizada.');
     }
 
     /**

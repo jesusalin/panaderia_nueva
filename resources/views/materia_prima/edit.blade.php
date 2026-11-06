@@ -19,7 +19,9 @@
         <div><b>S/ {{ number_format($materiaPrima->valor, 2) }}</b><span>valor</span></div>
     </div>
 </div>
+@php $volver = \App\Support\Volver::url(route('materia-prima.index')); @endphp
 <form action="{{ route('materia-prima.update', $materiaPrima) }}" method="POST">
+    <input type="hidden" name="volver" value="{{ $volver }}">
     @csrf @method('PUT')
     @include('materia_prima.partials._form')
 </form>

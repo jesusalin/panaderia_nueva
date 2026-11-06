@@ -49,7 +49,7 @@
     <table class="encabezado">
         <tr>
             <td style="width:60%;">
-                <div class="negocio-nombre">Panadería</div>
+                <div class="negocio-nombre">Panadería Muruwasi</div>
                 <div class="negocio-sub">Comprobante de venta interno</div>
             </td>
             <td style="width:40%;">
@@ -74,7 +74,7 @@
             <td class="info-label">Vendedor:</td>
             <td class="info-valor">{{ $venta->usuario->nombre ?? '—' }}</td>
             <td class="info-label" style="text-align:right;">Pago:</td>
-            <td class="info-valor" style="text-align:right;">{{ ucfirst($venta->tipo_pago) }}</td>
+            <td class="info-valor" style="text-align:right;">{{ $venta->medio['texto'] }}{{ $venta->numero_operacion ? ' - Op. ' . $venta->numero_operacion : '' }}</td>
         </tr>
     </table>
 
@@ -101,25 +101,36 @@
 
     <table class="totales">
         <tr>
-            <td class="label">Subtotal</td>
+            <td class="label">Op. gravada</td>
             <td class="valor">S/ {{ number_format($venta->subtotal, 2) }}</td>
         </tr>
         <tr>
-            <td class="label">IGV (18%)</td>
+            <td class="label">IGV (18%) incluido</td>
             <td class="valor">S/ {{ number_format($venta->igv, 2) }}</td>
         </tr>
         <tr class="fila-total">
             <td class="label">TOTAL</td>
             <td class="valor">S/ {{ number_format($venta->total, 2) }}</td>
         </tr>
+        @if($venta->tipo_pago === 'efectivo' && $venta->monto_recibido !== null)
+        <tr><td class="label">Recibido</td><td class="valor">S/ {{ number_format($venta->monto_recibido, 2) }}</td></tr>
+        <tr><td class="label">Vuelto</td><td class="valor">S/ {{ number_format($venta->vuelto ?? 0, 2) }}</td></tr>
+        @endif
     </table>
+
+    @if($venta->estado === 'anulada')
+    <p style="margin-top:14px;padding:8px 10px;background:#fbe9e7;color:#a93226;font-size:11px;">
+        <strong>VENTA ANULADA</strong>{{ $venta->anulada_at ? ' el ' . $venta->anulada_at->format('d/m/Y H:i') : '' }}{{ $venta->usuarioAnula ? ' por ' . $venta->usuarioAnula->nombre : '' }}.
+        @if($venta->motivo_anulacion) Motivo: {{ $venta->motivo_anulacion }}@endif
+    </p>
+    @endif
 
     @if($venta->observaciones)
     <p style="margin-top:14px;font-size:10px;color:#666;"><strong>Observaciones:</strong> {{ $venta->observaciones }}</p>
     @endif
 
     <div class="pie">
-        Documento generado el {{ now()->format('d/m/Y H:i') }} · Comprobante interno, no válido como boleta/factura electrónica SUNAT
+        Documento generado el {{ now()->format('d/m/Y H:i') }} · Precios con IGV incluido · Comprobante interno, no válido como boleta/factura electrónica SUNAT
     </div>
 
 </body>

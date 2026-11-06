@@ -107,7 +107,7 @@
 @if($categorias->count() > 0)
 <div class="cat-grid">
     @foreach($categorias as $c)
-        <div class="cat-card {{ $c->estado !== 'activo' ? 'inactiva' : '' }}" style="--cat-color: {{ $c->color_final }}">
+        <div class="cat-card clic-tarjeta {{ $c->estado !== 'activo' ? 'inactiva' : '' }}" style="--cat-color: {{ $c->color_final }}" data-href="{{ route('categorias.show', $c) }}" role="link" tabindex="0" aria-label="Ver categoría {{ $c->nombre }}">
             <div class="cat-head">
                 <div class="cat-icon"><i class="fas {{ $c->icono_final }}"></i></div>
                 <div>
@@ -144,7 +144,7 @@
             <div class="cat-meta" style="border-top:none;padding-top:.6rem;">
                 <a href="{{ route('categorias.show', $c) }}" class="btn btn-sm btn-light"><i class="fas fa-eye mr-1"></i>Ver productos</a>
                 <div class="cat-actions ml-auto">
-                    <a href="{{ route('categorias.edit', $c) }}" class="btn btn-sm btn-warning" title="Editar">
+                    <a href="{{ route('categorias.edit', ['categoria' => $c, 'volver' => request()->fullUrl()]) }}" class="btn btn-sm btn-warning" title="Editar">
                         <i class="fas fa-edit"></i>
                     </a>
                     @if($c->productos_count > 0)
