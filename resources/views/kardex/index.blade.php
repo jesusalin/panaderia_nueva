@@ -33,7 +33,7 @@
     <span class="ir"><span class="im-flecha baja mr-1"><i class="fas fa-arrow-down"></i></span>Salieron <b>{{ number_format($resumen['salida']->unidades ?? 0) }}</b> und. <small>({{ $resumen['salida']->n ?? 0 }} mov. · S/ {{ number_format($resumen['salida']->valor ?? 0, 2) }} a precio de venta)</small></span>
     @foreach($motivos as $clave => $texto)
         @if(($porMotivo[$clave] ?? 0) > 0)
-            <a href="{{ route('kardex.index', request()->except('page') + ['motivo' => $clave]) }}" class="ir {{ request('motivo') === $clave ? 'activo' : '' }}">{{ $texto }}: <b>{{ $porMotivo[$clave] }}</b></a>
+            <a href="{{ route('kardex.index', array_merge(request()->except('page'), ['motivo' => $clave])) }}" class="ir {{ request('motivo') === $clave ? 'activo' : '' }}">{{ $texto }}: <b>{{ $porMotivo[$clave] }}</b></a>
         @endif
     @endforeach
 </div>

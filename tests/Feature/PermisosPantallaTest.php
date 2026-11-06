@@ -86,7 +86,7 @@ class PermisosPantallaTest extends TestCase
             'password' => 'secreto123', 'password_confirmation' => 'secreto123',
             'id_rol' => $idRol, 'estado' => 'activo',
             'permisos' => ['inventario.materia_prima', 'inventario.conteo', 'ventas'],
-        ])->assertRedirect(route('usuarios.index'));
+        ])->assertRedirect();   // va a la ficha del usuario nuevo
 
         $nuevo = Usuario::where('usuario', 'almacen2')->first();
         $this->assertEqualsCanonicalizing(

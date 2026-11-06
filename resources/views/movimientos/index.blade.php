@@ -34,7 +34,7 @@
     <span class="ir"><span class="im-flecha ajuste mr-1"><i class="fas fa-exchange-alt fa-rotate-90"></i></span><b>{{ $resumen['ajuste']->n ?? 0 }}</b> ajustes</span>
     @foreach($motivos as $clave => $texto)
         @if(($porMotivo[$clave] ?? 0) > 0)
-            <a href="{{ route('movimientos.index', request()->except('page') + ['motivo' => $clave]) }}" class="ir {{ request('motivo') === $clave ? 'activo' : '' }}">{{ $texto }}: <b>{{ $porMotivo[$clave] }}</b></a>
+            <a href="{{ route('movimientos.index', array_merge(request()->except('page'), ['motivo' => $clave])) }}" class="ir {{ request('motivo') === $clave ? 'activo' : '' }}">{{ $texto }}: <b>{{ $porMotivo[$clave] }}</b></a>
         @endif
     @endforeach
 </div>

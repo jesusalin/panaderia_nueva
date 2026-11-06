@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Support\Respaldos;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Process;
@@ -18,20 +19,20 @@ use Illuminate\Support\Facades\Process;
 class BackupDatabase extends Command
 {
     protected $signature = 'backup:run
-        {--sin-rotacion : No borrar respaldos antiguos aunque se pase el límite configurado}';
+        {--sin-rotacion : No borrar respaldos antiguos aunque se pase el límite configurado}
+        {--tipo=automatico : automatico, manual, antes_restaurar o subido (se guarda en el índice)}
+        {--nota= : Nota para reconocer el respaldo}
+        {--usuario= : Nombre de quien lo generó}';
 
     protected $description = 'Genera un respaldo de la base de datos (SQLite o MySQL) y aplica rotación automática';
 
     public function handle(): int
     {
         $driver = config('database.default');
-        $carpeta = storage_path('app/backups');
+        $carpeta = Respaldos::carpeta();
+        $tipo = array_key_exists($this->option('tipo'), Respaldos::TIPOS) ? $this->option('tipo') : 'automatico';
 
-        if (! File::exists($carpeta)) {
-            File::makeDirectory($carpeta, 0755, true);
-        }
-
-        $timestamp = now()->format('Y-m-d_His');
+        $timestamp = now()->format('Y-m-d_His') . ($tipo === 'antes_restaurar' ? '-antes-de-restaurar' : '');
 
         $resultado = match ($driver) {
             'sqlite' => $this->respaldarSqlite($carpeta, $timestamp),
@@ -50,6 +51,16 @@ class BackupDatabase extends Command
         }
 
         $this->info("Respaldo generado: {$resultado}");
+
+        // Datos extra del respaldo (en indice.json, fuera de la base de datos)
+        Respaldos::anotar(basename($resultado), [
+            'tipo'      => $tipo,
+            'usuario'   => $this->option('usuario') ?: ($tipo === 'automatico' ? 'Programado (3:00 a.m.)' : null),
+            'nota'      => $this->option('nota') ? mb_substr($this->option('nota'), 0, 150) : null,
+            'protegido' => false,
+            'resumen'   => Respaldos::resumenActual(),
+            'creado'    => now()->toDateTimeString(),
+        ]);
 
         if (! $this->option('sin-rotacion')) {
             $eliminados = $this->rotarRespaldosAntiguos($carpeta);
@@ -82,8 +93,18 @@ class BackupDatabase extends Command
             return false;
         }
 
-        $zip->addFile($origen, 'database.sqlite');
+        // Copia consistente con VACUUM INTO (aunque alguien esté usando el sistema en ese momento);
+        // si la versión de SQLite no lo soporta, se copia el archivo tal cual.
+        $copia = $carpeta . '/.tmp-' . $timestamp . '.sqlite';
+        try {
+            \Illuminate\Support\Facades\DB::connection('sqlite')->statement('VACUUM INTO ?', [$copia]);
+        } catch (\Throwable $e) {
+            $copia = null;
+        }
+
+        $zip->addFile($copia && File::exists($copia) ? $copia : $origen, 'database.sqlite');
         $zip->close();
+        if ($copia) File::delete($copia);
 
         return $destino;
     }
@@ -161,14 +182,12 @@ class BackupDatabase extends Command
     {
         $limite = (int) config('backup.mantener', 14);
 
-        $archivos = collect(File::files($carpeta))
-            ->sortByDesc(fn ($archivo) => $archivo->getMTime())
-            ->values();
+        // Los protegidos no cuentan ni se borran nunca
+        $sobrantes = Respaldos::lista()->reject(fn ($r) => $r['protegido'])->values()->slice($limite);
 
-        $sobrantes = $archivos->slice($limite);
-
-        foreach ($sobrantes as $archivo) {
-            File::delete($archivo->getPathname());
+        foreach ($sobrantes as $r) {
+            File::delete($carpeta . '/' . $r['nombre']);
+            Respaldos::olvidar($r['nombre']);
         }
 
         return $sobrantes->count();

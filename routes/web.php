@@ -57,6 +57,10 @@ Route::middleware(['auth'])->group(function () {
         Route::get('backups/{archivo}/descargar', [BackupController::class, 'download'])->name('backups.download');
         Route::delete('backups/{archivo}', [BackupController::class, 'destroy'])->name('backups.destroy');
         Route::post('backups/{archivo}/restaurar', [BackupController::class, 'restore'])->name('backups.restore');
+        Route::post('backups/subir', [BackupController::class, 'subir'])->name('backups.subir');
+        Route::post('backups/{archivo}/verificar', [BackupController::class, 'verificar'])->name('backups.verificar');
+        Route::post('backups/{archivo}/proteger', [BackupController::class, 'proteger'])->name('backups.proteger');
+        Route::post('backups/{archivo}/nota', [BackupController::class, 'nota'])->name('backups.nota');
     });
 
     // Cada pantalla tiene su propio permiso ("modulo.pantalla"), así el admin elige
@@ -133,6 +137,7 @@ Route::middleware(['auth'])->group(function () {
 
     // ── Módulo: Clientes ─────────────────────────────────────────
     Route::middleware(['modulo:clientes'])->group(function () {
+        Route::put('clientes/{cliente}/estado', [ClientesController::class, 'toggleEstado'])->name('clientes.toggle-estado');
         Route::resource('clientes', ClientesController::class);
     });
 

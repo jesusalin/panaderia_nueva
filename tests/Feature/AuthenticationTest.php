@@ -58,4 +58,16 @@ class AuthenticationTest extends TestCase
 
         $this->assertGuest();
     }
+
+    /**
+     * Decisión del sistema: las cuentas las crea el administrador (no hay registro libre)
+     * y las contraseñas olvidadas las renueva el admin (no hay correo de recuperación).
+     * Por eso se quitaron las pruebas de esas pantallas que traía la plantilla Breeze.
+     */
+    public function test_no_hay_registro_libre_ni_recuperacion_por_correo(): void
+    {
+        foreach (['/register', '/forgot-password', '/reset-password/token', '/verify-email', '/confirm-password'] as $url) {
+            $this->get($url)->assertNotFound();
+        }
+    }
 }

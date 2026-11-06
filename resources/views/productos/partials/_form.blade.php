@@ -195,7 +195,7 @@
                 <button type="submit" class="btn {{ $editar ? 'btn-warning' : 'btn-primary' }} pfm-guardar mt-2">
                     <i class="fas fa-save mr-1"></i>{{ $editar ? 'Guardar cambios' : 'Crear producto' }}
                 </button>
-                <a href="{{ $editar ? route('productos.show', $p) : route('productos.index') }}" class="btn btn-link btn-block btn-sm text-muted">Cancelar</a>
+                <a href="{{ $volver ?? \App\Support\Volver::url(route('productos.index')) }}" class="btn btn-link btn-block btn-sm text-muted">Cancelar</a>
             </div>
         </div>
     </div>

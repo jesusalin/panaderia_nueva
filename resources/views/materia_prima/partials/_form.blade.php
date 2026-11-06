@@ -269,7 +269,7 @@
                 <button type="submit" id="btnGuardarInsumo" class="btn {{ $editar ? 'btn-warning' : 'btn-primary' }} pfm-guardar">
                     <i class="fas fa-save mr-1"></i>{{ $editar ? 'Guardar cambios' : 'Crear insumo' }}
                 </button>
-                <a href="{{ $editar ? route('materia-prima.show', $m) : route('materia-prima.index') }}" class="btn btn-link btn-block btn-sm text-muted">Cancelar</a>
+                <a href="{{ $volver ?? \App\Support\Volver::url(route('materia-prima.index')) }}" class="btn btn-link btn-block btn-sm text-muted">Cancelar</a>
             </div>
         </div>
     </div>

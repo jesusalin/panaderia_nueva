@@ -13,6 +13,12 @@ return [
     'mantener' => env('BACKUP_MANTENER', 14),
 
     /*
+    | Carpeta donde se guardan (vacío = storage/app/backups). Los respaldos protegidos
+    | no cuentan para el límite de arriba y nunca se borran solos.
+    */
+    'carpeta' => env('BACKUP_CARPETA'),
+
+    /*
     |--------------------------------------------------------------------------
     | Rutas de los binarios de MySQL
     |--------------------------------------------------------------------------

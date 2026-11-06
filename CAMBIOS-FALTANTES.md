@@ -430,6 +430,43 @@ Clientes, Proveedores, Recetas, Historial y Reporte de stock):
   - Clientes y Producción (abre el detalle en la ventana).
   - **Movimientos de materia prima y de productos:** cada movimiento abre lo que lo originó: la compra, la venta o la producción; si fue un ajuste o una merma, la ficha del insumo o producto.
 
+## ✅ Vuelta 29 (Clientes)
+
+> **Después de copiar, ejecuta `php artisan migrate`** (000030: agrega "persona de contacto" y "notas" a los clientes).
+
+- **Listado en tarjetas:** cada cliente con sus iniciales y el color de su tipo, documento, persona de contacto, botones de **WhatsApp**, llamar y correo, cuántas compras, total comprado, lo de este mes y cuándo fue su última compra ("frecuente" o "**por recuperar**"). Notas del pedido a la vista. Toda la tarjeta abre la ficha; el ojo abre la vista rápida.
+- **Resumen arriba:** lo que compraron los clientes este mes (aparte del mostrador), clientes activos, el que más compró y los nuevos. Aviso de los clientes que **dejaron de comprar hace más de 30 días**.
+- **Vistas rápidas:** Todos, Frecuentes (4+ compras en 30 días), Por recuperar, Nuevos del mes, Sin compras e Inactivos. Botones por tipo con su cantidad. **Buscar** por nombre, RUC, DNI, teléfono (aunque tenga espacios), distrito o contacto. **Ordenar** por nombre, los que más compran, compra más reciente o registrados recientemente.
+- **Activar / desactivar con el interruptor.** Un cliente con compras no se elimina (solo se desactiva, para no perder su historial); uno sin compras sí se puede eliminar. El **Cliente General** (mostrador) no se renombra, no se desactiva ni se elimina.
+- **Ficha del cliente:** total comprado, promedio por compra, última compra y cada cuántos días compra; aviso "hace X días que no compra" con botón para **escribirle por WhatsApp** con un mensaje listo; notas; compras de los últimos 6 meses; **lo que más compra** (unidades por vez); con qué paga; datos con la dirección en Google Maps; todas sus compras (cada una abre la venta).
+- **Nuevo / Editar cliente** en secciones: tipo con botones de ícono, RUC (11 números, empieza con 10/15/17/20) y DNI (8 números) revisados al escribir y **sin repetirse**, nombre sin repetir, persona de contacto, teléfono (avisa si tendrá WhatsApp), distrito con sugerencias de los ya registrados, referencia y notas; vista previa de la tarjeta.
+
+## ✅ Vuelta 30 (Usuarios)
+
+- **Ficha de cada usuario** (tocando su tarjeta): en línea o último acceso, ingresos y acciones de los últimos 30 días, **lo que hizo este mes** (ventas y monto, producciones, compras, movimientos de stock), gráfico de acciones por día (14 días), **qué pantallas puede usar** (marcadas y no marcadas, por sección) y sus últimas 15 acciones. Avisa si hubo **intentos fallidos de ingreso** con su cuenta o si no entra hace tiempo. Botones: Editar, Contraseña nueva, Activar/Desactivar y Todo su historial. (Antes esa página daba error.)
+- **Nuevo / Editar usuario** en secciones con vista previa de la cuenta:
+  - El **usuario se sugiere solo** desde el nombre (María Quispe → mquispe) y se revisa al escribir: sin espacios ni tildes y **sin repetir**. El correo también se revisa para que no se repita. Usuario y correo se guardan en minúsculas.
+  - Contraseña con **medidor de seguridad**, aviso si las dos no coinciden y botón **Generar una contraseña**.
+  - Rol con tarjetas (Administrador / Usuario) e interruptor de Activo.
+  - **Plantillas nuevas** de permisos: Panadero / Producción y Encargado (reportes); Ventas / Caja ahora incluye el Reporte de Ventas.
+- **Seguridad:** nadie puede quitarse a sí mismo el rol de administrador ni desactivar su propia cuenta, y el sistema **nunca se queda sin un administrador activo** (no deja desactivar ni quitar el rol al último).
+- Al crear un usuario se abre su ficha; al activar/desactivar se queda en la misma pantalla.
+
+## ✅ Vuelta 31 (Respaldos)
+
+- **Restaurar es más seguro:** hay que **escribir RESTAURAR** para confirmar, se muestra una comparación de lo que hay ahora y lo que tiene el respaldo (ej. "Clientes 7 → 6 (−1)"), se **revisa el archivo** antes, y **se guarda solo un respaldo "Antes de restaurar"** para poder deshacerlo si fue un error. Si algo falla, los datos no cambian.
+- **Cada respaldo dice qué es:** Automático, Manual, Antes de restaurar o Subido; quién lo hizo; una **nota** (se puede escribir al generarlo o después) y **qué contenía** (ventas, compras, productos, insumos, clientes y la última venta). Estos datos se guardan en `storage/app/backups/indice.json`, fuera de la base de datos, para que no se pierdan al restaurar.
+- **Proteger un respaldo** (candado): no se borra en la limpieza automática ni se puede eliminar hasta quitarle la protección. Ideal para el respaldo de la sustentación.
+- **Verificar** un respaldo: revisa que el archivo esté sano (que el .zip traiga una base SQLite válida o que el .sql.gz tenga tablas).
+- **Subir un respaldo** desde la computadora (para pasar los datos a otra PC): se revisa que sea del mismo motor y que esté sano antes de guardarlo.
+- **Estado arriba:** hace cuánto fue el último respaldo (verde, ámbar o rojo) y **aviso si el respaldo automático diario no está corriendo**, con cómo activarlo (`php artisan schedule:work` o tarea programada con `schedule:run`). Lista agrupada por día con filtros por tipo.
+- En SQLite la copia se hace con `VACUUM INTO` (copia consistente aunque se esté usando el sistema) y la hora de los respaldos ahora sale en hora de Perú (antes salía 5 horas adelantada).
+
+## ✅ Vuelta 32 (pruebas en verde y programador)
+
+- **Todas las pruebas pasan (127).** Se quitaron las 21 pruebas de la plantilla Breeze que probaban pantallas que el sistema no tiene a propósito (registro libre, recuperar contraseña por correo, verificar correo, borrar la propia cuenta). El inicio y cierre de sesión, cuentas desactivadas y el perfil ya tenían sus propias pruebas. Se agregó una prueba que confirma que esas pantallas no existen.
+- **`programador.bat`** en la carpeta del proyecto: el Programador de tareas de Windows lo ejecuta cada minuto para que se hagan solos el respaldo diario (3:00 a.m.) y las órdenes automáticas (6:30 a.m.). Deja su registro en `storage/logs/programador.log`.
+
 ## 🔲 Lo que falta
 
 ### A. Configuración (no es código)

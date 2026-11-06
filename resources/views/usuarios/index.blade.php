@@ -164,7 +164,7 @@
             $esAdmin = $u->rol->nombre === 'admin';
             $act = $u->estadoActividad();
         @endphp
-        <div class="item-card {{ $u->estado !== 'activo' ? 'is-inactive' : '' }}">
+        <div class="item-card clic-tarjeta {{ $u->estado !== 'activo' ? 'is-inactive' : '' }}" data-href="{{ route('usuarios.show', $u) }}" role="link" tabindex="0" aria-label="Ver ficha de {{ $u->nombre }}">
             <div class="item-card-body usr-card-body">
                 <div class="usr-avatar-row">
                     <div class="usr-avatar">

@@ -1,153 +1,72 @@
+{{-- Vista rápida del cliente (ventana js-ver-detalle). La página completa es clientes/show. --}}
+@php
+    $c = $cliente;
+    $activo = ($c->estado ?? 'activo') !== 'inactivo';
+@endphp
 <style>
-    .cli-topbar { height: 5px; background: {{ $cliente->color_tipo }}; }
-    .cli-head { display: flex; align-items: center; gap: 1rem; padding: 1.4rem 1.5rem; }
-    .cli-head .ch-icon {
-        width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
-        font-size: 1.5rem; color: #fff; flex-shrink: 0; box-shadow: 0 4px 10px {{ $cliente->color_tipo }}55;
-    }
-    .cli-head h5 { margin: 0 0 .3rem; font-weight: 800; }
-    .cli-head .cli-badges { display: flex; gap: .4rem; flex-wrap: wrap; }
-
-    .cli-info-grid { padding: 0 1.5rem 1.4rem; display: grid; grid-template-columns: 1fr 1fr; gap: .9rem 1.2rem; }
-    .cli-info-grid .ci-item { border-left: 3px solid {{ $cliente->color_tipo }}22; padding-left: .6rem; }
-    .cli-info-grid .ci-item .ci-label { font-size: .68rem; text-transform: uppercase; letter-spacing: .03em; color: #adb5bd; font-weight: 700; }
-    .cli-info-grid .ci-item .ci-value { font-size: .9rem; font-weight: 700; color: #1a1a2e; }
-    body.dark-mode .cli-info-grid .ci-item .ci-value { color: #f0f0f7; }
-    @media (max-width: 575px) { .cli-info-grid { grid-template-columns: 1fr; } }
-
-    .cli-total-box {
-        margin: 0 1.5rem 1.5rem; background: #f7f5f3; border-radius: 10px; padding: 1rem 1.2rem;
-        display: flex; justify-content: space-between; align-items: center;
-    }
-    body.dark-mode .cli-total-box { background: #24243b; }
-    .cli-total-box .ct-label { font-size: .78rem; color: #8a8a9d; font-weight: 700; }
-    .cli-total-box .ct-value { font-weight: 800; font-size: 1.35rem; color: #1e8e5a; }
-    body.dark-mode .cli-total-box .ct-value { color: #6ee7a5; }
-
-    .cli-mini-stats { padding: 0 1.5rem 1.4rem; display: grid; grid-template-columns: 1fr 1fr; gap: .7rem; }
-    .cli-mini-stats .cms-item { background: {{ $cliente->color_tipo }}10; border-radius: 10px; padding: .7rem .9rem; text-align: center; }
-    body.dark-mode .cli-mini-stats .cms-item { background: {{ $cliente->color_tipo }}22; }
-    .cli-mini-stats .cms-value { font-weight: 800; font-size: 1.05rem; color: #1a1a2e; }
-    body.dark-mode .cli-mini-stats .cms-value { color: #f0f0f7; }
-    .cli-mini-stats .cms-label { font-size: .68rem; color: #8a8a9d; font-weight: 700; text-transform: uppercase; letter-spacing: .03em; }
-
-    .clientes-table thead th { background: {{ $cliente->color_tipo }}12 !important; }
-    body.dark-mode .clientes-table thead th { background: {{ $cliente->color_tipo }}25 !important; }
-
-    .action-icon-chip {
-        width: 34px; height: 34px; border-radius: 9px; display: inline-flex; align-items: center; justify-content: center;
-        background: {{ $cliente->color_tipo }}20; color: {{ $cliente->color_tipo }}; margin-right: .6rem; flex-shrink: 0;
-    }
-
-    .prod-form-card { border: none; border-radius: 14px; box-shadow: 0 4px 24px rgba(0,0,0,.06); overflow: hidden; }
-    .prod-form-body { padding: 1.5rem; }
+    .cd-cab { display: flex; gap: .8rem; align-items: center; margin-bottom: .9rem; }
+    .cd-av { width: 52px; height: 52px; border-radius: 14px; color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 1.1rem; flex-shrink: 0; }
+    .cd-cab b { font-size: 1.05rem; color: #1a1a2e; display: block; line-height: 1.2; }
+    body.dark-mode .cd-cab b { color: #f0f0f7; }
+    .cd-cab small { color: #8a8a9d; }
+    .cd-kpis { display: grid; grid-template-columns: repeat(3, 1fr); gap: .5rem; margin-bottom: .9rem; }
+    .cd-kpis div { background: #faf7f4; border-radius: 10px; padding: .5rem; text-align: center; }
+    .cd-kpis b { display: block; font-size: .98rem; color: #1a1a2e; }
+    .cd-kpis span { font-size: .66rem; color: #8a8a9d; font-weight: 700; text-transform: uppercase; }
+    body.dark-mode .cd-kpis div { background: #24243b; }
+    body.dark-mode .cd-kpis b { color: #f0f0f7; }
+    .cd-tit { font-size: .68rem; font-weight: 800; letter-spacing: .05em; text-transform: uppercase; color: #adb5bd; margin: .8rem 0 .35rem; }
+    .cd-fila { display: flex; justify-content: space-between; gap: .6rem; font-size: .86rem; padding: .25rem 0; border-bottom: 1px dashed #eee5dd; }
+    .cd-fila:last-child { border-bottom: 0; }
+    .cd-contacto a { display: inline-flex; align-items: center; gap: .3rem; border-radius: 20px; padding: .2rem .65rem; font-size: .76rem; font-weight: 700; background: #fdf1ea; color: #b5451b; margin: 0 .25rem .25rem 0; }
+    .cd-contacto a.wa { background: rgba(37,211,102,.14); color: #128c4a; }
+    .cd-aviso { border-radius: 10px; padding: .45rem .7rem; font-size: .82rem; margin-top: .5rem; }
+    .cd-aviso.nota { background: #fff8ec; color: #6c5a48; }
+    .cd-aviso.mal { background: #fdecea; color: #a93226; }
+    body.dark-mode .cd-aviso.nota { background: rgba(212,136,15,.12); color: #f0d6a8; }
+    body.dark-mode .cd-aviso.mal { background: rgba(231,76,60,.15); color: #f1a097; }
 </style>
 
-<div class="row">
-    <div class="col-md-4">
-        <div class="card prod-form-card mb-3 mb-md-0">
-            <div class="cli-topbar"></div>
-            <div class="cli-head flex-column text-center">
-                <div class="ch-icon" style="background:{{ $cliente->color_tipo }};"><i class="fas {{ $cliente->icono }}"></i></div>
-                <h5>{{ $cliente->nombre }}</h5>
-                <div class="cli-badges justify-content-center">
-                    <span class="badge-soft badge-soft-info">{{ $cliente->tipo_label }}</span>
-                    <span class="badge-soft {{ ($cliente->estado ?? 'activo') === 'activo' ? 'badge-soft-success' : 'badge-soft-secondary' }}">
-                        {{ ($cliente->estado ?? 'activo') === 'activo' ? 'Activo' : 'Inactivo' }}
-                    </span>
-                </div>
-            </div>
-
-            <div class="cli-mini-stats">
-                <div class="cms-item">
-                    <div class="cms-value">{{ $ventasCompletadas ?? $cliente->ventas_count ?? 0 }}</div>
-                    <div class="cms-label">Ventas</div>
-                </div>
-                <div class="cms-item">
-                    <div class="cms-value">S/ {{ number_format($ticketPromedio ?? 0, 2) }}</div>
-                    <div class="cms-label">Ticket promedio</div>
-                </div>
-            </div>
-
-            <div class="cli-info-grid">
-                <div class="ci-item"><div class="ci-label">Cliente desde</div><div class="ci-value">{{ $cliente->created_at?->format('d/m/Y') ?? '—' }}</div></div>
-                @if($cliente->ruc)
-                <div class="ci-item"><div class="ci-label">RUC</div><div class="ci-value">{{ $cliente->ruc }}</div></div>
-                @endif
-                @if($cliente->dni)
-                <div class="ci-item"><div class="ci-label">DNI</div><div class="ci-value">{{ $cliente->dni }}</div></div>
-                @endif
-                @if($cliente->telefono)
-                <div class="ci-item"><div class="ci-label">Teléfono</div><div class="ci-value">{{ $cliente->telefono }}</div></div>
-                @endif
-                @if($cliente->email)
-                <div class="ci-item"><div class="ci-label">Email</div><div class="ci-value">{{ $cliente->email }}</div></div>
-                @endif
-                @if($cliente->distrito)
-                <div class="ci-item"><div class="ci-label">Distrito</div><div class="ci-value">{{ $cliente->distrito }}</div></div>
-                @endif
-                @if($cliente->direccion)
-                <div class="ci-item" style="grid-column:1/-1;"><div class="ci-label">Dirección</div><div class="ci-value">{{ $cliente->direccion }}</div></div>
-                @endif
-                @if($cliente->referencia)
-                <div class="ci-item" style="grid-column:1/-1;"><div class="ci-label">Referencia</div><div class="ci-value">{{ $cliente->referencia }}</div></div>
-                @endif
-            </div>
-
-            <div class="cli-total-box">
-                <span class="ct-label">Total comprado</span>
-                <span class="ct-value">S/ {{ number_format($totalComprado, 2) }}</span>
-            </div>
-
-            <div class="px-3 pb-3">
-                <a href="{{ route('clientes.edit', $cliente) }}" class="btn btn-warning btn-block">
-                    <i class="fas fa-edit mr-1"></i>Editar
-                </a>
-            </div>
-        </div>
+<div class="cd-cab">
+    <div class="cd-av" style="background: {{ $activo ? $c->color_tipo : '#adb5bd' }}">@if($c->esGeneral())<i class="fas fa-store-alt"></i>@else{{ $c->getIniciales() }}@endif</div>
+    <div style="min-width:0">
+        <b>{{ $c->nombre }}</b>
+        <small><i class="fas {{ $c->icono }} mr-1"></i>{{ $c->tipo_label }}{{ $c->distrito ? ' · ' . $c->distrito : '' }}{{ $c->documento ? ' · ' . $c->documento : '' }}{{ $activo ? '' : ' · inactivo' }}</small>
     </div>
+</div>
 
-    <div class="col-md-8">
-        <div class="table-card" style="box-shadow:none;border:1px solid #f0f0f0;">
-            <div class="cli-topbar"></div>
-            <div class="p-3 pb-0">
-                <h6 class="font-weight-bold mb-0 d-flex align-items-center">
-                    <span class="action-icon-chip"><i class="fas fa-receipt"></i></span>Historial de Ventas
-                </h6>
-            </div>
-            <div class="table-responsive">
-            <table class="table table-modern clientes-table mb-0">
-                <thead>
-                    <tr>
-                        <th>N° Venta</th>
-                        <th>Fecha</th>
-                        <th class="text-right">Total</th>
-                        <th>Pago</th>
-                        <th class="text-center">Estado</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @forelse($ventas as $venta)
-                    <tr>
-                        <td class="row-title">{{ $venta->numero_venta }}</td>
-                        <td>{{ \Carbon\Carbon::parse($venta->fecha_venta)->format('d/m/Y') }}</td>
-                        <td class="text-right font-weight-bold">S/ {{ number_format($venta->total, 2) }}</td>
-                        <td>{{ ucfirst($venta->tipo_pago) }}</td>
-                        <td class="text-center">
-                            <span class="badge-soft {{ $venta->estado === 'completada' ? 'badge-soft-success' : 'badge-soft-danger' }}">
-                                {{ ucfirst($venta->estado) }}
-                            </span>
-                        </td>
-                    </tr>
-                    @empty
-                    <tr><td colspan="5" class="text-center text-muted py-4">Sin ventas registradas</td></tr>
-                    @endforelse
-                </tbody>
-            </table>
-            </div>
-            @if($ventas->hasPages())
-            <div class="p-3" style="border-top:1px solid #f0f0f0;">{{ $ventas->links() }}</div>
-            @endif
-        </div>
+<div class="cd-kpis">
+    <div><b>S/ {{ number_format($resumen['total'], 0) }}</b><span>Total</span></div>
+    <div><b>{{ $resumen['compras'] }}</b><span>Compras</span></div>
+    <div><b>{{ $resumen['ultima'] ? ($resumen['dias_sin'] === 0 ? 'Hoy' : 'Hace ' . $resumen['dias_sin'] . ' d') : '—' }}</b><span>Última</span></div>
+</div>
+
+@if($c->contacto || $c->telefono || $c->email)
+    <div class="cd-contacto">
+        @if($c->contacto)<div class="small mb-1"><i class="fas fa-user mr-1 text-muted"></i>{{ $c->contacto }}</div>@endif
+        @if($c->whatsapp)<a class="wa" href="https://wa.me/{{ $c->whatsapp }}" target="_blank" rel="noopener"><i class="fab fa-whatsapp"></i>WhatsApp</a>@endif
+        @if($c->telefono)<a href="tel:{{ preg_replace('/[^\d+]/', '', $c->telefono) }}"><i class="fas fa-phone"></i>{{ $c->telefono }}</a>@endif
+        @if($c->email)<a href="mailto:{{ $c->email }}"><i class="fas fa-envelope"></i>Correo</a>@endif
     </div>
+@endif
+@if($c->notas)<div class="cd-aviso nota"><i class="fas fa-sticky-note mr-1"></i>{{ $c->notas }}</div>@endif
+@if($resumen['recuperar'] && $activo)<div class="cd-aviso mal"><i class="fas fa-user-clock mr-1"></i>Hace {{ $resumen['dias_sin'] }} días que no compra.</div>@endif
+
+@if($productos->count())
+    <div class="cd-tit">Lo que más compra</div>
+    @foreach($productos->take(4) as $p)
+        <div class="cd-fila"><span>{{ (int) $p->cantidad }} × {{ $p->producto->nombre ?? 'Producto' }}</span><b>S/ {{ number_format($p->total, 2) }}</b></div>
+    @endforeach
+@endif
+
+@if($ventas->count())
+    <div class="cd-tit">Últimas compras</div>
+    @foreach($ventas->take(5) as $v)
+        <div class="cd-fila"><span>{{ $v->fecha_venta->format('d/m H:i') }} · {{ $v->numero_venta }}{{ $v->estado === 'anulada' ? ' · anulada' : '' }}</span><b style="{{ $v->estado === 'anulada' ? 'text-decoration:line-through;opacity:.6' : '' }}">S/ {{ number_format($v->total, 2) }}</b></div>
+    @endforeach
+@endif
+
+<div class="d-flex flex-wrap mt-3" style="gap:.4rem">
+    <a href="{{ route('clientes.show', $c) }}" class="btn btn-primary btn-sm"><i class="fas fa-external-link-alt mr-1"></i>Abrir ficha</a>
+    <a href="{{ route('clientes.edit', $c) }}" class="btn btn-light btn-sm"><i class="fas fa-edit mr-1"></i>Editar</a>
 </div>

@@ -97,6 +97,7 @@ class RegistrarActividad
             'clientes.store'   => ['crear',    'Clientes', fn () => 'Registró al cliente "' . $in('nombre') . '"'],
             'clientes.update'  => ['editar',   'Clientes', fn () => 'Editó al cliente ' . $n()],
             'clientes.destroy' => ['eliminar', 'Clientes', fn () => 'Eliminó al cliente ' . $n()],
+            'clientes.toggle-estado' => ['editar', 'Clientes', fn () => ucfirst($est()) . ' al cliente ' . $n()],
             // Administración
             'usuarios.store'         => ['crear',    'Usuarios', fn () => 'Creó al usuario "' . $in('usuario') . '"'],
             'usuarios.update'        => ['editar',   'Usuarios', fn () => 'Editó al usuario ' . $n() . ' (datos o permisos)'],
@@ -108,6 +109,8 @@ class RegistrarActividad
             'backups.store'    => ['crear',    'Respaldos', fn () => 'Generó un respaldo de la base de datos'],
             'backups.destroy'  => ['eliminar', 'Respaldos', fn () => 'Eliminó el respaldo ' . $r->route('archivo')],
             'backups.restore'  => ['otra',     'Respaldos', fn () => 'Restauró la base de datos desde ' . $r->route('archivo')],
+            'backups.subir'    => ['crear',    'Respaldos', fn () => 'Subió un respaldo desde su computadora'],
+            'backups.proteger' => ['editar',   'Respaldos', fn () => 'Cambió la protección del respaldo ' . $r->route('archivo')],
             'menu.orden.guardar'     => ['editar', 'Sistema', fn () => 'Cambió el orden del menú'],
             'menu.orden.restablecer' => ['editar', 'Sistema', fn () => 'Restableció el orden original del menú'],
         ];

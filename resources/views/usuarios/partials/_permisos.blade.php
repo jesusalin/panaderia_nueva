@@ -25,7 +25,13 @@
             'reportes.stock', 'reportes.kardex',
         ]],
         'ventas' => ['icono' => 'fa-cash-register', 'label' => 'Ventas / Caja', 'claves' => [
-            'catalogo.productos', 'ventas', 'clientes',
+            'catalogo.productos', 'ventas', 'clientes', 'reportes.ventas',
+        ]],
+        'panadero' => ['icono' => 'fa-bread-slice', 'label' => 'Panadero / Producción', 'claves' => [
+            'catalogo.productos', 'produccion.produccion', 'produccion.recetas', 'inventario.materia_prima', 'inventario.kardex',
+        ]],
+        'encargado' => ['icono' => 'fa-chart-pie', 'label' => 'Encargado (reportes)', 'claves' => [
+            'reportes.resumen', 'reportes.stock', 'reportes.cierre', 'reportes.kardex', 'reportes.mermas', 'reportes.compras', 'reportes.ventas',
         ]],
     ];
 @endphp
@@ -111,7 +117,7 @@
 
     <div class="alert-admin-total" id="avisoAdminTotal">
         <i class="fas fa-infinity mr-2"></i>
-        Este usuario es <strong>Admin</strong>: ya tiene acceso a todo el sistema, no hace falta marcar permisos.
+        <span>Este usuario es <strong>Administrador</strong>: ya tiene acceso a todo el sistema, no hace falta marcar permisos.</span>
     </div>
 </div>
 

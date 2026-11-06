@@ -79,7 +79,18 @@ class RestoreDatabase extends Command
             return false;
         }
 
-        return File::put($destino, $contenido) !== false;
+        if (!str_starts_with($contenido, 'SQLite format 3')) {
+            logger()->error("backup:restore — el zip {$ruta} no trae una base SQLite válida");
+            return false;
+        }
+
+        // Si la conexión abierta usa ese mismo archivo, se cierra antes de reemplazarlo y se reabre después
+        $db = \Illuminate\Support\Facades\DB::connection('sqlite');
+        $mismo = realpath((string) $db->getConfig('database')) === realpath($destino);
+        if ($mismo) \Illuminate\Support\Facades\DB::disconnect('sqlite');
+        $ok = File::put($destino, $contenido) !== false;
+        if ($mismo) \Illuminate\Support\Facades\DB::reconnect('sqlite');
+        return $ok;
     }
 
     private function restaurarMysql(string $ruta): bool

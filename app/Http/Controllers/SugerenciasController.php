@@ -68,8 +68,8 @@ class SugerenciasController extends Controller
                 'k' => $x->usuario . ' ' . $x->email . ' ' . $x->apodo,
             ]),
             'clientes' => Cliente::orderBy('nombre')->limit(self::LIMITE)->get()->map(fn ($c) => [
-                't' => $c->nombre, 's' => (string) ($c->distrito ?: $c->telefono), 'i' => 'fa-user-friends',
-                'k' => trim($c->ruc . ' ' . $c->dni . ' ' . $c->distrito),
+                't' => $c->nombre, 's' => trim(($c->distrito ?: '') . ($c->telefono ? ' · ' . $c->telefono : ''), ' ·'), 'i' => 'fa-user-friends',
+                'k' => trim($c->ruc . ' ' . $c->dni . ' ' . $c->distrito . ' ' . $c->telefono . ' ' . $c->contacto),
             ]),
             'proveedores' => Proveedor::orderBy('nombre')->get()->map(fn ($p) => [
                 't' => $p->nombre, 's' => trim(($p->ruc ? 'RUC ' . $p->ruc : '') . ($p->contacto ? ' · ' . $p->contacto : ''), ' ·'), 'i' => 'fa-truck',

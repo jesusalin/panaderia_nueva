@@ -335,6 +335,14 @@ class DatabaseSeeder extends Seeder
                 'email' => $email, 'direccion' => $dir, 'distrito' => $dist, 'referencia' => $ref, 'estado' => 'activo',
             ] + $ts);
         }
+        // Persona de contacto y notas del pedido fijo
+        foreach ([
+            'bodega'  => ['Sra. Carmen (dueña)', 'Pedido fijo de pan francés y de yema a las 6:45 am. Paga en efectivo.'],
+            'colegio' => ['Lic. Patricia Ruiz (logística)', 'Desayuno escolar de lunes a viernes. Pide con un día de anticipación.'],
+            'resto'   => ['Chef Marco', 'Pan para el almuerzo; los fines de semana pide más.'],
+        ] as $c => [$contacto, $notas]) {
+            DB::table('clientes')->where('id', $this->clientes[$c])->update(['contacto' => $contacto, 'notas' => $notas]);
+        }
     }
 
     // ═══════════════════════════════════════════════════════════════════
