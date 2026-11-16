@@ -10,20 +10,20 @@
 <style>
     .pv-card .item-card-body { padding-top: 1rem; }
     .pv-cab { display: flex; gap: .7rem; align-items: center; margin-bottom: .6rem; }
-    .pv-cab a.pv-nombre { font-weight: 800; color: #1a1a2e; font-size: .98rem; line-height: 1.2; display: block; }
-    .pv-cab a.pv-nombre:hover { color: #b5451b; text-decoration: none; }
+    .pv-cab a.pv-nombre { font-weight: 800; color: var(--m-text); font-size: .98rem; line-height: 1.2; display: block; }
+    .pv-cab a.pv-nombre:hover { color: var(--m-brand-text); text-decoration: none; }
     body.dark-mode .pv-cab a.pv-nombre { color: #f0f0f7; }
-    .pv-cab small { color: #8a8a9d; font-size: .74rem; }
+    .pv-cab small { color: var(--m-muted); font-size: .74rem; }
     .pv-numeros { display: grid; grid-template-columns: repeat(3, 1fr); gap: .4rem; margin: .75rem 0 .2rem; text-align: center; }
     .pv-numeros div { background: #faf7f4; border-radius: 10px; padding: .45rem .2rem; }
-    .pv-numeros b { display: block; font-size: .92rem; color: #1a1a2e; }
-    .pv-numeros span { font-size: .64rem; color: #8a8a9d; text-transform: uppercase; letter-spacing: .03em; font-weight: 700; }
+    .pv-numeros b { display: block; font-size: .92rem; color: var(--m-text); }
+    .pv-numeros span { font-size: .64rem; color: var(--m-muted); text-transform: uppercase; letter-spacing: .03em; font-weight: 700; }
     body.dark-mode .pv-numeros div { background: #24243b; }
     body.dark-mode .pv-numeros b { color: #f0f0f7; }
     .pv-aviso { font-size: .74rem; font-weight: 700; border-radius: 8px; padding: .25rem .55rem; margin-top: .45rem; display: inline-flex; gap: .3rem; align-items: center; }
-    .pv-aviso.espera { background: rgba(243,156,18,.15); color: #a5680d; }
-    .pv-aviso.orden { background: rgba(52,152,219,.12); color: #1c5d80; }
-    .pv-aviso.vacio { background: #eef0f3; color: #6c757d; }
+    .pv-aviso.espera { background: rgba(243,156,18,.15); color: var(--m-warning-text); }
+    .pv-aviso.orden { background: rgba(52,152,219,.12); color: var(--m-info-text); }
+    .pv-aviso.vacio { background: var(--m-surface-3); color: var(--m-muted); }
 </style>
 @endpush
 
@@ -40,9 +40,9 @@
 
 <div class="inv-resumen">
     <a href="{{ route('proveedores.index') }}" class="ir {{ !request('estado') ? 'activo' : '' }}"><b>{{ $stats['total'] }}</b> proveedores</a>
-    <a href="{{ route('proveedores.index', ['estado' => 'activo']) }}" class="ir {{ request('estado') === 'activo' ? 'activo' : '' }}"><i class="fas fa-check-circle" style="color:#1e8e5a"></i><b>{{ $stats['activos'] }}</b> activos</a>
+    <a href="{{ route('proveedores.index', ['estado' => 'activo']) }}" class="ir {{ request('estado') === 'activo' ? 'activo' : '' }}"><i class="fas fa-check-circle" style="color: var(--m-success-text)"></i><b>{{ $stats['activos'] }}</b> activos</a>
     @if($stats['inactivos'])
-        <a href="{{ route('proveedores.index', ['estado' => 'inactivo']) }}" class="ir {{ request('estado') === 'inactivo' ? 'activo' : '' }}"><i class="fas fa-ban" style="color:#6c757d"></i><b>{{ $stats['inactivos'] }}</b> inactivos</a>
+        <a href="{{ route('proveedores.index', ['estado' => 'inactivo']) }}" class="ir {{ request('estado') === 'inactivo' ? 'activo' : '' }}"><i class="fas fa-ban" style="color: var(--m-muted)"></i><b>{{ $stats['inactivos'] }}</b> inactivos</a>
     @endif
     <span class="ir"><i class="fas fa-coins" style="color:#d4880f"></i>Comprado este mes: <b>S/ {{ number_format($stats['gasto_mes'], 2) }}</b></span>
     @if($stats['insumos_sin_proveedor'] && auth()->user()->hasPermiso('inventario.materia_prima'))
@@ -136,13 +136,13 @@
                     @endif
                     <a href="{{ route('proveedores.edit', ['proveedor' => $p, 'volver' => request()->fullUrl()]) }}" class="btn btn-icon btn-warning" title="Editar"><i class="fas fa-edit"></i></a>
                     @if($estaActivo)
-                        <button type="button" class="btn btn-icon btn-secondary is-locked js-blocked"
+                        <button type="button" class="btn btn-icon btn-secondary is-locked js-blocked" data-accion="compras.proveedores.editar"
                             data-blocked-title="Desactívalo primero"
                             data-blocked-message="Por seguridad, un proveedor activo no se puede eliminar directamente. Usa el interruptor para desactivar a &quot;{{ $p->nombre }}&quot; antes de eliminarlo.">
                             <i class="fas fa-trash-alt"></i>
                         </button>
                     @elseif($tieneHistorial)
-                        <button type="button" class="btn btn-icon btn-secondary is-locked js-blocked"
+                        <button type="button" class="btn btn-icon btn-secondary is-locked js-blocked" data-accion="compras.proveedores.editar"
                             data-blocked-title="No se puede eliminar este proveedor"
                             data-blocked-message="&quot;{{ $p->nombre }}&quot; {{ $usosProveedor ? 'tiene ' . implode(' y ', $usosProveedor) : 'tiene historial' }}. Permanecerá desactivado para conservar el historial.">
                             <i class="fas fa-trash-alt"></i>
@@ -160,7 +160,7 @@
         </div>
     @endforeach
 </div>
-<div class="mt-3">{{ $proveedores->links() }}</div>
+@include('partials.paginacion', ['p' => $proveedores, 'defecto' => 15, 'nombre' => 'proveedores'])
 @else
 <div class="empty-state">
     <i class="fas fa-truck"></i>

@@ -5,15 +5,15 @@
 @push('styles')
 <style>
     .cat-toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
-    .cat-toolbar h2 { font-weight: 800; margin: 0; color: #1a1a2e; }
-    .cat-toolbar p { margin: .15rem 0 0; color: #8a8a9d; font-size: .88rem; }
+    .cat-toolbar h2 { font-weight: 800; margin: 0; color: var(--m-text); }
+    .cat-toolbar p { margin: .15rem 0 0; color: var(--m-muted); font-size: .88rem; }
 
     .cat-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 1.1rem; }
     .cat-card {
-        background: #fff; border-radius: 14px; padding: 1.3rem; box-shadow: 0 2px 12px rgba(0,0,0,.05);
+        background: var(--m-surface); border-radius: 14px; padding: 1.3rem; box-shadow: 0 2px 12px rgba(0,0,0,.05);
         border: 1.5px solid transparent; transition: all .15s; position: relative;
     }
-    .cat-card:hover { box-shadow: 0 6px 20px rgba(0,0,0,.08); border-color: #f0dccd; }
+    .cat-card:hover { box-shadow: 0 6px 20px rgba(0,0,0,.08); border-color: var(--m-border-strong); }
     .cat-card.inactiva { border-color: #f2d4d4; }
     .cat-card.inactiva .cat-icon { filter: grayscale(.3); }
 
@@ -23,12 +23,12 @@
         background: linear-gradient(135deg, #1a1a2e, #b5451b); color: #fff;
         display: flex; align-items: center; justify-content: center; font-size: 1.3rem;
     }
-    .cat-name { font-weight: 800; color: #1a1a2e; margin: 0; font-size: 1.05rem; }
-    .cat-desc { font-size: .82rem; color: #8a8a9d; margin: .15rem 0 0; line-height: 1.35; }
+    .cat-name { font-weight: 800; color: var(--m-text); margin: 0; font-size: 1.05rem; }
+    .cat-desc { font-size: .82rem; color: var(--m-muted); margin: .15rem 0 0; line-height: 1.35; }
 
-    .cat-meta { display: flex; align-items: center; justify-content: space-between; margin-top: 1rem; padding-top: .9rem; border-top: 1px solid #f2f2f2; }
-    .cat-count { font-size: .78rem; color: #6c757d; }
-    .cat-count strong { color: #1a1a2e; font-size: .95rem; }
+    .cat-meta { display: flex; align-items: center; justify-content: space-between; margin-top: 1rem; padding-top: .9rem; border-top: 1px solid var(--m-border); }
+    .cat-count { font-size: .78rem; color: var(--m-muted); }
+    .cat-count strong { color: var(--m-text); font-size: .95rem; }
 
     .cat-actions { display: flex; gap: .4rem; }
     .cat-actions .btn { width: 32px; height: 32px; padding: 0; display: flex; align-items: center; justify-content: center; border-radius: 8px; }
@@ -36,18 +36,18 @@
 
     .estado-switch { display: flex; align-items: center; gap: .4rem; cursor: pointer; border: none; background: none; padding: 0; }
     .estado-switch .track {
-        width: 34px; height: 18px; border-radius: 20px; background: #dee2e6; position: relative; transition: background .15s;
+        width: 34px; height: 18px; border-radius: 20px; background: var(--m-border-strong); position: relative; transition: background .15s;
     }
     .estado-switch .track::after {
         content: ''; position: absolute; top: 2px; left: 2px; width: 14px; height: 14px; border-radius: 50%;
-        background: #fff; transition: left .15s;
+        background: var(--m-surface); transition: left .15s;
     }
     .estado-switch.activa .track { background: #2ecc71; }
     .estado-switch.activa .track::after { left: 18px; }
-    .estado-switch .txt { font-size: .74rem; font-weight: 700; color: #8a8a9d; }
-    .estado-switch.activa .txt { color: #1e8e5a; }
+    .estado-switch .txt { font-size: .74rem; font-weight: 700; color: var(--m-muted); }
+    .estado-switch.activa .txt { color: var(--m-success-text); }
 
-    .empty-state { text-align: center; padding: 4rem 1rem; color: #adb5bd; }
+    .empty-state { text-align: center; padding: 4rem 1rem; color: var(--m-muted-2); }
     .empty-state i { font-size: 2.6rem; margin-bottom: .8rem; opacity: .5; }
 
     .cat-card { border-top: 4px solid var(--cat-color, #b5451b); }
@@ -55,13 +55,13 @@
     .cat-name a { color: inherit; }
     .cat-name a:hover { color: var(--cat-color, #b5451b); text-decoration: none; }
     .cat-chips { display: flex; flex-wrap: wrap; gap: .35rem; margin-top: .2rem; }
-    .cat-chip { font-size: .74rem; font-weight: 700; padding: .2rem .55rem; border-radius: 20px; background: #f4f2ef; color: #6c757d; }
-    .cat-chip.bajo { background: rgba(231,76,60,.12); color: #c0392b; }
-    .cat-chip.ok   { background: rgba(46,204,113,.13); color: #1e8e5a; }
-    .cat-chip.vacia { background: #f8f9fa; color: #adb5bd; font-style: italic; }
+    .cat-chip { font-size: .74rem; font-weight: 700; padding: .2rem .55rem; border-radius: 20px; background: #f4f2ef; color: var(--m-muted); }
+    .cat-chip.bajo { background: rgba(231,76,60,.12); color: var(--m-danger-text); }
+    .cat-chip.ok   { background: rgba(46,204,113,.13); color: var(--m-success-text); }
+    .cat-chip.vacia { background: var(--m-surface-2); color: var(--m-muted-2); font-style: italic; }
     a.cat-chip:hover { text-decoration: none; filter: brightness(.95); }
-    .cat-stats { display: flex; gap: 1.4rem; flex-wrap: wrap; font-size: .85rem; color: #8a8a9d; margin-bottom: 1rem; }
-    .cat-stats b { color: #1a1a2e; font-size: 1.05rem; }
+    .cat-stats { display: flex; gap: 1.4rem; flex-wrap: wrap; font-size: .85rem; color: var(--m-muted); margin-bottom: 1rem; }
+    .cat-stats b { color: var(--m-text); font-size: 1.05rem; }
     body.dark-mode .cat-card { background: #1f1f33; }
     body.dark-mode .cat-name, body.dark-mode .cat-stats b, body.dark-mode .cat-count strong { color: #f0f0f7; }
     body.dark-mode .cat-meta { border-top-color: #33334d; }
@@ -148,7 +148,7 @@
                         <i class="fas fa-edit"></i>
                     </a>
                     @if($c->productos_count > 0)
-                        <button type="button" class="btn btn-sm btn-secondary is-locked js-blocked"
+                        <button type="button" class="btn btn-sm btn-secondary is-locked js-blocked" data-accion="catalogo.categorias.editar"
                             data-blocked-title="No se puede eliminar esta categoría"
                             data-blocked-message="&quot;{{ $c->nombre }}&quot; tiene {{ $c->productos_count }} producto(s). Cámbiales la categoría desde Editar de cada producto, o desactívala si ya no la usas.">
                             <i class="fas fa-trash"></i>
@@ -168,7 +168,7 @@
         </div>
     @endforeach
 </div>
-<div class="mt-3">{{ $categorias->links() }}</div>
+@include('partials.paginacion', ['p' => $categorias, 'defecto' => 12, 'nombre' => 'categorías'])
 @else
 <div class="empty-state">
     <i class="fas fa-tags"></i>

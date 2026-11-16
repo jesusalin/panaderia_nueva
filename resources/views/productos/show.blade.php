@@ -7,25 +7,26 @@
 
 @push('styles')
 <style>
-    .pf-head { background: #fff; border-radius: 14px; box-shadow: 0 2px 12px rgba(0,0,0,.05); overflow: hidden; display: flex; flex-wrap: wrap; margin-bottom: 1.2rem; }
+    .pf-head { background: var(--m-surface); border-radius: 14px; box-shadow: 0 2px 12px rgba(0,0,0,.05); overflow: hidden; display: flex; flex-wrap: wrap; margin-bottom: 1.2rem; }
     .pf-img { width: 220px; min-height: 180px; background: linear-gradient(135deg, #1a1a2e, var(--cat-color)); display: flex; align-items: center; justify-content: center; color: #fff; font-size: 3.2rem; flex-shrink: 0; }
     .pf-img img { width: 100%; height: 100%; object-fit: cover; }
     .pf-info { flex: 1; padding: 1.3rem 1.5rem; min-width: 260px; }
     .pf-cat { font-size: .78rem; font-weight: 800; text-transform: uppercase; letter-spacing: .04em; color: var(--cat-color); }
-    .pf-info h2 { font-weight: 800; color: #1a1a2e; margin: .15rem 0 .2rem; font-size: 1.55rem; }
-    .pf-info p { color: #8a8a9d; margin: 0 0 .9rem; font-size: .9rem; }
+    body.dark-mode .pf-cat { color: color-mix(in srgb, var(--cat-color) 60%, #fff); }
+    .pf-info h2 { font-weight: 800; color: var(--m-text); margin: .15rem 0 .2rem; font-size: 1.55rem; }
+    .pf-info p { color: var(--m-muted); margin: 0 0 .9rem; font-size: .9rem; }
     .pf-cifras { display: flex; flex-wrap: wrap; gap: 1.6rem; }
-    .pf-cifra small { display: block; font-size: .7rem; font-weight: 800; text-transform: uppercase; color: #8a8a9d; letter-spacing: .03em; }
-    .pf-cifra b { font-size: 1.3rem; color: #1a1a2e; }
-    .pf-cifra .verde { color: #1e8e5a; } .pf-cifra .rojo { color: #c0392b; } .pf-cifra .ambar { color: #a5680d; }
+    .pf-cifra small { display: block; font-size: .7rem; font-weight: 800; text-transform: uppercase; color: var(--m-muted); letter-spacing: .03em; }
+    .pf-cifra b { font-size: 1.3rem; color: var(--m-text); }
+    .pf-cifra .verde { color: var(--m-success-text); } .pf-cifra .rojo { color: var(--m-danger-text); } .pf-cifra .ambar { color: var(--m-warning-text); }
     .pf-acciones { display: flex; flex-wrap: wrap; gap: .5rem; margin-top: 1rem; }
 
     .pf-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.2rem; }
     @media (max-width: 992px) { .pf-grid { grid-template-columns: 1fr; } }
-    .pf-box { background: #fff; border-radius: 14px; box-shadow: 0 2px 12px rgba(0,0,0,.05); padding: 1.1rem 1.3rem; }
-    .pf-box h5 { font-size: .95rem; font-weight: 800; color: #1a1a2e; margin-bottom: .9rem; }
+    .pf-box { background: var(--m-surface); border-radius: 14px; box-shadow: 0 2px 12px rgba(0,0,0,.05); padding: 1.1rem 1.3rem; }
+    .pf-box h5 { font-size: .95rem; font-weight: 800; color: var(--m-text); margin-bottom: .9rem; }
     .pf-box table { width: 100%; font-size: .85rem; }
-    .pf-box th { font-size: .7rem; text-transform: uppercase; color: #8a8a9d; font-weight: 800; padding: .3rem 0; border-bottom: 1px solid #f0ece8; }
+    .pf-box th { font-size: .7rem; text-transform: uppercase; color: var(--m-muted); font-weight: 800; padding: .3rem 0; border-bottom: 1px solid #f0ece8; }
     .pf-box td { padding: .4rem 0; border-bottom: 1px solid #f6f3f0; }
     .pf-box th + th, .pf-box td + td { padding-left: 1rem; }
     .pf-box tr:last-child td { border-bottom: none; }
@@ -34,10 +35,10 @@
     .pf-barras { display: flex; align-items: flex-end; gap: 4px; height: 110px; padding-top: .5rem; }
     .pf-barras .b { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; height: 100%; }
     .pf-barras .b span { width: 100%; background: var(--cat-color); border-radius: 4px 4px 0 0; min-height: 2px; opacity: .85; }
-    .pf-barras .b em { font-style: normal; font-size: .62rem; color: #adb5bd; margin-top: .2rem; }
+    .pf-barras .b em { font-style: normal; font-size: .62rem; color: var(--m-muted-2); margin-top: .2rem; }
     .pf-barras .b:hover span { opacity: 1; }
     .pf-mov-tipo { font-weight: 800; }
-    .pf-mov-tipo.entrada { color: #1e8e5a; } .pf-mov-tipo.salida { color: #c0392b; }
+    .pf-mov-tipo.entrada { color: var(--m-success-text); } .pf-mov-tipo.salida { color: var(--m-danger-text); }
     body.dark-mode .pf-head, body.dark-mode .pf-box { background: #1f1f33; }
     body.dark-mode .pf-info h2, body.dark-mode .pf-cifra b, body.dark-mode .pf-box h5 { color: #f0f0f7; }
     body.dark-mode .pf-box th, body.dark-mode .pf-box td { border-color: #33334d; }
@@ -116,7 +117,7 @@
         <h5><i class="fas fa-clipboard-list mr-1 text-muted"></i>Receta</h5>
         @if($producto->receta && $producto->receta->detalles->count())
             <p class="text-muted small mb-2">Rinde {{ $producto->receta->rendimiento }} unidad(es) por tanda.</p>
-            <table>
+            <table data-tabla>
                 <thead><tr><th>Insumo</th><th class="text-right">Cantidad</th><th class="text-right">Costo</th></tr></thead>
                 <tbody>
                 @foreach($producto->receta->detalles as $d)
@@ -147,8 +148,8 @@
         <h5><i class="fas fa-exchange-alt mr-1 text-muted"></i>Últimos movimientos</h5>
         @if($movimientos->count())
         <div class="table-responsive">
-        <table>
-            <thead><tr><th>Fecha</th><th>Motivo</th><th class="text-right">Cantidad</th><th class="text-right">Stock</th><th>Detalle</th><th>Usuario</th></tr></thead>
+        <table data-tabla>
+            <thead><tr><th>Fecha</th><th data-filtro>Motivo</th><th class="text-right">Cantidad</th><th class="text-right">Stock</th><th>Detalle</th><th>Usuario</th></tr></thead>
             <tbody>
             @foreach($movimientos as $m)
                 <tr>

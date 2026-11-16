@@ -24,41 +24,41 @@
     .pdx-hero .ph-cant span { font-size: .78rem; opacity: .8; }
 
     .pdx-kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: .8rem; margin: 1rem 0; }
-    .pdx-kpi { background: #fff; border: 1px solid #f0ebe6; border-radius: 12px; padding: .8rem .95rem; }
-    .pdx-kpi small { display: block; font-size: .68rem; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; color: #8a8a9d; }
-    .pdx-kpi b { font-size: 1.2rem; color: #1a1a2e; }
-    .pdx-kpi .sub { display: block; font-size: .74rem; color: #adb5bd; margin-top: .1rem; }
-    .pdx-kpi.verde b { color: #1e8e5a; } .pdx-kpi.rojo b { color: #c0392b; }
+    .pdx-kpi { background: var(--m-surface); border: 1px solid #f0ebe6; border-radius: 12px; padding: .8rem .95rem; }
+    .pdx-kpi small { display: block; font-size: .68rem; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; color: var(--m-muted); }
+    .pdx-kpi b { font-size: 1.2rem; color: var(--m-text); }
+    .pdx-kpi .sub { display: block; font-size: .74rem; color: var(--m-muted-2); margin-top: .1rem; }
+    .pdx-kpi.verde b { color: var(--m-success-text); } .pdx-kpi.rojo b { color: var(--m-danger-text); }
     body.dark-mode .pdx-kpi { background: #24243b; border-color: #33334d; }
     body.dark-mode .pdx-kpi b { color: #f0f0f7; }
     @media (max-width: 767px) { .pdx-kpis { grid-template-columns: repeat(2, 1fr); } }
 
     .pdx-grid { display: grid; grid-template-columns: 1.6fr 1fr; gap: 1rem; }
     @media (max-width: 991px) { .pdx-grid { grid-template-columns: 1fr; } }
-    .pdx-box { background: #fff; border: 1px solid #f0ebe6; border-radius: 12px; padding: 1rem 1.1rem; }
-    .pdx-box h6 { font-weight: 800; color: #1a1a2e; font-size: .9rem; margin-bottom: .8rem; }
+    .pdx-box { background: var(--m-surface); border: 1px solid #f0ebe6; border-radius: 12px; padding: 1rem 1.1rem; }
+    .pdx-box h6 { font-weight: 800; color: var(--m-text); font-size: .9rem; margin-bottom: .8rem; }
     .pdx-box h6 i { color: var(--cat); margin-right: .35rem; }
     body.dark-mode .pdx-box { background: #24243b; border-color: #33334d; }
     body.dark-mode .pdx-box h6 { color: #f0f0f7; }
 
-    .pdx-ing { display: grid; grid-template-columns: 1fr auto auto; gap: .2rem .8rem; align-items: center; padding: .5rem 0; border-bottom: 1px dashed #eee; font-size: .85rem; }
+    .pdx-ing { display: grid; grid-template-columns: 1fr auto auto; gap: .2rem .8rem; align-items: center; padding: .5rem 0; border-bottom: 1px dashed var(--m-border); font-size: .85rem; }
     .pdx-ing:last-child { border-bottom: none; }
     body.dark-mode .pdx-ing { border-bottom-color: #33334d; }
     .pdx-ing .pi-nombre { font-weight: 700; color: #343a40; }
     body.dark-mode .pdx-ing .pi-nombre { color: #e0e0ea; }
-    .pdx-ing .pi-cant { font-weight: 800; color: #c0392b; white-space: nowrap; }
-    .pdx-ing .pi-costo { color: #8a8a9d; white-space: nowrap; min-width: 64px; text-align: right; }
-    .pdx-ing .pi-barra { grid-column: 1 / -1; height: 4px; border-radius: 4px; background: #f1ece7; overflow: hidden; }
+    .pdx-ing .pi-cant { font-weight: 800; color: var(--m-danger-text); white-space: nowrap; }
+    .pdx-ing .pi-costo { color: var(--m-muted); white-space: nowrap; min-width: 64px; text-align: right; }
+    .pdx-ing .pi-barra { grid-column: 1 / -1; height: 4px; border-radius: 4px; background: var(--m-surface-3); overflow: hidden; }
     .pdx-ing .pi-barra span { display: block; height: 100%; background: var(--cat); opacity: .7; }
-    .pdx-ing .pi-stock { grid-column: 1 / -1; font-size: .72rem; color: #adb5bd; margin-top: -.1rem; }
-    .pdx-total { display: flex; justify-content: space-between; padding-top: .7rem; margin-top: .3rem; border-top: 2px solid #f1ece7; font-weight: 800; }
+    .pdx-ing .pi-stock { grid-column: 1 / -1; font-size: .72rem; color: var(--m-muted-2); margin-top: -.1rem; }
+    .pdx-total { display: flex; justify-content: space-between; padding-top: .7rem; margin-top: .3rem; border-top: 2px solid var(--m-border); font-weight: 800; }
 
     .pdx-linea { list-style: none; margin: 0; padding: 0; }
-    .pdx-linea li { position: relative; padding: 0 0 .9rem 1.4rem; font-size: .84rem; color: #6c757d; }
+    .pdx-linea li { position: relative; padding: 0 0 .9rem 1.4rem; font-size: .84rem; color: var(--m-muted); }
     .pdx-linea li::before { content: ''; position: absolute; left: .3rem; top: .35rem; width: 9px; height: 9px; border-radius: 50%; background: var(--cat); }
     .pdx-linea li::after { content: ''; position: absolute; left: .62rem; top: 1rem; bottom: 0; width: 1px; background: #e9e2dc; }
     .pdx-linea li:last-child::after { display: none; }
-    .pdx-linea b { color: #1a1a2e; }
+    .pdx-linea b { color: var(--m-text); }
     body.dark-mode .pdx-linea b { color: #f0f0f7; }
     .pdx-nota { background: rgba(185,119,14,.07); border-left: 3px solid #b9770e; border-radius: 8px; padding: .7rem .9rem; font-size: .84rem; margin-top: .4rem; }
     .pdx-acciones { display: flex; flex-wrap: wrap; gap: .5rem; justify-content: flex-end; margin-top: 1rem; }
@@ -142,7 +142,7 @@
                 <button class="btn btn-outline-danger"><i class="fas fa-trash-alt mr-1"></i>Eliminar</button>
             </form>
         @else
-            <button type="button" class="btn btn-outline-secondary is-locked js-blocked"
+            <button type="button" class="btn btn-outline-secondary is-locked js-blocked" data-accion="produccion.produccion.anular"
                 data-blocked-title="No se puede eliminar esta producción"
                 data-blocked-message="Ya se vendieron o movieron unidades de &quot;{{ $p->nombre }}&quot; desde que se registró. Eliminarla dejaría el stock en negativo.">
                 <i class="fas fa-trash-alt mr-1"></i>Eliminar

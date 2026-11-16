@@ -17,10 +17,10 @@
     .pf-aviso.ok { background: #e9f8ef; color: #1e7a4c; }
     body.dark-mode .pf-aviso.mal { background: rgba(231,76,60,.15); color: #f1a097; }
     body.dark-mode .pf-aviso.ok { background: rgba(46,204,113,.12); color: #6ee7a5; }
-    .pf-vista { background: #fff; border-radius: 14px; box-shadow: 0 2px 12px rgba(0,0,0,.06); padding: 1rem; }
+    .pf-vista { background: var(--m-surface); border-radius: 14px; box-shadow: 0 2px 12px rgba(0,0,0,.06); padding: 1rem; }
     body.dark-mode .pf-vista { background: #1f1f33; }
     .pf-vista .pv-cab { display: flex; gap: .7rem; align-items: center; margin-bottom: .6rem; }
-    .pf-vista b.nm { display: block; font-weight: 800; color: #1a1a2e; line-height: 1.2; }
+    .pf-vista b.nm { display: block; font-weight: 800; color: var(--m-text); line-height: 1.2; }
     body.dark-mode .pf-vista b.nm { color: #f0f0f7; }
 </style>
 @endpush

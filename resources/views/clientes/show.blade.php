@@ -12,11 +12,11 @@
     .cs-meses { display: flex; align-items: flex-end; gap: .6rem; height: 130px; margin-top: .4rem; }
     .cs-meses .m { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; height: 100%; }
     .cs-meses .m span { width: 100%; max-width: 46px; background: linear-gradient(180deg, #34c27d, #1e8e5a); border-radius: 6px 6px 0 0; min-height: 3px; }
-    .cs-meses .m em { font-style: normal; font-size: .7rem; color: #8a8a9d; margin-top: .3rem; text-transform: capitalize; }
-    .cs-meses .m b { font-size: .68rem; color: #6c757d; margin-bottom: .2rem; white-space: nowrap; }
+    .cs-meses .m em { font-style: normal; font-size: .7rem; color: var(--m-muted); margin-top: .3rem; text-transform: capitalize; }
+    .cs-meses .m b { font-size: .68rem; color: var(--m-muted); margin-bottom: .2rem; white-space: nowrap; }
     .cs-datos div { display: flex; justify-content: space-between; gap: .8rem; padding: .35rem 0; border-bottom: 1px solid #f6f3f0; font-size: .86rem; }
     .cs-datos div:last-child { border-bottom: none; }
-    .cs-datos span { color: #8a8a9d; flex-shrink: 0; }
+    .cs-datos span { color: var(--m-muted); flex-shrink: 0; }
     .cs-datos b { text-align: right; }
     body.dark-mode .cs-datos div { border-color: #33334d; }
     .cs-av { width: 62px; height: 62px; border-radius: 14px; color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 1.35rem; flex-shrink: 0;

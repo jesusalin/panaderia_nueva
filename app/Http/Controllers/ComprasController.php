@@ -82,7 +82,7 @@ class ComprasController extends Controller
         // Lo filtrado
         $filtrado = ['n' => (clone $query)->count(), 'total' => (float) (clone $query)->where('estado', '!=', 'anulada')->sum('total')];
 
-        $compras = $query->orderByDesc('fecha_compra')->orderByDesc('id')->paginate(15)->withQueryString();
+        $compras = $query->orderByDesc('fecha_compra')->orderByDesc('id')->paginate(\App\Support\PorPagina::valor(15))->withQueryString();
         $proveedores = Proveedor::orderBy('nombre')->get();
 
         return view('compras.index', compact('compras', 'proveedores', 'stats', 'filtrado', 'periodo', 'desde', 'hasta'));

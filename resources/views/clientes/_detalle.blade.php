@@ -6,19 +6,19 @@
 <style>
     .cd-cab { display: flex; gap: .8rem; align-items: center; margin-bottom: .9rem; }
     .cd-av { width: 52px; height: 52px; border-radius: 14px; color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 1.1rem; flex-shrink: 0; }
-    .cd-cab b { font-size: 1.05rem; color: #1a1a2e; display: block; line-height: 1.2; }
+    .cd-cab b { font-size: 1.05rem; color: var(--m-text); display: block; line-height: 1.2; }
     body.dark-mode .cd-cab b { color: #f0f0f7; }
-    .cd-cab small { color: #8a8a9d; }
+    .cd-cab small { color: var(--m-muted); }
     .cd-kpis { display: grid; grid-template-columns: repeat(3, 1fr); gap: .5rem; margin-bottom: .9rem; }
     .cd-kpis div { background: #faf7f4; border-radius: 10px; padding: .5rem; text-align: center; }
-    .cd-kpis b { display: block; font-size: .98rem; color: #1a1a2e; }
-    .cd-kpis span { font-size: .66rem; color: #8a8a9d; font-weight: 700; text-transform: uppercase; }
+    .cd-kpis b { display: block; font-size: .98rem; color: var(--m-text); }
+    .cd-kpis span { font-size: .66rem; color: var(--m-muted); font-weight: 700; text-transform: uppercase; }
     body.dark-mode .cd-kpis div { background: #24243b; }
     body.dark-mode .cd-kpis b { color: #f0f0f7; }
-    .cd-tit { font-size: .68rem; font-weight: 800; letter-spacing: .05em; text-transform: uppercase; color: #adb5bd; margin: .8rem 0 .35rem; }
+    .cd-tit { font-size: .68rem; font-weight: 800; letter-spacing: .05em; text-transform: uppercase; color: var(--m-muted-2); margin: .8rem 0 .35rem; }
     .cd-fila { display: flex; justify-content: space-between; gap: .6rem; font-size: .86rem; padding: .25rem 0; border-bottom: 1px dashed #eee5dd; }
     .cd-fila:last-child { border-bottom: 0; }
-    .cd-contacto a { display: inline-flex; align-items: center; gap: .3rem; border-radius: 20px; padding: .2rem .65rem; font-size: .76rem; font-weight: 700; background: #fdf1ea; color: #b5451b; margin: 0 .25rem .25rem 0; }
+    .cd-contacto a { display: inline-flex; align-items: center; gap: .3rem; border-radius: 20px; padding: .2rem .65rem; font-size: .76rem; font-weight: 700; background: var(--m-brand-soft); color: var(--m-brand-text); margin: 0 .25rem .25rem 0; }
     .cd-contacto a.wa { background: rgba(37,211,102,.14); color: #128c4a; }
     .cd-aviso { border-radius: 10px; padding: .45rem .7rem; font-size: .82rem; margin-top: .5rem; }
     .cd-aviso.nota { background: #fff8ec; color: #6c5a48; }

@@ -12,8 +12,8 @@
     .rc-tiempo { display: flex; align-items: flex-end; gap: 6px; height: 150px; padding-top: 1rem; overflow-x: auto; }
     .rc-tiempo .t { flex: 1 0 34px; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; height: 100%; }
     .rc-tiempo .t span { width: 100%; max-width: 44px; background: linear-gradient(180deg, #d9653a, #b5451b); border-radius: 5px 5px 0 0; min-height: 2px; }
-    .rc-tiempo .t em { font-style: normal; font-size: .64rem; color: #8a8a9d; margin-top: .25rem; white-space: nowrap; }
-    .rc-tiempo .t b { font-size: .6rem; color: #6c757d; white-space: nowrap; margin-bottom: .15rem; }
+    .rc-tiempo .t em { font-style: normal; font-size: .64rem; color: var(--m-muted); margin-top: .25rem; white-space: nowrap; }
+    .rc-tiempo .t b { font-size: .6rem; color: var(--m-muted); white-space: nowrap; margin-bottom: .15rem; }
 </style>
 @endpush
 
@@ -91,7 +91,7 @@
 <p class="cp-titulo"><i class="fas fa-wheat-awn"></i>Por insumo — precios sin IGV</p>
 <div class="rp-caja mb-3">
     <div class="rp-scroll">
-    <table class="rp-tabla">
+    <table class="rp-tabla" data-tabla>
         <thead><tr>
             <th>Insumo</th><th class="num">Comprado</th><th class="num">Gasto</th><th class="num">Precio prom.</th>
             <th class="num rp-ocultar-movil">Mín. – máx.</th><th class="num">Primero → último</th><th class="num">Variación</th>
@@ -122,8 +122,8 @@
 <p class="cp-titulo"><i class="fas fa-receipt"></i>Compras del periodo ({{ $compras->count() }})</p>
 <div class="rp-caja mb-3">
     <div class="rp-scroll" style="max-height:420px">
-    <table class="rp-tabla">
-        <thead><tr><th>Compra</th><th>Fecha</th><th>Proveedor</th><th class="rp-ocultar-movil">Insumos</th><th class="num">Total</th><th>Estado</th></tr></thead>
+    <table class="rp-tabla" data-tabla>
+        <thead><tr><th>Compra</th><th>Fecha</th><th data-filtro>Proveedor</th><th class="rp-ocultar-movil">Insumos</th><th class="num">Total</th><th data-filtro>Estado</th></tr></thead>
         <tbody>
         @foreach($compras->sortByDesc('fecha_compra') as $c)
             @php $est = $c->estado === 'pendiente' && $c->atrasada ? 'atrasada' : $c->estado; @endphp

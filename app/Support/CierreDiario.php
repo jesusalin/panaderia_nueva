@@ -2,13 +2,15 @@
 
 namespace App\Support;
 
+use App\Models\KardexProducto;
 use App\Models\MateriaPrima;
+use App\Models\Producto;
 use App\Models\MovimientoInventario;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
 
 /**
- * Cierre diario de inventario: para cada insumo activo, el saldo con el que empezó
+ * Cierre diario de inventario: para cada insumo (y cada producto terminado) activo, el saldo con el que empezó
  * el día, lo que entró, lo que salió, los ajustes y el saldo con el que terminó.
  *
  * Todo sale del kardex (movimientos_inventario):
@@ -20,28 +22,41 @@ use Illuminate\Support\Collection;
  */
 class CierreDiario
 {
-    /** @return Collection de filas (arrays) ordenadas por nombre */
+    /** Insumos activos del día. @return Collection de filas (arrays) ordenadas por nombre */
     public static function calcular(Carbon $dia): Collection
+    {
+        $materias = MateriaPrima::with('unidad')->where('estado', 'activo')->orderBy('nombre')->get();
+        return self::filas($dia, $materias, MovimientoInventario::class, 'id_materia',
+            fn ($m) => $m->unidad->abreviatura ?? '', fn ($m) => (float) $m->costo_unitario);
+    }
+
+    /** Productos terminados activos del día (entradas = producción, salidas = ventas y mermas). */
+    public static function calcularProductos(Carbon $dia): Collection
+    {
+        $productos = Producto::where('estado', 'activo')->orderBy('nombre')->get();
+        return self::filas($dia, $productos, KardexProducto::class, 'id_producto',
+            fn ($p) => 'uds', fn ($p) => (float) ($p->costo_produccion ?? 0));
+    }
+
+    private static function filas(Carbon $dia, Collection $items, string $modelo, string $fk, callable $unidad, callable $costoDe): Collection
     {
         $inicio = $dia->copy()->startOfDay();
         $fin    = $dia->copy()->endOfDay();
+        $ids = $items->pluck('id');
 
-        $materias = MateriaPrima::with('unidad')->where('estado', 'activo')->orderBy('nombre')->get();
-        $ids = $materias->pluck('id');
-
-        // Último movimiento antes del día, por insumo
-        $previos = MovimientoInventario::whereIn('id', MovimientoInventario::selectRaw('MAX(id)')
-                ->whereIn('id_materia', $ids)->where('created_at', '<', $inicio)->groupBy('id_materia'))
-            ->get()->keyBy('id_materia');
-        // Primer movimiento desde el inicio del día (para insumos sin historia anterior)
-        $siguientes = MovimientoInventario::whereIn('id', MovimientoInventario::selectRaw('MIN(id)')
-                ->whereIn('id_materia', $ids)->where('created_at', '>=', $inicio)->groupBy('id_materia'))
-            ->get()->keyBy('id_materia');
+        // Último movimiento antes del día, por ítem
+        $previos = $modelo::whereIn('id', $modelo::selectRaw('MAX(id)')
+                ->whereIn($fk, $ids)->where('created_at', '<', $inicio)->groupBy($fk))
+            ->get()->keyBy($fk);
+        // Primer movimiento desde el inicio del día (para ítems sin historia anterior)
+        $siguientes = $modelo::whereIn('id', $modelo::selectRaw('MIN(id)')
+                ->whereIn($fk, $ids)->where('created_at', '>=', $inicio)->groupBy($fk))
+            ->get()->keyBy($fk);
         // Movimientos del día
-        $delDia = MovimientoInventario::whereIn('id_materia', $ids)->whereBetween('created_at', [$inicio, $fin])
-            ->orderBy('created_at')->orderBy('id')->get()->groupBy('id_materia');
+        $delDia = $modelo::whereIn($fk, $ids)->whereBetween('created_at', [$inicio, $fin])
+            ->orderBy('created_at')->orderBy('id')->get()->groupBy($fk);
 
-        return $materias->map(function ($m) use ($previos, $siguientes, $delDia) {
+        return $items->map(function ($m) use ($previos, $siguientes, $delDia, $unidad, $costoDe) {
             $inicial = isset($previos[$m->id]) ? (float) $previos[$m->id]->stock_despues
                 : (isset($siguientes[$m->id]) && $siguientes[$m->id]->stock_antes !== null ? (float) $siguientes[$m->id]->stock_antes : (float) $m->stock_actual);
 
@@ -57,12 +72,14 @@ class CierreDiario
                 $final = (float) $mv->stock_despues;
             }
             $ajuste = $ajusteMas - $ajusteMenos;
-            $costo = (float) $m->costo_unitario;
+            $costo = $costoDe($m);
+            $cuadra = abs($inicial + $entradas - $salidas + $ajuste - $final) < 0.001;
+            $bajo = $final <= (float) $m->stock_minimo;
 
             return [
                 'id'          => $m->id,
                 'nombre'      => $m->nombre,
-                'unidad'      => $m->unidad->abreviatura ?? '',
+                'unidad'      => $unidad($m),
                 'inicial'     => round($inicial, 3),
                 'entradas'    => round($entradas, 3),
                 'salidas'     => round($salidas, 3),
@@ -75,9 +92,10 @@ class CierreDiario
                 'valor_salidas'  => round($salidas * $costo, 2),
                 'movimientos' => $movs->count(),
                 'motivos'     => $porMotivo,
-                'bajo'        => $final <= (float) $m->stock_minimo,
+                'bajo'        => $bajo,
                 // saldo inicial + entradas − salidas ± ajustes = saldo final
-                'cuadra'      => abs($inicial + $entradas - $salidas + $ajuste - $final) < 0.001,
+                'cuadra'      => $cuadra,
+                'estado'      => !$cuadra ? 'No cuadra' : ($bajo ? 'Bajo el mínimo' : 'Normal'),
             ];
         })->values();
     }

@@ -8,26 +8,26 @@
 <style>
     .prod-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-bottom: 1.25rem; }
     .prod-stat {
-        background: #fff; border-radius: 12px; padding: 1rem 1.1rem; box-shadow: 0 2px 12px rgba(0,0,0,.05);
-        border-left: 4px solid #dee2e6; display: flex; align-items: center; gap: .8rem;
+        background: var(--m-surface); border-radius: 12px; padding: 1rem 1.1rem; box-shadow: 0 2px 12px rgba(0,0,0,.05);
+        border-left: 4px solid var(--m-border-strong); display: flex; align-items: center; gap: .8rem;
     }
     body.dark-mode .prod-stat { background: #1f1f33; box-shadow: 0 2px 12px rgba(0,0,0,.3); }
     .prod-stat .ps-icon {
         width: 42px; height: 42px; border-radius: 10px; display: flex; align-items: center; justify-content: center;
         font-size: 1.05rem; flex-shrink: 0;
     }
-    .prod-stat .ps-value { font-size: 1.3rem; font-weight: 800; color: #1a1a2e; line-height: 1.15; }
+    .prod-stat .ps-value { font-size: 1.3rem; font-weight: 800; color: var(--m-text); line-height: 1.15; }
     body.dark-mode .prod-stat .ps-value { color: #f0f0f7; }
     .prod-stat .ps-value.ps-value-sm { font-size: 1rem; }
-    .prod-stat .ps-label { font-size: .74rem; color: #8a8a9d; font-weight: 700; text-transform: uppercase; letter-spacing: .03em; margin-top: .2rem; }
-    .prod-stat.total    { border-left-color: #b5451b; }
-    .prod-stat.total .ps-icon    { background: rgba(181,69,27,.12); color: #b5451b; }
+    .prod-stat .ps-label { font-size: .74rem; color: var(--m-muted); font-weight: 700; text-transform: uppercase; letter-spacing: .03em; margin-top: .2rem; }
+    .prod-stat.total    { border-left-color: var(--m-brand-text); }
+    .prod-stat.total .ps-icon    { background: rgba(181,69,27,.12); color: var(--m-brand-text); }
     .prod-stat.unidades { border-left-color: #2ecc71; }
-    .prod-stat.unidades .ps-icon { background: rgba(46,204,113,.14); color: #1e8e5a; }
+    .prod-stat.unidades .ps-icon { background: rgba(46,204,113,.14); color: var(--m-success-text); }
     .prod-stat.hoy      { border-left-color: #3498db; }
-    .prod-stat.hoy .ps-icon      { background: rgba(52,152,219,.14); color: #2170a3; }
+    .prod-stat.hoy .ps-icon      { background: rgba(52,152,219,.14); color: var(--m-info-text); }
     .prod-stat.top       { border-left-color: #f39c12; }
-    .prod-stat.top .ps-icon      { background: rgba(243,156,18,.14); color: #b9770e; }
+    .prod-stat.top .ps-icon      { background: rgba(243,156,18,.14); color: var(--m-warning-text); }
 
     .prod-icon { overflow: hidden; }
     .prod-icon i { color: var(--cat-color, #b5451b); }
@@ -37,16 +37,16 @@
     body.dark-mode .plan-aviso { background: rgba(243,156,18,.12); border-color: rgba(243,156,18,.3); color: #ffc673; }
     .prod-icon img { width: 100%; height: 100%; object-fit: cover; }
     .prod-nombre { line-height: 1.25; }
-    .prod-cat { display: block; font-size: .72rem; color: #adb5bd; font-weight: 400; }
+    .prod-cat { display: block; font-size: .72rem; color: var(--m-muted-2); font-weight: 400; }
 
-    .prod-fecha .pf-dia { font-weight: 700; color: #1a1a2e; }
+    .prod-fecha .pf-dia { font-weight: 700; color: var(--m-text); }
     body.dark-mode .prod-fecha .pf-dia { color: #f0f0f7; }
-    .prod-hoy-tag { font-size: .65rem; font-weight: 800; color: #2170a3; background: rgba(52,152,219,.14); padding: .05rem .4rem; border-radius: 8px; margin-left: .3rem; vertical-align: middle; }
+    .prod-hoy-tag { font-size: .65rem; font-weight: 800; color: var(--m-info-text); background: rgba(52,152,219,.14); padding: .05rem .4rem; border-radius: 8px; margin-left: .3rem; vertical-align: middle; }
     body.dark-mode .prod-hoy-tag { background: rgba(52,152,219,.2); color: #7ec3f5; }
 
     .prod-obs {
         display: inline-block; max-width: 220px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-        font-size: .82rem; color: #8a8a9d; vertical-align: middle;
+        font-size: .82rem; color: var(--m-muted); vertical-align: middle;
     }
     body.dark-mode .prod-obs { color: #9a9ac0; }
     .prod-obs-empty { color: #ced4da; font-style: italic; }
@@ -87,7 +87,7 @@
     </div>
     <div class="prod-stat hoy">
         <div class="ps-icon"><i class="fas fa-calendar-day"></i></div>
-        <div><div class="ps-value">{{ number_format($stats['unidadesHoy']) }} <small style="font-size:.6em;font-weight:700;color:#8a8a9d;">und.</small></div><div class="ps-label">Hoy ({{ $stats['hoy'] }} {{ $stats['hoy'] == 1 ? 'producción' : 'producciones' }})</div></div>
+        <div><div class="ps-value">{{ number_format($stats['unidadesHoy']) }} <small style="font-size:.6em;font-weight:700;color: var(--m-muted);">und.</small></div><div class="ps-label">Hoy ({{ $stats['hoy'] }} {{ $stats['hoy'] == 1 ? 'producción' : 'producciones' }})</div></div>
     </div>
     <div class="prod-stat top">
         <div class="ps-icon"><i class="fas fa-trophy"></i></div>
@@ -186,7 +186,7 @@
                                 <button class="btn btn-icon btn-danger" title="Eliminar (registrado por error)"><i class="fas fa-trash-alt"></i></button>
                             </form>
                         @else
-                            <button type="button" class="btn btn-icon btn-secondary is-locked js-blocked"
+                            <button type="button" class="btn btn-icon btn-secondary is-locked js-blocked" data-accion="produccion.produccion.anular"
                                 title="No se puede eliminar"
                                 data-blocked-title="No se puede eliminar esta producción"
                                 data-blocked-message="Ya se vendieron o movieron unidades de &quot;{{ $p->producto->nombre }}&quot; desde que se registró. Eliminarla dejaría el stock en negativo.">
@@ -199,8 +199,8 @@
             @endforeach
         </tbody>
     </table>
-    @if($producciones->hasPages())
-    <div class="card-footer bg-white">{{ $producciones->links() }}</div>
+    @if($producciones->hasPages() || $producciones->total() > 15)
+    <div class="card-footer bg-white">@include('partials.paginacion', ['p' => $producciones, 'defecto' => 15, 'nombre' => 'producciones'])</div>
     @endif
 </div>
 @else

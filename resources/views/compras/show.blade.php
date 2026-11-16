@@ -10,15 +10,15 @@
 @push('styles')
 <style>
     .cs-tabla td.num, .cs-tabla th.num { text-align: right; white-space: nowrap; }
-    .cs-dif { font-size: .72rem; font-weight: 800; color: #c0392b; display: block; }
+    .cs-dif { font-size: .72rem; font-weight: 800; color: var(--m-danger-text); display: block; }
     .cs-totales { margin-left: auto; max-width: 300px; font-size: .88rem; margin-top: .8rem; }
-    .cs-totales div { display: flex; justify-content: space-between; padding: .15rem 0; color: #6c757d; }
-    .cs-totales .tt { border-top: 1px solid #eee5dd; margin-top: .3rem; padding-top: .45rem; font-weight: 800; color: #1a1a2e; font-size: 1.05rem; }
+    .cs-totales div { display: flex; justify-content: space-between; padding: .15rem 0; color: var(--m-muted); }
+    .cs-totales .tt { border-top: 1px solid #eee5dd; margin-top: .3rem; padding-top: .45rem; font-weight: 800; color: var(--m-text); font-size: 1.05rem; }
     body.dark-mode .cs-totales .tt { color: #f0f0f7; border-color: #33334d; }
     .cs-grid { display: grid; grid-template-columns: minmax(0, 1.7fr) minmax(260px, 1fr); gap: 1.1rem; }
     @media (max-width: 991px) { .cs-grid { grid-template-columns: 1fr; } }
     .cs-aviso { border-radius: 12px; padding: .75rem 1rem; margin-bottom: 1rem; font-size: .88rem; display: flex; gap: .6rem; align-items: flex-start; }
-    .cs-aviso.anulada { background: #f2f2f4; color: #555; }
+    .cs-aviso.anulada { background: #f2f2f4; color: var(--m-text-2); }
     .cs-aviso.pendiente { background: #fff6e5; color: #7a5200; }
     .cs-aviso.atrasada { background: #fdecea; color: #a93226; }
     body.dark-mode .cs-aviso.anulada { background: #24243b; color: #b0b0cc; }
@@ -27,8 +27,8 @@
     .cs-impresion { display: none; }
     @media print {
         .main-sidebar, .main-header, .main-footer, .content-header, .ih-acciones, .no-imprimir, .breadcrumb, .alert { display: none !important; }
-        .content-wrapper { margin: 0 !important; background: #fff !important; }
-        .inv-hero { background: #fff !important; color: #000 !important; border: 1px solid #ccc; }
+        .content-wrapper { margin: 0 !important; background: var(--m-surface) !important; }
+        .inv-hero { background: var(--m-surface) !important; color: #000 !important; border: 1px solid #ccc; }
         .inv-hero .ih-icono { display: none; }
         .cs-grid { grid-template-columns: 1fr; }
         .inv-box { box-shadow: none !important; border: 1px solid #ddd; }

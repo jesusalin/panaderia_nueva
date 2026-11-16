@@ -65,7 +65,7 @@
             @endforeach
         </div>
     @endforeach
-    <div class="mt-3">{{ $movimientos->links() }}</div>
+    @include('partials.paginacion', ['p' => $movimientos, 'defecto' => 30, 'nombre' => 'movimientos'])
 @else
     <div class="empty-state">
         <i class="fas fa-exchange-alt"></i>

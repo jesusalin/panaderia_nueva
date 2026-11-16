@@ -42,11 +42,11 @@
     </a>
     @if($stats['atrasadas'])
         <a href="{{ route('compras.index', ['estado' => 'atrasada']) }}" class="ir {{ request('estado') === 'atrasada' ? 'activo' : '' }}" title="Pendientes con más de {{ \App\Models\Compra::DIAS_ATRASO }} días">
-            <i class="fas fa-hourglass-end" style="color:#c0392b"></i><b>{{ $stats['atrasadas'] }}</b> atrasada{{ $stats['atrasadas'] == 1 ? '' : 's' }}
+            <i class="fas fa-hourglass-end" style="color: var(--m-danger-text)"></i><b>{{ $stats['atrasadas'] }}</b> atrasada{{ $stats['atrasadas'] == 1 ? '' : 's' }}
         </a>
     @endif
     <a href="{{ route('compras.index', ['periodo' => 'mes']) }}" class="ir {{ $periodo === 'mes' && !request('estado') ? 'activo' : '' }}">
-        <i class="fas fa-coins" style="color:#1e8e5a"></i>Este mes: <b>S/ {{ number_format($stats['gasto_mes'], 2) }}</b>
+        <i class="fas fa-coins" style="color: var(--m-success-text)"></i>Este mes: <b>S/ {{ number_format($stats['gasto_mes'], 2) }}</b>
         <small>en {{ $stats['compras_mes'] }} compra{{ $stats['compras_mes'] == 1 ? '' : 's' }}</small>
         @if($variacion !== null)
             <span class="cp-var {{ $variacion > 0 ? 'sube' : ($variacion < 0 ? 'baja' : 'igual') }}" title="Comparado con los mismos días del mes anterior (S/ {{ number_format($stats['gasto_mes_ant'], 2) }})">
@@ -121,7 +121,7 @@
     @endif
 </form>
 
-<div class="d-flex justify-content-between align-items-center mb-2" style="font-size:.82rem;color:#8a8a9d">
+<div class="d-flex justify-content-between align-items-center mb-2" style="font-size:.82rem;color: var(--m-muted)">
     <span>{{ $filtrado['n'] }} compra{{ $filtrado['n'] == 1 ? '' : 's' }}{{ $hayFiltros ? ' con estos filtros' : '' }}</span>
     <span>Total (sin anuladas): <b class="text-body">S/ {{ number_format($filtrado['total'], 2) }}</b></span>
 </div>
@@ -145,11 +145,11 @@
             <div class="cf-dato">
                 <small>Factura / registró</small>
                 <span>{{ $c->numero_doc ?: 'Sin factura' }}</span>
-                <div style="font-size:.72rem;color:#8a8a9d">{{ $c->usuario->apodo ?? $c->usuario->nombre ?? '—' }}</div>
+                <div style="font-size:.72rem;color: var(--m-muted)">{{ $c->usuario->apodo ?? $c->usuario->nombre ?? '—' }}</div>
             </div>
             <div class="cf-total">
                 S/ {{ number_format($c->total, 2) }}
-                <div style="font-size:.72rem;font-weight:600;color:#8a8a9d">{{ $c->detalles_count }} insumo{{ $c->detalles_count == 1 ? '' : 's' }}</div>
+                <div style="font-size:.72rem;font-weight:600;color: var(--m-muted)">{{ $c->detalles_count }} insumo{{ $c->detalles_count == 1 ? '' : 's' }}</div>
             </div>
             <div class="cf-acc">
                 <span class="cp-estado {{ $est }}">
@@ -161,7 +161,7 @@
             </div>
         </div>
     @endforeach
-    <div class="mt-3">{{ $compras->links() }}</div>
+    @include('partials.paginacion', ['p' => $compras, 'defecto' => 15, 'nombre' => 'compras'])
 @else
     <div class="empty-state">
         <i class="fas fa-shopping-cart"></i>

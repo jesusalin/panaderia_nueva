@@ -13,18 +13,18 @@
     .rc-tiempo .t { flex: 1 0 30px; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; height: 100%; }
     .rc-tiempo .t span { width: 100%; max-width: 44px; background: linear-gradient(180deg, #34c27d, #1e8e5a); border-radius: 5px 5px 0 0; min-height: 2px; }
     .rc-tiempo .t.pico span { background: linear-gradient(180deg, #f0a43a, #d4880f); }
-    .rc-tiempo .t em { font-style: normal; font-size: .64rem; color: #8a8a9d; margin-top: .25rem; white-space: nowrap; }
-    .rc-tiempo .t b { font-size: .6rem; color: #6c757d; white-space: nowrap; margin-bottom: .15rem; }
+    .rc-tiempo .t em { font-style: normal; font-size: .64rem; color: var(--m-muted); margin-top: .25rem; white-space: nowrap; }
+    .rc-tiempo .t b { font-size: .6rem; color: var(--m-muted); white-space: nowrap; margin-bottom: .15rem; }
     .rv-barra span { background: linear-gradient(90deg, #34c27d, #1e8e5a) !important; }
     .rv-medio { display: flex; align-items: center; gap: .6rem; }
     .rv-medio .ic { width: 30px; height: 30px; border-radius: 9px; color: #fff; display: flex; align-items: center; justify-content: center; font-size: .8rem; flex-shrink: 0; }
-    .rv-pos { width: 24px; height: 24px; border-radius: 50%; background: #f3f0ec; color: #8a8a9d; font-size: .72rem; font-weight: 800; display: inline-flex; align-items: center; justify-content: center; margin-right: .4rem; }
-    .rv-pos.oro { background: #fff1d6; color: #a5680d; }
+    .rv-pos { width: 24px; height: 24px; border-radius: 50%; background: var(--m-surface-3); color: var(--m-muted); font-size: .72rem; font-weight: 800; display: inline-flex; align-items: center; justify-content: center; margin-right: .4rem; }
+    .rv-pos.oro { background: #fff1d6; color: var(--m-warning-text); }
     body.dark-mode .rv-pos { background: #2c2c44; }
     .rv-margen { font-size: .74rem; font-weight: 800; border-radius: 10px; padding: .05rem .45rem; }
-    .rv-margen.bien { background: rgba(46,204,113,.14); color: #1e8e5a; }
-    .rv-margen.medio { background: rgba(243,156,18,.15); color: #a5680d; }
-    .rv-margen.mal { background: rgba(231,76,60,.12); color: #c0392b; }
+    .rv-margen.bien { background: rgba(46,204,113,.14); color: var(--m-success-text); }
+    .rv-margen.medio { background: rgba(243,156,18,.15); color: var(--m-warning-text); }
+    .rv-margen.mal { background: rgba(231,76,60,.12); color: var(--m-danger-text); }
 </style>
 @endpush
 
@@ -118,7 +118,7 @@
 <p class="cp-titulo"><i class="fas fa-trophy"></i>Productos más vendidos</p>
 <div class="rp-caja mb-3">
     <div class="rp-scroll" style="max-height:480px">
-    <table class="rp-tabla">
+    <table class="rp-tabla" data-tabla>
         <thead><tr>
             <th>Producto</th><th class="num">Unidades</th><th class="num">Ingreso</th><th class="num rp-ocultar-movil">% ventas</th>
             <th class="num rp-ocultar-movil">Costo</th><th class="num">Ganancia</th><th class="num">Margen</th>
@@ -182,7 +182,7 @@
 <div class="inv-grid2 mb-3">
     <div class="inv-box">
         <h5><i class="fas fa-users"></i>Mejores clientes</h5>
-        <div class="rp-scroll"><table class="rp-tabla">
+        <div class="rp-scroll"><table class="rp-tabla" data-tabla>
             <thead><tr><th>Cliente</th><th class="num">Compras</th><th class="num">Total</th></tr></thead>
             <tbody>
             @foreach($porCliente->take(10) as $c)
@@ -198,7 +198,7 @@
     </div>
     <div class="inv-box">
         <h5><i class="fas fa-user-tie"></i>Por vendedor</h5>
-        <div class="rp-scroll"><table class="rp-tabla">
+        <div class="rp-scroll"><table class="rp-tabla" data-tabla>
             <thead><tr><th>Vendedor</th><th class="num">Ventas</th><th class="num">Total</th><th class="num">Anuladas</th></tr></thead>
             <tbody>
             @foreach($porVendedor as $v)

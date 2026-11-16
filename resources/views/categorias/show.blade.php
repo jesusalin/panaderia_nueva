@@ -19,20 +19,20 @@
     .cs-datos { display: flex; gap: 1.6rem; flex-wrap: wrap; margin-top: .4rem; font-size: .82rem; opacity: .9; }
     .cs-datos b { font-size: 1.05rem; }
 
-    .cs-tabla { background: #fff; border-radius: 14px; box-shadow: 0 2px 12px rgba(0,0,0,.05); overflow: hidden; }
+    .cs-tabla { background: var(--m-surface); border-radius: 14px; box-shadow: 0 2px 12px rgba(0,0,0,.05); overflow: hidden; }
     .cs-tabla table { margin: 0; }
-    .cs-tabla th { font-size: .74rem; text-transform: uppercase; letter-spacing: .04em; color: #8a8a9d; border-top: none; background: #faf9f7; }
+    .cs-tabla th { font-size: .74rem; text-transform: uppercase; letter-spacing: .04em; color: var(--m-muted); border-top: none; background: #faf9f7; }
     .cs-tabla td { vertical-align: middle; font-size: .9rem; }
     .cs-tabla tr.inactivo td { opacity: .55; }
     .cs-stock { display: inline-flex; align-items: center; gap: .4rem; font-weight: 700; }
     .cs-stock .dot { width: 9px; height: 9px; border-radius: 50%; }
-    .cs-stock.bajo .dot { background: #e74c3c; } .cs-stock.bajo { color: #c0392b; }
+    .cs-stock.bajo .dot { background: #e74c3c; } .cs-stock.bajo { color: var(--m-danger-text); }
     .cs-stock.medio .dot { background: #f39c12; }
     .cs-stock.ok .dot { background: #2ecc71; }
 
-    .cs-eliminar { background: #fff; border-radius: 14px; box-shadow: 0 2px 12px rgba(0,0,0,.05); padding: 1.3rem 1.5rem; margin-top: 1.25rem; border-left: 4px solid #e74c3c; }
-    .cs-eliminar h5 { font-weight: 800; color: #1a1a2e; font-size: 1rem; }
-    .cs-eliminar p { color: #6c757d; font-size: .87rem; }
+    .cs-eliminar { background: var(--m-surface); border-radius: 14px; box-shadow: 0 2px 12px rgba(0,0,0,.05); padding: 1.3rem 1.5rem; margin-top: 1.25rem; border-left: 4px solid #e74c3c; }
+    .cs-eliminar h5 { font-weight: 800; color: var(--m-text); font-size: 1rem; }
+    .cs-eliminar p { color: var(--m-muted); font-size: .87rem; }
     body.dark-mode .cs-tabla, body.dark-mode .cs-eliminar { background: #1f1f33; }
     body.dark-mode .cs-tabla th { background: #29293f; }
     body.dark-mode .cs-eliminar h5 { color: #f0f0f7; }
@@ -71,14 +71,14 @@
 <div class="cs-tabla" id="productos">
     @if($productos->count())
     <div class="table-responsive">
-    <table class="table">
+    <table class="table" data-tabla>
         <thead>
             <tr>
                 <th>Producto</th>
                 <th class="text-right">Precio</th>
                 <th class="text-right">Costo</th>
                 <th>Stock</th>
-                <th>Estado</th>
+                <th data-filtro>Estado</th>
                 @if($puedeEditarProductos)<th></th>@endif
             </tr>
         </thead>

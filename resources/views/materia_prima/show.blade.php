@@ -73,7 +73,7 @@
     <div class="inv-box">
         <h5><i class="fas fa-clipboard-list"></i>Se usa en {{ $recetas->count() }} receta{{ $recetas->count() == 1 ? '' : 's' }}</h5>
         @if($recetas->count())
-            <table class="inv-tabla">
+            <table class="inv-tabla" data-tabla>
                 <thead><tr><th>Producto</th><th class="text-right">Por tanda</th><th class="text-right">Rinde</th></tr></thead>
                 <tbody>
                 @foreach($recetas as $d)
@@ -104,7 +104,7 @@
     <h5><i class="fas fa-balance-scale-left"></i>Precios por proveedor</h5>
     @if($preciosProv->count())
         <div class="table-responsive">
-        <table class="inv-tabla">
+        <table class="inv-tabla" data-tabla>
             <thead><tr><th>Proveedor</th><th class="text-right">Último precio</th><th class="text-right">Promedio</th><th class="text-right">Diferencia</th><th>Última compra</th><th></th></tr></thead>
             <tbody>
             @foreach($preciosProv as $pp)
@@ -144,8 +144,8 @@
     <div class="inv-box">
         <h5><i class="fas fa-truck"></i>Últimas compras</h5>
         @if($compras->count())
-            <table class="inv-tabla">
-                <thead><tr><th>Fecha</th><th>Proveedor</th><th class="text-right">Cantidad</th><th class="text-right">Precio</th><th></th></tr></thead>
+            <table class="inv-tabla" data-tabla>
+                <thead><tr><th>Fecha</th><th data-filtro>Proveedor</th><th class="text-right">Cantidad</th><th class="text-right">Precio</th><th></th></tr></thead>
                 <tbody>
                 @foreach($compras as $d)
                     <tr>
@@ -166,8 +166,8 @@
     <div class="inv-box">
         <h5><i class="fas fa-exchange-alt"></i>Últimos movimientos</h5>
         @if($movimientos->count())
-            <table class="inv-tabla">
-                <thead><tr><th>Fecha</th><th>Motivo</th><th class="text-right">Cantidad</th><th class="text-right">Quedó</th></tr></thead>
+            <table class="inv-tabla" data-tabla>
+                <thead><tr><th>Fecha</th><th data-filtro>Motivo</th><th class="text-right">Cantidad</th><th class="text-right">Quedó</th></tr></thead>
                 <tbody>
                 @foreach($movimientos as $mv)
                     <tr title="{{ $mv->observacion }} — {{ $mv->usuario->nombre ?? '' }}">

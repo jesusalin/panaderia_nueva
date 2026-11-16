@@ -5,34 +5,50 @@
 @push('styles')
 <style>
     .rp-stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 1rem; margin-bottom: 1.5rem; }
-    .rp-stat { background: #fff; border-radius: 14px; padding: 1.1rem 1.3rem; box-shadow: 0 2px 12px rgba(0,0,0,.05); border-left: 4px solid #dee2e6; }
+    .rp-stat { background: var(--m-surface); border-radius: 14px; padding: 1.1rem 1.3rem; box-shadow: 0 2px 12px rgba(0,0,0,.05); border-left: 4px solid var(--m-border-strong); }
     .rp-stat.acc-info    { border-left-color: #3498db; }
     .rp-stat.acc-warn    { border-left-color: #f39c12; }
     .rp-stat.acc-danger  { border-left-color: #e74c3c; }
     .rp-stat.acc-success { border-left-color: #2ecc71; }
-    .rp-stat .rp-label { font-size: .74rem; font-weight: 700; color: #8a8a9d; text-transform: uppercase; letter-spacing: .03em; }
-    .rp-stat .rp-value { font-size: 1.4rem; font-weight: 800; color: #1a1a2e; margin-top: .2rem; }
+    .rp-stat .rp-label { font-size: .74rem; font-weight: 700; color: var(--m-muted); text-transform: uppercase; letter-spacing: .03em; }
+    .rp-stat .rp-value { font-size: 1.4rem; font-weight: 800; color: var(--m-text); margin-top: .2rem; }
     body.dark-mode .rp-stat { background: #1f1f33; }
     body.dark-mode .rp-stat .rp-value { color: #f0f0f7; }
 
     .rp-filter { border: none; border-radius: 14px; box-shadow: 0 2px 12px rgba(0,0,0,.05); padding: 1rem 1.3rem; margin-bottom: 1.3rem; }
-    .rp-filter .form-control { border-radius: 10px; border: 1.5px solid #e9ecef; }
+    .rp-filter .form-control { border-radius: 10px; border: 1.5px solid var(--m-border); }
     body.dark-mode .rp-filter .form-control { background: #24243b; border-color: #33334d; color: #e4e4ef; }
 
-    .rp-section-title { font-weight: 800; color: #1a1a2e; font-size: .95rem; margin: 1.5rem 0 .8rem; display: flex; align-items: center; gap: .5rem; }
+    .rp-section-title { font-weight: 800; color: var(--m-text); font-size: .95rem; margin: 1.5rem 0 .8rem; display: flex; align-items: center; gap: .5rem; }
     body.dark-mode .rp-section-title { color: #f0f0f7; }
 
     .nivel { display: inline-flex; align-items: center; gap: .35rem; font-size: .72rem; font-weight: 800; padding: .2rem .6rem; border-radius: 20px; text-transform: uppercase; letter-spacing: .03em; }
     .nivel::before { content: ''; width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
-    .nivel.agotado { background: rgba(231,76,60,.14); color: #c0392b; }
-    .nivel.bajo    { background: rgba(243,156,18,.16); color: #a5680d; }
-    .nivel.ok      { background: rgba(46,204,113,.14); color: #1e8e5a; }
+    .nivel.agotado { background: rgba(231,76,60,.14); color: var(--m-danger-text); }
+    .nivel.bajo    { background: rgba(243,156,18,.16); color: var(--m-warning-text); }
+    .nivel.ok      { background: rgba(46,204,113,.14); color: var(--m-success-text); }
     body.dark-mode .nivel.agotado { color: #ff9b8f; }
     body.dark-mode .nivel.bajo    { color: #ffc673; }
     body.dark-mode .nivel.ok      { color: #6ee7a5; }
 
-    .reponer-hint { font-size: .78rem; font-weight: 700; color: #b5451b; }
+    .reponer-hint { font-size: .78rem; font-weight: 700; color: var(--m-brand-text); }
     body.dark-mode .reponer-hint { color: #ff9d6e; }
+    .sk-orden { display: flex; flex-wrap: wrap; align-items: center; gap: .4rem; margin: -.3rem 0 .8rem; }
+    .sk-orden-lbl { font-size: .78rem; font-weight: 700; color: var(--m-muted); text-transform: uppercase; letter-spacing: .03em; margin-right: .2rem; }
+    .sk-orden-op { display: inline-flex; align-items: center; padding: .32rem .8rem; border-radius: 20px; font-size: .82rem; font-weight: 700;
+                   background: var(--m-surface-3); color: var(--m-text-2); border: 1.5px solid transparent; text-decoration: none !important; transition: all .15s; }
+    .sk-orden-op:hover { background: #e7e7ec; color: var(--m-text); }
+    .sk-orden-op.activo { background: rgba(181,69,27,.12); color: var(--m-brand-text); border-color: rgba(181,69,27,.4); }
+    .sk-orden-dir { margin-left: .45rem; padding-left: .45rem; border-left: 1.5px solid rgba(181,69,27,.3); font-weight: 600; font-size: .76rem; }
+    body.dark-mode .sk-orden-op { background: #2c2c44; color: #b0b0cc; }
+    body.dark-mode .sk-orden-op.activo { background: rgba(181,69,27,.25); color: #ff9d6e; border-color: rgba(255,157,110,.4); }
+    .sk-vista { display: flex; gap: .7rem; align-items: flex-start; background: rgba(33,112,163,.07); border: 1px solid rgba(33,112,163,.18);
+                border-radius: 12px; padding: .65rem .9rem; font-size: .84rem; color: #2a4a63; margin-bottom: 1rem; }
+    .sk-vista > i { color: var(--m-info-text); margin-top: .2rem; }
+    .sk-vista-cerrar { background: none; border: none; font-size: 1.35rem; line-height: 1; color: var(--m-info-text); opacity: .55; padding: 0 .2rem; margin-left: .3rem; cursor: pointer; }
+    .sk-vista-cerrar:hover { opacity: 1; }
+    body.dark-mode .sk-vista-cerrar { color: #8cc8f0; }
+    body.dark-mode .sk-vista { background: rgba(110,180,230,.08); border-color: rgba(110,180,230,.2); color: #b8d6ec; }
     .sk-acciones { display: flex; gap: .35rem; margin-top: .35rem; justify-content: flex-end; }
     .sk-acciones .btn { padding: .15rem .5rem; font-size: .75rem; border-radius: 8px; }
 </style>
@@ -116,18 +132,38 @@
         <option value="bajo"    {{ request('stock') === 'bajo'    ? 'selected' : '' }}>Necesitan reposición (bajo + agotado)</option>
         <option value="agotado" {{ request('stock') === 'agotado' ? 'selected' : '' }}>Solo agotados</option>
     </select>
-    <label class="fb-label mb-0">Ordenar</label>
-    <select name="orden" class="form-control" style="width:auto;" onchange="this.form.submit()">
-        <option value="">Más urgentes primero</option>
-        <option value="dias"   {{ request('orden') === 'dias'   ? 'selected' : '' }}>Menos días de stock</option>
-        <option value="valor"  {{ request('orden') === 'valor'  ? 'selected' : '' }}>Mayor valor</option>
-        <option value="nombre" {{ request('orden') === 'nombre' ? 'selected' : '' }}>Nombre (A-Z)</option>
-    </select>
+    @if($orden !== '')<input type="hidden" name="orden" value="{{ $orden }}">@endif
+    @if(request('dir'))<input type="hidden" name="dir" value="{{ $dir }}">@endif
     <button type="submit" class="btn btn-light"><i class="fas fa-filter mr-1"></i>Filtrar</button>
-    @if(request('buscar') || request('stock') || request('orden') || ($tipo ?? 'todos') !== 'todos')
+    @if(request('buscar') || request('stock') || request('orden') || request('dir') || ($tipo ?? 'todos') !== 'todos')
         <a href="{{ route('reportes.stock') }}" class="btn btn-light text-muted"><i class="fas fa-times mr-1"></i>Limpiar</a>
     @endif
 </form>
+
+{{-- Ordenar: a la vista, con un toque. Tocar el orden activo invierte el sentido. --}}
+<div class="sk-orden">
+    <span class="sk-orden-lbl"><i class="fas fa-sort-amount-down mr-1"></i>Ordenar por</span>
+    @foreach(\App\Http\Controllers\ReportesController::ORDENES_STOCK as $clave => $o)
+        @php
+            $activo = $orden === $clave;
+            $nuevoDir = $activo ? ($dir === 'asc' ? 'desc' : 'asc') : $o['dir'];
+            $enlace = array_filter(array_merge(request()->except(['orden', 'dir', 'page']), ['orden' => $clave ?: null, 'dir' => $nuevoDir !== $o['dir'] ? $nuevoDir : null]));
+        @endphp
+        <a href="{{ route('reportes.stock', $enlace) }}" class="sk-orden-op {{ $activo ? 'activo' : '' }}"
+           title="{{ $activo ? 'Tocar otra vez para invertir: ' . $o[$nuevoDir] : $o['texto'] . ' (' . $o[$o['dir']] . ')' }}">
+            <i class="fas {{ $o['icono'] }} mr-1"></i>{{ $o['texto'] }}
+            @if($activo)<span class="sk-orden-dir"><i class="fas {{ $dir === 'asc' ? 'fa-arrow-up' : 'fa-arrow-down' }} mr-1"></i>{{ $o[$dir] }}</span>@endif
+        </a>
+    @endforeach
+</div>
+
+<div class="sk-vista" id="avisoStockVista" role="note">
+    <i class="fas fa-file-export"></i>
+    <div class="flex-grow-1"><b>El PDF y el Excel salen tal como ves la lista:</b> {{ $vista }}.
+        <span class="text-muted">Cambia los filtros o el orden de arriba para descargar otra cosa.</span></div>
+    <button type="button" class="sk-vista-cerrar" id="cerrarAvisoStock" aria-label="Cerrar aviso" title="Cerrar (no vuelve a salir)">&times;</button>
+</div>
+<script>try { if (localStorage.getItem('avisoStockVistaCerrado')) document.getElementById('avisoStockVista').remove(); } catch (e) {}</script>
 
 @if($materias->count() > 0)
 <div class="rp-section-title"><i class="fas fa-wheat-awn text-secondary"></i>Materia Prima</div>
@@ -206,5 +242,15 @@
 @push('scripts')
 <script>
     // El buscador muestra sugerencias de insumos y productos (ver layout: data-sugerencias).
+    // Aviso de cómo sale el PDF/Excel: con la X se cierra y no vuelve a salir en este navegador.
+    (function () {
+        const aviso = document.getElementById('avisoStockVista'), CLAVE = 'avisoStockVistaCerrado';
+        if (!aviso) return;
+        try { if (localStorage.getItem(CLAVE)) aviso.remove(); } catch (e) {}
+        document.getElementById('cerrarAvisoStock')?.addEventListener('click', function () {
+            aviso.remove();
+            try { localStorage.setItem(CLAVE, '1'); } catch (e) {}
+        });
+    })();
 </script>
 @endpush

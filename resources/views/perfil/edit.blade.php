@@ -9,9 +9,9 @@
     .perfil-foto { display: flex; align-items: center; gap: 1.2rem; flex-wrap: wrap; }
     .perfil-foto .avatar-usuario { box-shadow: 0 0 0 4px #fff, 0 0 0 5px #e9ecef; }
     .perfil-foto .pf-botones { display: flex; flex-direction: column; gap: .4rem; align-items: flex-start; }
-    .perfil-foto .pf-ayuda { font-size: .78rem; color: #8a8a9d; }
-    .perfil-dato { font-size: .85rem; color: #6c757d; }
-    .perfil-dato b { color: #1a1a2e; }
+    .perfil-foto .pf-ayuda { font-size: .78rem; color: var(--m-muted); }
+    .perfil-dato { font-size: .85rem; color: var(--m-muted); }
+    .perfil-dato b { color: var(--m-text); }
     body.dark-mode .perfil-dato b { color: #f0f0f7; }
     .perfil-nota { display: flex; gap: .6rem; align-items: center; background: #f1f7fd; border: 1px solid #d6e7f7; color: #2c4a66; border-radius: 10px; padding: .7rem 1rem; font-size: .84rem; margin-top: 1.4rem; }
     body.dark-mode .perfil-nota { background: #1d2a3a; border-color: #2b4058; color: #c9dcf0; }

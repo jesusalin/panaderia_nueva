@@ -82,7 +82,7 @@ class VentasController extends Controller
         $topHoy = VentaDetalle::whereHas('venta', fn ($v) => $v->whereDate('fecha_venta', today())->where('estado', 'completada'))
             ->select('id_producto', DB::raw('SUM(cantidad) as cant'))->groupBy('id_producto')->orderByDesc('cant')->with('producto')->limit(3)->get();
 
-        $ventas = $query->orderByDesc('fecha_venta')->orderByDesc('id')->paginate(30)->withQueryString();
+        $ventas = $query->orderByDesc('fecha_venta')->orderByDesc('id')->paginate(\App\Support\PorPagina::valor(30))->withQueryString();
         $vendedores = Usuario::whereIn('id', Venta::select('id_usuario')->distinct())->orderBy('nombre')->get();
 
         return view('ventas.index', compact('ventas', 'caja', 'topHoy', 'filtrado', 'periodo', 'vendedores'));

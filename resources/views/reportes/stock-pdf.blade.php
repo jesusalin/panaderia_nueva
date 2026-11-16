@@ -42,6 +42,7 @@
     <div class="encabezado">
         <h1>Reporte de Stock</h1>
         <p>Valorización de inventario: materia prima y productos terminados</p>
+        <p style="margin-top:4px;"><strong>{{ $vista }}</strong></p>
     </div>
 
     <table class="resumen" width="100%">

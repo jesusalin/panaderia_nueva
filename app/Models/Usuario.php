@@ -195,11 +195,109 @@ class Usuario extends Authenticatable {
      *                   una pantalla de ese módulo (sirve para mostrar la sección del menú).
      * Un permiso antiguo de módulo completo ("inventario") da acceso a todas sus pantallas.
      */
+    /**
+     * Acciones dentro de una pantalla que el admin puede QUITAR a un usuario aunque tenga la
+     * pantalla. Por ejemplo, un vendedor usa Productos para vender y registrar mermas, pero no
+     * debería crear, editar ni eliminar productos.
+     *
+     * Por defecto todo usuario con la pantalla puede hacer todas sus acciones; lo que se le
+     * quita se guarda en permisos_usuario como "sin:pantalla.accion".
+     * 'rutas' son las rutas que esa acción protege (las revisa el middleware RevisarAccion).
+     */
+    const ACCIONES = [
+        'inventario.materia_prima' => [
+            'editar'  => ['nombre' => 'Crear, editar y desactivar insumos', 'rutas' => ['materia-prima.create', 'materia-prima.store', 'materia-prima.edit', 'materia-prima.update', 'materia-prima.destroy', 'materia-prima.toggle-estado']],
+            'ajustar' => ['nombre' => 'Ajustar stock y registrar mermas', 'rutas' => ['materia-prima.ajuste', 'materia-prima.ajuste.store']],
+        ],
+        'compras.proveedores' => [
+            'editar' => ['nombre' => 'Crear, editar y desactivar proveedores', 'rutas' => ['proveedores.create', 'proveedores.store', 'proveedores.edit', 'proveedores.update', 'proveedores.destroy', 'proveedores.toggle-estado']],
+        ],
+        'compras.compras' => [
+            'registrar' => ['nombre' => 'Registrar compras nuevas', 'rutas' => ['compras.create', 'compras.store']],
+            'recibir'   => ['nombre' => 'Recibir compras (sube el stock)', 'rutas' => ['compras.recibir.form', 'compras.recibir']],
+            'anular'    => ['nombre' => 'Anular compras', 'rutas' => ['compras.anular']],
+        ],
+        'compras.ordenes' => [
+            'gestionar' => ['nombre' => 'Generar, convertir y descartar órdenes', 'rutas' => ['ordenes-automaticas.generar', 'ordenes-automaticas.convertir', 'ordenes-automaticas.convertir-varias', 'ordenes-automaticas.descartar']],
+        ],
+        'catalogo.productos' => [
+            'editar'  => ['nombre' => 'Crear, editar y eliminar productos', 'rutas' => ['productos.create', 'productos.store', 'productos.edit', 'productos.update', 'productos.destroy', 'productos.toggle-estado']],
+            'ajustar' => ['nombre' => 'Ajustar stock y registrar mermas', 'rutas' => ['productos.ajuste', 'productos.ajuste.store']],
+        ],
+        'produccion.produccion' => [
+            'registrar' => ['nombre' => 'Registrar producción', 'rutas' => ['produccion.create', 'produccion.store']],
+            'anular'    => ['nombre' => 'Anular producciones', 'rutas' => ['produccion.destroy']],
+        ],
+        'catalogo.categorias' => [
+            'editar' => ['nombre' => 'Crear, editar y eliminar categorías', 'rutas' => ['categorias.create', 'categorias.store', 'categorias.edit', 'categorias.update', 'categorias.destroy', 'categorias.toggle-estado']],
+        ],
+        'reportes.cierre' => [
+            'cerrar' => ['nombre' => 'Registrar el cierre del día', 'rutas' => ['reportes.cierre.guardar']],
+        ],
+        'ventas' => [
+            'anular' => ['nombre' => 'Anular ventas', 'rutas' => ['ventas.anular']],
+        ],
+        'clientes' => [
+            'editar' => ['nombre' => 'Crear, editar y desactivar clientes', 'rutas' => ['clientes.create', 'clientes.store', 'clientes.edit', 'clientes.update', 'clientes.destroy', 'clientes.toggle-estado']],
+        ],
+    ];
+
+    /** Prefijo con el que se guarda una acción quitada. */
+    const SIN = 'sin:';
+
+    /** Todas las acciones como "pantalla.accion" => nombre. */
+    public static function clavesAccion(): array
+    {
+        $r = [];
+        foreach (self::ACCIONES as $pantalla => $acciones) {
+            foreach ($acciones as $accion => $def) $r[$pantalla . '.' . $accion] = $def['nombre'];
+        }
+        return $r;
+    }
+
+    /** Ruta => acción que la protege ("productos.edit" => "catalogo.productos.editar"). */
+    public static function rutasConAccion(): array
+    {
+        static $mapa = null;
+        if ($mapa === null) {
+            $mapa = [];
+            foreach (self::ACCIONES as $pantalla => $acciones) {
+                foreach ($acciones as $accion => $def) {
+                    foreach ($def['rutas'] as $ruta) $mapa[$ruta] = $pantalla . '.' . $accion;
+                }
+            }
+        }
+        return $mapa;
+    }
+
+    /** Acciones que el admin le quitó a este usuario ("catalogo.productos.editar", ...). */
+    public function accionesQuitadas(): array
+    {
+        if ($this->isAdmin()) return [];
+        $validas = self::clavesAccion();
+        return $this->permisos->pluck('modulo')
+            ->filter(fn ($m) => str_starts_with($m, self::SIN))
+            ->map(fn ($m) => substr($m, strlen(self::SIN)))
+            ->filter(fn ($a) => isset($validas[$a]))
+            ->values()->all();
+    }
+
+    /**
+     * ¿Puede hacer esta acción? Necesita la pantalla y que no se la hayan quitado.
+     * Ej.: puede('catalogo.productos.editar').
+     */
+    public function puede(string $accion): bool
+    {
+        if ($this->isAdmin()) return true;
+        $pantalla = substr($accion, 0, strrpos($accion, '.'));
+        return $this->hasPermiso($pantalla) && !in_array($accion, $this->accionesQuitadas(), true);
+    }
+
     public function hasPermiso(string $clave): bool
     {
         if ($this->isAdmin()) return true;
 
-        $mios = $this->permisos->pluck('modulo');
+        $mios = $this->permisos->pluck('modulo')->reject(fn ($m) => str_starts_with($m, self::SIN));
 
         if (str_contains($clave, '.')) {
             [$modulo] = explode('.', $clave, 2);

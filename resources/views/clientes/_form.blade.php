@@ -24,23 +24,23 @@
     .cf-tipos { display: grid; grid-template-columns: repeat(auto-fill, minmax(118px, 1fr)); gap: .45rem; }
     .cf-tipos input { position: absolute; opacity: 0; pointer-events: none; }
     .cf-tipos label { margin: 0; border: 1.5px solid #eee5dd; border-radius: 12px; padding: .55rem .4rem; text-align: center; cursor: pointer; font-size: .78rem; font-weight: 700;
-        color: #555; background: #fff; transition: border-color .12s, background .12s; }
+        color: var(--m-text-2); background: var(--m-surface); transition: border-color .12s, background .12s; }
     .cf-tipos label i { display: block; font-size: 1.15rem; margin-bottom: .25rem; color: var(--tc); }
     .cf-tipos label:hover { border-color: var(--tc); }
-    .cf-tipos input:checked + label { border-color: var(--tc); background: color-mix(in srgb, var(--tc) 11%, #fff); color: #1a1a2e; box-shadow: 0 0 0 1px var(--tc) inset; }
+    .cf-tipos input:checked + label { border-color: var(--tc); background: color-mix(in srgb, var(--tc) 11%, #fff); color: var(--m-text); box-shadow: 0 0 0 1px var(--tc) inset; }
     .cf-tipos input:focus-visible + label { outline: 2px solid var(--tc); outline-offset: 2px; }
     body.dark-mode .cf-tipos label { background: #24243b; border-color: #33334d; color: #ccc; }
     body.dark-mode .cf-tipos input:checked + label { background: #2c2c44; color: #fff; }
 
     .cf-doc { display: flex; gap: .5rem; align-items: stretch; }
     .cf-doc select { width: auto; flex-shrink: 0; }
-    .cf-vista { background: #fff; border-radius: 14px; box-shadow: 0 2px 12px rgba(0,0,0,.06); padding: 1rem; border-top: 4px solid var(--tc, #b5451b); }
+    .cf-vista { background: var(--m-surface); border-radius: 14px; box-shadow: 0 2px 12px rgba(0,0,0,.06); padding: 1rem; border-top: 4px solid var(--tc, #b5451b); }
     body.dark-mode .cf-vista { background: #1f1f33; }
     .cf-vista .cv-cab { display: flex; gap: .7rem; align-items: center; margin-bottom: .6rem; }
     .cf-vista .cv-av { width: 46px; height: 46px; border-radius: 12px; color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 800; flex-shrink: 0;
         background: linear-gradient(135deg, color-mix(in srgb, var(--tc) 70%, #000), var(--tc)); }
     .cf-vista .cv-av.inactivo { background: #adb5bd; }
-    .cf-vista b.nm { display: block; font-weight: 800; color: #1a1a2e; line-height: 1.2; }
+    .cf-vista b.nm { display: block; font-weight: 800; color: var(--m-text); line-height: 1.2; }
     body.dark-mode .cf-vista b.nm { color: #f0f0f7; }
 </style>
 @endpush

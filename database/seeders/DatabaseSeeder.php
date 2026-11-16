@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\Hash;
  * seeder SIMULA las últimas 2 semanas de operación, día por día y en orden:
  *
  *   04:30  producción del día (descuenta insumos según la receta, sube productos)
+ *   21:20  cierre diario del inventario (lo registra el almacenero)
  *   08:00  las órdenes automáticas de la noche anterior se convierten en compra
  *   11:00  llega el pedido: la compra se recibe y entra al stock
  *   06:45  pedidos fijos de clientes (bodega, colegio, restaurante) y ventas del mostrador
@@ -22,8 +23,16 @@ use Illuminate\Support\Facades\Hash;
  *   21:00  revisión de stock bajo: orden automática para cada insumo en su mínimo
  *
  * Quedan listos para la demostración: órdenes pendientes (con y sin proveedor),
- * una orden descartada, una compra registrada que aún no llega, insumos y un
- * producto bajo su mínimo, y dos conteos físicos con diferencias.
+ * una orden descartada, una compra registrada que aún no llega, una que llegó
+ * incompleta (con su nota) y otra anulada, compras del mismo insumo a distintos
+ * proveedores (precios por proveedor), mermas de insumos y de productos, una
+ * venta anulada, insumos y un producto bajo su mínimo, dos conteos físicos con
+ * diferencias y el cierre diario de cada noche con su tiempo (indicador TCI).
+ *
+ * Personal: Elena (admin), Pedro (almacenero, el usuario de la tesis), Carlos
+ * (ayudante de almacén), Luis (panadero), María y Karen (ventas) y Jorge (caja,
+ * sin actividad). Cada uno tiene solo las pantallas de su puesto y, dentro de
+ * ellas, se le quitan las acciones que no le corresponden (Usuario::ACCIONES).
  *
  * Cada operación se registra EXACTAMENTE como lo hace el sistema (mismo IGV, mismo
  * número de venta, mismas observaciones, mismo cálculo de receta), así que:
@@ -63,8 +72,12 @@ class DatabaseSeeder extends Seeder
     private bool  $hayDescartada = false;
     private array $clientes = [];
     private array $docProveedor = [];    // código proveedor => correlativo de factura
+    private array $idProveedor = [];     // código proveedor => id
+    private ?array $ultimaVenta = null;  // la última venta del mostrador (para el ejemplo de anulación)
+    private ?int $compraAnular = null;
     private array $actividad = [];       // historial de actividad (se guarda al final)
-    private const IP = ['admin' => '192.168.1.10', 'almacenero' => '192.168.1.21', 'cmamani' => '192.168.1.22', 'mquispe' => '192.168.1.31', 'jrojas' => '192.168.1.32'];
+    private const IP = ['admin' => '192.168.1.10', 'almacenero' => '192.168.1.21', 'cmamani' => '192.168.1.22', 'lhuaman' => '192.168.1.23',
+                        'mquispe' => '192.168.1.31', 'jrojas' => '192.168.1.32', 'kflores' => '192.168.1.33'];
 
     public function run(): void
     {
@@ -76,6 +89,7 @@ class DatabaseSeeder extends Seeder
         $this->catalogo();
         $this->simular();
         $this->guardarSaldos();
+        $this->cierresDiarios();
         $this->sesionesYAccesos();
     }
 
@@ -85,8 +99,8 @@ class DatabaseSeeder extends Seeder
     private function rolesUnidadesUsuarios(): void
     {
         // El rol "admin" y el usuario admin/admin123 se crean en la migración 000014;
-        // el usuario "almacenero" (almacenero123) en la 000017. Aquí solo garantizamos
-        // el rol "usuario" y agregamos dos usuarios más de ejemplo.
+        // el usuario "almacenero" (almacenero123) en la 000017. Aquí se garantiza el rol
+        // "usuario", se completan esos dos y se agrega el resto del personal.
         if (!DB::table('roles')->where('nombre', 'usuario')->exists()) {
             DB::table('roles')->insert([
                 'nombre'      => 'usuario',
@@ -106,42 +120,78 @@ class DatabaseSeeder extends Seeder
 
         $idRolUsuario = DB::table('roles')->where('nombre', 'usuario')->value('id');
         $alta = $this->ahora->copy()->subDays(self::DIAS + 5);
+
+        // ── Personal de la panadería ──
+        // admin y almacenero ya existen (migraciones 000014 y 000017): se completan sus datos.
+        // Contraseñas de la demo: admin123, almacenero123, almacen123, panadero123, ventas123, caja123.
+        DB::table('usuarios')->where('usuario', 'admin')->update([
+            'nombre' => 'Elena Vargas', 'apodo' => 'Administración', 'email' => 'elena.vargas@muruwasi.pe',
+            'created_at' => $this->ahora->copy()->subDays(90), 'updated_at' => $alta,
+        ]);
+        // El usuario de la tesis: el que maneja el almacén de insumos
+        DB::table('usuarios')->where('usuario', 'almacenero')->update([
+            'nombre' => 'Pedro Ramos', 'apodo' => 'Almacén', 'email' => 'pedro.ramos@muruwasi.pe',
+            'created_at' => $this->ahora->copy()->subDays(60), 'updated_at' => $alta,
+        ]);
+        $nuevo = fn (string $nombre, string $apodo, string $usuario, string $email, string $clave, int $diasAlta, array $extra = []) => array_merge([
+            'nombre' => $nombre, 'apodo' => $apodo, 'usuario' => $usuario, 'email' => $email,
+            'password' => Hash::make($clave), 'id_rol' => $idRolUsuario, 'estado' => 'activo', 'debe_cambiar_password' => false,
+            'created_at' => $this->ahora->copy()->subDays($diasAlta), 'updated_at' => $this->ahora->copy()->subDays($diasAlta),
+        ], $extra);
         DB::table('usuarios')->insert([
-            ['nombre' => 'Maria Quispe',  'apodo' => 'Ventas',  'usuario' => 'mquispe', 'email' => 'maria@panaderia.com',
-             'password' => Hash::make('ventas123'),  'id_rol' => $idRolUsuario, 'estado' => 'activo', 'created_at' => $alta, 'updated_at' => $alta],
-            ['nombre' => 'Carlos Mamani', 'apodo' => 'Almacén', 'usuario' => 'cmamani', 'email' => 'carlos@panaderia.com',
-             'password' => Hash::make('almacen123'), 'id_rol' => $idRolUsuario, 'estado' => 'activo', 'created_at' => $alta, 'updated_at' => $alta],
+            // Ayudante de almacén: recibe la mercadería, cuenta y hornea en el turno de la mañana
+            $nuevo('Carlos Mamani', 'Ayudante de almacén', 'cmamani', 'carlos.mamani@muruwasi.pe', 'almacen123', 40),
+            // Maestro panadero: produce cada madrugada según las recetas
+            $nuevo('Luis Huamán', 'Maestro panadero', 'lhuaman', 'luis.huaman@muruwasi.pe', 'panadero123', 50),
+            // Vendedora del mostrador
+            $nuevo('María Quispe', 'Ventas', 'mquispe', 'maria.quispe@muruwasi.pe', 'ventas123', 30),
             // Cajero de reemplazo que dejó de venir: su cuenta sigue activa pero no entra hace más de 30 días
-            // (ejemplo para "Sin actividad" en Usuarios y la sugerencia de desactivarlo)
-            ['nombre' => 'Jorge Rojas',   'apodo' => 'Caja 2',  'usuario' => 'jrojas',  'email' => 'jorge@panaderia.com',
-             'password' => Hash::make('caja123'),    'id_rol' => $idRolUsuario, 'estado' => 'activo',
-             'created_at' => $this->ahora->copy()->subDays(70), 'updated_at' => $this->ahora->copy()->subDays(70)],
+            // (ejemplo de "Sin actividad" en Usuarios y la sugerencia de desactivarlo)
+            $nuevo('Jorge Rojas', 'Caja 2', 'jrojas', 'jorge.rojas@muruwasi.pe', 'caja123', 70),
+            // Recién contratada: el admin le dio una contraseña temporal y aún no ha entrado
+            $nuevo('Karen Flores', 'Ventas tarde', 'kflores', 'karen.flores@muruwasi.pe', 'temporal123', 1, ['debe_cambiar_password' => true]),
         ]);
 
-        foreach (['admin', 'almacenero', 'mquispe', 'cmamani', 'jrojas'] as $usuario) {
+        foreach (array_keys(self::IP) as $usuario) {
             $this->u[$usuario] = DB::table('usuarios')->where('usuario', $usuario)->value('id');
         }
 
-        // Permisos por pantalla (ver Usuario::PERMISOS). El almacenero ya trae los
-        // suyos desde la migración 000017 (convertidos a pantallas por la 000021).
-        $permisosDemo = [
-            // Maria (Ventas): vende desde el carrito de Productos y atiende clientes
-            'mquispe' => ['ventas', 'clientes', 'catalogo.productos', 'reportes.ventas'],
-            'jrojas'  => ['ventas', 'clientes'],
-            // Carlos (Almacén): inventario, compras, producción y reportes de stock/kardex
-            'cmamani' => [
+        // ── Qué puede usar cada uno (ver Usuario::PERMISOS) y qué acciones se le quitan ──
+        // "sin:pantalla.accion" = tiene la pantalla pero no puede hacer esa acción (Usuario::ACCIONES).
+        $permisos = [
+            // Pedro (tesis): todo lo del inventario de insumos. Nada de ventas, clientes ni catálogo de venta.
+            'almacenero' => [
                 'inventario.materia_prima', 'inventario.movimientos', 'inventario.conteo', 'inventario.kardex',
                 'compras.proveedores', 'compras.compras', 'compras.ordenes',
                 'produccion.produccion', 'produccion.recetas',
-                'reportes.resumen', 'reportes.cierre', 'reportes.stock', 'reportes.kardex', 'reportes.mermas', 'reportes.compras', 'reportes.ventas',
+                'reportes.resumen', 'reportes.stock', 'reportes.cierre', 'reportes.kardex', 'reportes.mermas', 'reportes.compras',
             ],
+            // Carlos: recibe compras, cuenta, registra mermas y produce; no crea insumos ni compras, ni anula
+            'cmamani' => [
+                'inventario.materia_prima', 'inventario.movimientos', 'inventario.conteo',
+                'compras.compras', 'produccion.produccion', 'reportes.stock', 'reportes.kardex',
+                'sin:inventario.materia_prima.editar', 'sin:compras.compras.registrar', 'sin:compras.compras.anular',
+                'sin:produccion.produccion.anular',
+            ],
+            // Luis: produce y mantiene las recetas; ve los insumos pero no los edita
+            'lhuaman' => [
+                'produccion.produccion', 'produccion.recetas', 'catalogo.productos', 'inventario.materia_prima', 'inventario.kardex',
+                'sin:catalogo.productos.editar', 'sin:inventario.materia_prima.editar', 'sin:produccion.produccion.anular',
+            ],
+            // María: vende desde Productos y registra las mermas de pan; no edita productos ni anula ventas
+            'mquispe' => [
+                'catalogo.productos', 'ventas', 'clientes', 'reportes.ventas',
+                'sin:catalogo.productos.editar', 'sin:ventas.anular',
+            ],
+            'jrojas'  => ['catalogo.productos', 'ventas', 'clientes', 'sin:catalogo.productos.editar', 'sin:catalogo.productos.ajustar', 'sin:ventas.anular', 'sin:clientes.editar'],
+            'kflores' => ['catalogo.productos', 'ventas', 'clientes', 'sin:catalogo.productos.editar', 'sin:ventas.anular'],
         ];
-        foreach ($permisosDemo as $usuario => $claves) {
-            foreach ($claves as $clave) {
-                DB::table('permisos_usuario')->insertOrIgnore([
-                    'id_usuario' => $this->u[$usuario], 'modulo' => $clave, 'created_at' => $alta,
-                ]);
-            }
+        foreach ($permisos as $usuario => $claves) {
+            // El almacenero traía de las migraciones permisos de más (p. ej. Reporte de Ventas): se reemplazan
+            DB::table('permisos_usuario')->where('id_usuario', $this->u[$usuario])->delete();
+            DB::table('permisos_usuario')->insert(array_map(fn ($c) => [
+                'id_usuario' => $this->u[$usuario], 'modulo' => $c, 'created_at' => $alta,
+            ], $claves));
         }
     }
 
@@ -181,6 +231,7 @@ class DatabaseSeeder extends Seeder
                 'email' => $email, 'contacto' => $contacto, 'estado' => 'activo',
             ] + $ts);
             $this->docProveedor[$c] = 100 + mt_rand(1, 400);
+            $this->idProveedor[$c] = $idProv[$c];
         }
 
         // ── Insumos (33): código => [nombre, unidad, proveedor, costo S/ por unidad, presentación de compra] ──
@@ -379,8 +430,38 @@ class DatabaseSeeder extends Seeder
                 $eventos[] = [$h(19, 30), fn () => $this->conteoFisico($h(19, 30), ['harina' => -0.8])];
                 // Ayer se malogró mantequilla y se rompió un frasco de esencia: ambos quedan en
                 // su mínimo y sus órdenes quedan pendientes (con proveedor / sin proveedor)
-                $eventos[] = [$h(20, 40), fn () => $this->mermaEspecial($h(20, 40), 'mantequilla', 'Mantequilla en mal estado (se cortó la cadena de frío)')];
-                $eventos[] = [$h(20, 45), fn () => $this->mermaEspecial($h(20, 45), 'esencia', 'Frasco de esencia de vainilla roto')];
+                $eventos[] = [$h(20, 40), fn () => $this->mermaEspecial($h(20, 40), 'mantequilla', 'En mal estado (humedad, plagas, frío) — se cortó la cadena de frío')];
+                $eventos[] = [$h(20, 45), fn () => $this->mermaEspecial($h(20, 45), 'esencia', 'Se rompió o derramó — frasco de esencia de vainilla roto')];
+            }
+
+            // Compras a otros proveedores (para comparar precios por proveedor en la ficha del insumo)
+            if ($d === 5) {
+                $this->compraYLlegada($eventos, $h(15, 30), 'mercado', [['huevos', 180, round($this->precioMp['huevos'] * 1.12, 2)]],
+                    'La granja no tenía huevos: se compró en el mercado', $h(16, 40));
+            }
+            if ($d === 9) {
+                $this->compraYLlegada($eventos, $h(10, 0), 'insumos', [['harina', 50, round($this->precioMp['harina'] * 1.05, 2)]],
+                    'Saco de harina de otro proveedor (prueba de precio)', $h(12, 15));
+            }
+            // Recepción parcial: llegó menos de lo pedido, con su nota
+            if ($d === 7) {
+                $this->compraYLlegada($eventos, $h(8, 30), 'lacteos', [['leche', 30, $this->precioMp['leche']], ['crema', 2, $this->precioMp['crema']]],
+                    'Pedido semanal de lácteos', $h(11, 30), [24, 2], 'Llegaron 24 L de leche de 30: el proveedor trae el resto la próxima semana');
+            }
+            // Compra que nunca llegó y se anuló
+            if ($d === 10) {
+                $eventos[] = [$h(9, 0), function () use ($h) { $this->compraAnular = $this->compraA($h(9, 0), 'granja', [['pollo', 6, $this->precioMp['pollo']]], 'Pollo para empanadas', null); }];
+            }
+            if ($d === 11 && $this->compraAnular) {
+                $eventos[] = [$h(9, 10), fn () => $this->anularCompra($this->compraAnular, $h(9, 10), 'La granja no tenía pollo: se compró en el mercado')];
+            }
+            // Mermas de productos terminados
+            if ($d === 4)  $eventos[] = [$h(20, 10), fn () => $this->mermaProducto($h(20, 10), 'frances', 15, 'pan del día anterior que ya no se vende (se venció)', 'mquispe')];
+            if ($d === 8)  $eventos[] = [$h(18, 20), fn () => $this->mermaProducto($h(18, 20), 'torta_choc', 1, 'se cayó al sacarla de la vitrina', 'mquispe')];
+            if ($d === 12) $eventos[] = [$h(5, 10),  fn () => $this->mermaProducto($h(5, 10), 'emp_pollo', 2, 'se quemaron en el horno', 'lhuaman')];
+            // Una venta cobrada dos veces: la administradora la anula
+            if ($d === self::DIAS - 4) {
+                $eventos[] = [$h(13, 20), fn () => $this->anularUltimaVenta($h(13, 20), 'Se registró dos veces la misma venta')];
             }
 
             usort($eventos, fn ($a, $b) => $a[0] <=> $b[0]);   // orden estable (PHP 8)
@@ -392,7 +473,7 @@ class DatabaseSeeder extends Seeder
     private function produccionDelDia(Carbon $dia, int $d): void
     {
         $hora = $dia->copy()->setTime(4, 30);
-        $usuario = $d % 2 === 0 ? 'cmamani' : 'almacenero';
+        $usuario = $d % 3 === 2 ? 'cmamani' : 'lhuaman';   // el maestro panadero, y su ayudante cuando descansa
 
         foreach ($this->recetas as $p => [$rend, $items]) {
             // La torta tres leches deja de hacerse los últimos 3 días: queda bajo su
@@ -478,7 +559,7 @@ class DatabaseSeeder extends Seeder
                 continue;
             }
 
-            $usuario = $d % 2 === 0 ? 'almacenero' : 'cmamani';
+            $usuario = 'almacenero';
             $precio  = $this->precioMp[$c];
             $cant    = $m['repo'];
             $sub     = round($cant * $precio, 2);
@@ -498,7 +579,7 @@ class DatabaseSeeder extends Seeder
                 ->update(['estado' => 'convertida', 'id_compra' => $idCompra, 'updated_at' => $tCompra]);
 
             $this->act($usuario, 'crear', 'Compras', "Convirtió la orden automática #{$idOrden} en compra", $tCompra);
-            $this->porRecibir[] = [$idCompra, [[$c, $cant, $precio]], $usuario];   // llega a las 11:00
+            $this->porRecibir[] = [$idCompra, [[$c, $cant, $precio]], $d % 2 ? 'cmamani' : 'almacenero'];   // llega a las 11:00
         }
     }
 
@@ -528,7 +609,7 @@ class DatabaseSeeder extends Seeder
         $igv = round($sub * 0.18, 2);
         $numero = sprintf('F001-%06d', ++$this->docProveedor['molino']);
         $idCompra = DB::table('compras')->insertGetId([
-            'id_proveedor' => $this->mp['harina']['id_prov'], 'id_usuario' => $this->u['cmamani'], 'numero_doc' => $numero,
+            'id_proveedor' => $this->mp['harina']['id_prov'], 'id_usuario' => $this->u['almacenero'], 'numero_doc' => $numero,
             'fecha_compra' => $dia->toDateString(), 'subtotal' => $sub, 'igv' => $igv, 'total' => $sub + $igv,
             'estado' => 'pendiente', 'observaciones' => 'Compra semanal de harina y azúcar',
             'created_at' => $t, 'updated_at' => $t,
@@ -540,28 +621,95 @@ class DatabaseSeeder extends Seeder
             ]);
         }
         $proveedor = DB::table('proveedores')->where('id', $this->mp['harina']['id_prov'])->value('nombre');
-        $this->act('cmamani', 'crear', 'Compras', "Registró una compra a \"{$proveedor}\" (compra #{$idCompra})", $t);
+        $this->act('almacenero', 'crear', 'Compras', "Registró una compra a \"{$proveedor}\" (compra #{$idCompra})", $t);
         if ($d === 3) {
             $this->porRecibir[] = [$idCompra, $items, 'cmamani'];   // llega a las 16:30
         }
     }
 
-    /** Igual que ComprasController@recibir: entra al stock y recalcula el costo promedio ponderado. */
-    private function recibirCompra(int $idCompra, array $items, Carbon $hora, string $usuario): void
+    /**
+     * Igual que ComprasController@recibir: entra al stock lo que LLEGÓ y se recalcula el costo
+     * promedio ponderado. $items: [código, cantidad pedida, precio, cantidad que llegó (opcional)].
+     */
+    private function recibirCompra(int $idCompra, array $items, Carbon $hora, string $usuario, ?string $nota = null): void
     {
         $t = $this->tick($hora);
         if (!$t) return;
-        foreach ($items as [$c, $cant, $precio]) {
-            $this->costoMp[$c] = \App\Models\MateriaPrima::costoPromedio($this->stockMp[$c], $this->costoMp[$c], $cant, $precio);
-            $this->precioMp[$c] = $precio;
-            $this->movimientoMp($c, 'entrada', 'compra', $cant, $idCompra, "Compra #{$idCompra}", $usuario, $t);
+        $compra = DB::table('compras')->where('id', $idCompra)->first();
+        $proveedor = DB::table('proveedores')->where('id', $compra->id_proveedor)->value('nombre');
+        $codigo = '#' . str_pad((string) $idCompra, 4, '0', STR_PAD_LEFT);
+        $suma = 0;
+        foreach ($items as $item) {
+            [$c, $cant, $precio] = $item;
+            $llego = $item[3] ?? $cant;
+            $u = $this->mp[$c]['unidad'];
+            if ($llego > 0) {
+                $this->costoMp[$c] = \App\Models\MateriaPrima::costoPromedio($this->stockMp[$c], $this->costoMp[$c], $llego, $precio);
+                $this->precioMp[$c] = $precio;
+                $this->movimientoMp($c, 'entrada', 'compra', $llego, $idCompra, "Compra {$codigo} — {$proveedor}"
+                    . (abs($llego - $cant) > 0.0005 ? ' (llegó ' . \App\Support\Cantidad::conUnidad($llego, $u) . ' de ' . \App\Support\Cantidad::conUnidad($cant, $u) . ')' : ''), $usuario, $t);
+            }
+            $sub = round($llego * $precio, 2);
+            $suma += $sub;
+            DB::table('compra_detalles')->where('id_compra', $idCompra)->where('id_materia', $this->mp[$c]['id'])
+                ->update(['cantidad_recibida' => $llego, 'subtotal' => $sub, 'updated_at' => $t]);
         }
         DB::table('compras')->where('id', $idCompra)->update([
-            'estado' => 'recibida', 'recibida_at' => $t, 'id_usuario_recibe' => $this->u[$usuario], 'updated_at' => $t,
+            'estado' => 'recibida', 'recibida_at' => $t, 'id_usuario_recibe' => $this->u[$usuario], 'nota_recepcion' => $nota, 'updated_at' => $t,
+        ] + \App\Models\Compra::totales($suma, false));
+        $this->act($usuario, 'editar', 'Compras', "Recibió la compra {$codigo} (entró al stock)", $t);
+    }
+
+    /**
+     * Compra registrada a mano a un proveedor (con su factura o boleta). Queda pendiente; se
+     * recibe con su propio evento (ver llegaCompra), así cada cosa ocurre a su hora.
+     */
+    private function compraA(Carbon $hora, string $prov, array $items, string $obs): ?int
+    {
+        $t = $this->tick($hora);
+        if (!$t) return null;
+        $idProv = DB::table('proveedores')->where('id', $this->idProveedor[$prov])->value('id');
+        $sub = 0;
+        foreach ($items as [$c, $cant, $precio]) $sub += round($cant * $precio, 2);
+        $tot = \App\Models\Compra::totales($sub, false);
+        $idCompra = DB::table('compras')->insertGetId([
+            'id_proveedor' => $idProv, 'id_usuario' => $this->u['almacenero'],
+            'numero_doc' => sprintf('%s-%06d', $prov === 'mercado' ? 'B001' : 'F001', ++$this->docProveedor[$prov]),
+            'fecha_compra' => $t->toDateString(), 'estado' => 'pendiente', 'observaciones' => $obs,
+            'created_at' => $t, 'updated_at' => $t,
+        ] + $tot);
+        foreach ($items as [$c, $cant, $precio]) {
+            DB::table('compra_detalles')->insert([
+                'id_compra' => $idCompra, 'id_materia' => $this->mp[$c]['id'], 'cantidad' => $cant,
+                'precio_unitario' => $precio, 'subtotal' => round($cant * $precio, 2), 'created_at' => $t, 'updated_at' => $t,
+            ]);
+        }
+        $nombre = DB::table('proveedores')->where('id', $idProv)->value('nombre');
+        $this->act('almacenero', 'crear', 'Compras', "Registró una compra a \"{$nombre}\" (compra #{$idCompra})", $t);
+        return $idCompra;
+    }
+
+    /** Registra la compra y programa su llegada: $llegaron permite que llegue menos de lo pedido. */
+    private function compraYLlegada(array &$eventos, Carbon $hora, string $prov, array $items, string $obs, Carbon $llega, ?array $llegaron = null, ?string $nota = null): void
+    {
+        $id = null;
+        $eventos[] = [$hora, function () use (&$id, $hora, $prov, $items, $obs) { $id = $this->compraA($hora, $prov, $items, $obs); }];
+        $eventos[] = [$llega, function () use (&$id, $items, $llega, $llegaron, $nota) {
+            if (!$id) return;
+            $conLlegada = array_map(fn ($it, $i) => [...$it, $llegaron[$i] ?? $it[1]], $items, array_keys($items));
+            $this->recibirCompra($id, $conLlegada, $llega, 'cmamani', $nota);
+        }];
+    }
+
+    /** Igual que ComprasController@anular para una compra que aún no llegó (no mueve stock). */
+    private function anularCompra(int $idCompra, Carbon $hora, string $motivo): void
+    {
+        $t = $this->tick($hora);
+        if (!$t) return;
+        DB::table('compras')->where('id', $idCompra)->update([
+            'estado' => 'anulada', 'anulada_at' => $t, 'id_usuario_anula' => $this->u['almacenero'], 'motivo_anulacion' => $motivo, 'updated_at' => $t,
         ]);
-        // llegó completo: lo recibido es igual a lo pedido
-        DB::table('compra_detalles')->where('id_compra', $idCompra)->update(['cantidad_recibida' => DB::raw('cantidad')]);
-        $this->act($usuario, 'editar', 'Compras', "Recibió la compra #{$idCompra} (entró al stock)", $t);
+        $this->act('almacenero', 'editar', 'Compras', 'Anuló la compra #' . str_pad((string) $idCompra, 4, '0', STR_PAD_LEFT) . ": {$motivo}", $t);
     }
 
     /** Pedidos fijos de clientes + ventas de mostrador del día: [hora, cliente, items, pago, observación]. */
@@ -615,7 +763,7 @@ class DatabaseSeeder extends Seeder
             $t = $this->tick($hora);
             if (!$t) return;   // sería en el futuro
 
-            $usuario  = mt_rand(1, 5) === 1 ? 'admin' : 'mquispe';
+            $usuario  = mt_rand(1, 5) === 1 ? 'admin' : 'mquispe';   // María en el mostrador; a veces atiende la dueña
             // Igual que VentasController: los precios ya incluyen el IGV
             $total = 0;
             foreach ($detalles as $p => $cant) $total += round($this->pr[$p]['precio'] * $cant, 2);
@@ -648,28 +796,59 @@ class DatabaseSeeder extends Seeder
                 $this->movimientoPr($p, 'salida', 'venta', -$cant, $idVenta, "Venta {$numero}", $usuario, $t);
             }
             $this->act($usuario, 'crear', 'Ventas', "Registró la venta {$numero} por S/ " . number_format($tot['total'], 2), $t);
+            if ($cliente === 'general') $this->ultimaVenta = [$idVenta, $numero, $detalles];
         }
     }
 
     /** 17:00 — Mermas ocasionales de insumos. */
     private function mermas(Carbon $dia, int $d): void
     {
+        // Mismo texto que deja el ajuste de merma: "Merma: <motivo> — <detalle>"
         $plan = [
-            2  => ['huevos', 12, 'Huevos rotos al descargar el pedido'],
-            5  => ['leche', 2, 'Leche fresca vencida'],
-            8  => ['naranjas', 1, 'Naranjas en mal estado'],
-            10 => ['cebolla', 0.5, 'Cebolla malograda por humedad'],
-            11 => ['huevos', 6, 'Huevos rotos en el almacén'],
+            2  => ['huevos', 12, 'roto', 'Huevos rotos al descargar el pedido'],
+            5  => ['leche', 2, 'vencido', 'Leche fresca vencida'],
+            8  => ['naranjas', 1, 'malestado', 'Naranjas golpeadas y blandas'],
+            10 => ['cebolla', 0.5, 'malestado', 'Cebolla malograda por humedad'],
+            11 => ['huevos', 6, 'roto', 'Se cayó una bandeja en el almacén'],
         ];
         if (!isset($plan[$d])) return;
-        [$c, $cant, $motivo] = $plan[$d];
+        [$c, $cant, $tipoMerma, $detalle] = $plan[$d];
+        $motivo = 'Merma: ' . \App\Http\Controllers\MateriaPrimaController::MOTIVOS_MERMA[$tipoMerma] . ' — ' . $detalle;
         if ($this->stockMp[$c] < $cant) return;
 
         $t = $this->tick($dia->copy()->setTime(17, 0));
         if (!$t) return;
         $usuario = $d % 2 === 0 ? 'almacenero' : 'cmamani';
         $this->movimientoMp($c, 'salida', 'merma', -$cant, null, $motivo, $usuario, $t);
-        $this->act($usuario, 'editar', 'Inventario', "Registró una merma de \"{$this->mp[$c]['nombre']}\": {$motivo}", $t);
+        $this->act($usuario, 'editar', 'Inventario', "Registró una merma de \"{$this->mp[$c]['nombre']}\": {$detalle}", $t);
+    }
+
+    /** Merma de productos terminados (igual que el ajuste de Productos: "Merma: <detalle>"). */
+    private function mermaProducto(Carbon $hora, string $p, int $cant, string $detalle, string $usuario): void
+    {
+        $cant = min($cant, $this->stockPr[$p]);
+        if ($cant <= 0) return;
+        $t = $this->tick($hora);
+        if (!$t) return;
+        $this->movimientoPr($p, 'salida', 'ajuste_manual', -$cant, null, 'Merma: ' . $detalle, $usuario, $t);
+        $this->act($usuario, 'editar', 'Productos', "Registró una merma de {$cant} \"{$this->pr[$p]['nombre']}\": {$detalle}", $t);
+    }
+
+    /** Igual que VentasController@anular: los productos vuelven al stock (devolución en el kardex). */
+    private function anularUltimaVenta(Carbon $hora, string $motivo): void
+    {
+        if (!$this->ultimaVenta) return;
+        [$idVenta, $numero, $detalles] = $this->ultimaVenta;
+        $t = $this->tick($hora);
+        if (!$t) return;
+        foreach ($detalles as $p => $cant) {
+            $this->movimientoPr($p, 'entrada', 'devolucion', $cant, $idVenta, "Anulación de la venta {$numero}: {$motivo}", 'admin', $t);
+        }
+        DB::table('ventas')->where('id', $idVenta)->update([
+            'estado' => 'anulada', 'anulada_at' => $t, 'id_usuario_anula' => $this->u['admin'], 'motivo_anulacion' => $motivo, 'updated_at' => $t,
+        ]);
+        $this->act('admin', 'editar', 'Ventas', "Anuló la venta {$numero}: {$motivo}", $t);
+        $this->ultimaVenta = null;
     }
 
     /** Merma que deja el insumo exactamente en su mínimo (si estaba por encima). */
@@ -679,7 +858,7 @@ class DatabaseSeeder extends Seeder
         if ($exceso <= 0) return;
         $t = $this->tick($hora);
         if (!$t) return;
-        $this->movimientoMp($c, 'salida', 'merma', -$exceso, null, $motivo, 'almacenero', $t);
+        $this->movimientoMp($c, 'salida', 'merma', -$exceso, null, 'Merma: ' . $motivo, 'almacenero', $t);
         $this->act('almacenero', 'editar', 'Inventario', "Registró una merma de \"{$this->mp[$c]['nombre']}\": {$motivo}", $t);
     }
 
@@ -738,6 +917,41 @@ class DatabaseSeeder extends Seeder
             'cantidad' => abs($delta), 'stock_antes' => $antes, 'stock_despues' => $despues,
             'observacion' => $obs, 'created_at' => $t->copy(),
         ];
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    // CIERRES DIARIOS (indicador TCI de la tesis)
+    // ═══════════════════════════════════════════════════════════════════
+
+    /**
+     * Cada noche el almacenero cierra el día (igual que CierreInventarioController@guardar), con
+     * los saldos que salen del kardex. El tiempo de cierre (TCI) baja a medida que se acostumbra
+     * al sistema: de unos 9 minutos a unos 2. Hoy todavía no se cierra, y un día quedó sin cerrar
+     * (ejemplo de "falta cerrar" en el historial).
+     */
+    private function cierresDiarios(): void
+    {
+        for ($d = 0; $d < self::DIAS - 1; $d++) {
+            if ($d === self::DIAS - 5) continue;
+            $dia = $this->ahora->copy()->startOfDay()->subDays(self::DIAS - 1 - $d);
+            $filas = \App\Support\CierreDiario::calcular($dia);
+            $prod  = \App\Support\CierreDiario::calcularProductos($dia);
+            $t  = \App\Support\CierreDiario::totales($filas);
+            $tp = \App\Support\CierreDiario::totales($prod);
+            $segundos = (int) round(540 - 400 * $d / (self::DIAS - 2)) + mt_rand(-25, 25);
+            $hora = $dia->copy()->setTime(21, 20)->addMinutes(mt_rand(0, 25));
+            $solo = fn ($f) => collect($f)->only(['id', 'nombre', 'unidad', 'inicial', 'entradas', 'salidas', 'ajuste', 'final', 'costo', 'valor_final', 'movimientos'])->all();
+            DB::table('cierres_inventario')->insert([
+                'fecha' => $dia->toDateString(), 'id_usuario' => $this->u['almacenero'],
+                'insumos' => $t['insumos'], 'con_movimiento' => $t['con_movimiento'],
+                'valor_entradas' => $t['valor_entradas'], 'valor_salidas' => $t['valor_salidas'], 'valor_final' => $t['valor_final'],
+                'valor_productos' => $tp['valor_final'], 'bajo_minimo' => $t['bajo_minimo'], 'segundos' => $segundos,
+                'observacion' => $d === 7 ? 'Faltaron 6 L de leche en el pedido de lácteos' : null,
+                'detalle' => json_encode($filas->map($solo)->all()), 'detalle_productos' => json_encode($prod->map($solo)->all()),
+                'created_at' => $hora, 'updated_at' => $hora,
+            ]);
+            $this->act('almacenero', 'crear', 'Reportes', 'Registró el cierre del ' . $dia->format('d/m/Y') . ' (' . \App\Models\CierreInventario::duracion($segundos) . ')', $hora);
+        }
     }
 
     // ═══════════════════════════════════════════════════════════════════

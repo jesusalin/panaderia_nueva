@@ -75,7 +75,7 @@ class ClientesController extends Controller
             'nuevos'  => $q->orderByDesc('created_at'),
             default   => null,
         };
-        $clientes = $q->orderBy('nombre')->paginate(18)->withQueryString();
+        $clientes = $q->orderBy('nombre')->paginate(\App\Support\PorPagina::valor(18))->withQueryString();
 
         // Resumen (sin el Cliente General, que son las ventas de mostrador)
         $conNombre = Cliente::where('nombre', '!=', Cliente::GENERAL);

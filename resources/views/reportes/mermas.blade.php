@@ -45,12 +45,12 @@
 </div>
 
 @if($filas->isEmpty())
-    <div class="empty-state"><i class="fas fa-check-circle" style="color:#1e8e5a;opacity:1"></i><p><b>Sin mermas</b> en este periodo.</p></div>
+    <div class="empty-state"><i class="fas fa-check-circle" style="color: var(--m-success-text);opacity:1"></i><p><b>Sin mermas</b> en este periodo.</p></div>
 @else
 <div class="inv-grid2 mb-3">
     <div class="inv-box">
         <h5><i class="fas fa-list-ol"></i>Lo que más se pierde</h5>
-        <table class="inv-tabla">
+        <table class="inv-tabla" data-tabla>
             <thead><tr><th>Insumo / producto</th><th class="text-right">Cantidad</th><th style="width:28%"></th><th class="text-right">S/</th></tr></thead>
             <tbody>
             @foreach($porItem->take(10) as $i)
@@ -83,8 +83,8 @@
 <p class="cp-titulo"><i class="fas fa-stream"></i>Detalle ({{ $filas->count() }})</p>
 <div class="rp-caja mb-3">
     <div class="rp-scroll">
-    <table class="rp-tabla">
-        <thead><tr><th>Fecha</th><th>Insumo / producto</th><th class="num">Cantidad</th><th class="num">S/</th><th>Motivo</th><th class="rp-ocultar-movil">Detalle</th><th class="rp-ocultar-movil">Registró</th></tr></thead>
+    <table class="rp-tabla" data-tabla>
+        <thead><tr><th>Fecha</th><th>Insumo / producto</th><th class="num">Cantidad</th><th class="num">S/</th><th data-filtro>Motivo</th><th class="rp-ocultar-movil">Detalle</th><th class="rp-ocultar-movil" data-filtro>Registró</th></tr></thead>
         <tbody>
         @foreach($filas as $f)
             <tr>

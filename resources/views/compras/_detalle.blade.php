@@ -7,17 +7,17 @@
         box-shadow: 0 4px 10px rgba(181,69,27,.3);
     }
     .compra-head h5 { margin: 0; font-weight: 800; }
-    .compra-head p { margin: .1rem 0 0; color: #8a8a9d; font-size: .85rem; }
+    .compra-head p { margin: .1rem 0 0; color: var(--m-muted); font-size: .85rem; }
     .info-strip { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; padding: 0 1.5rem 1.4rem; }
     .info-strip .is-item { border-left: 3px solid #f0e4dc; padding-left: .7rem; }
-    .info-strip .is-item .is-label { font-size: .68rem; text-transform: uppercase; letter-spacing: .03em; color: #adb5bd; font-weight: 700; }
-    .info-strip .is-item .is-value { font-size: .95rem; font-weight: 700; color: #1a1a2e; }
+    .info-strip .is-item .is-label { font-size: .68rem; text-transform: uppercase; letter-spacing: .03em; color: var(--m-muted-2); font-weight: 700; }
+    .info-strip .is-item .is-value { font-size: .95rem; font-weight: 700; color: var(--m-text); }
     body.dark-mode .info-strip .is-item { border-left-color: #3a2a22; }
     body.dark-mode .info-strip .is-item .is-value { color: #f0f0f7; }
     @media (max-width: 767px) { .info-strip { grid-template-columns: repeat(2, 1fr); } }
 
     .compra-note { background: rgba(181,69,27,.06); border-left: 3px solid #b5451b; border-radius: 8px; padding: .9rem 1.1rem; display: flex; gap: .6rem; align-items: flex-start; }
-    .compra-note i { color: #b5451b; margin-top: .15rem; }
+    .compra-note i { color: var(--m-brand-text); margin-top: .15rem; }
     body.dark-mode .compra-note { background: rgba(181,69,27,.14); }
 
     .compra-table thead th { background: rgba(181,69,27,.05) !important; }
@@ -25,7 +25,7 @@
 
     .action-icon-chip {
         width: 34px; height: 34px; border-radius: 9px; display: inline-flex; align-items: center; justify-content: center;
-        background: rgba(181,69,27,.12); color: #b5451b; margin-right: .6rem; flex-shrink: 0;
+        background: rgba(181,69,27,.12); color: var(--m-brand-text); margin-right: .6rem; flex-shrink: 0;
     }
 
     .prod-form-card { border: none; border-radius: 14px; box-shadow: 0 4px 24px rgba(0,0,0,.06); overflow: hidden; }

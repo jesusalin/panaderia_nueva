@@ -12,11 +12,11 @@
     .pv-meses { display: flex; align-items: flex-end; gap: .6rem; height: 130px; margin-top: .4rem; }
     .pv-meses .m { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; height: 100%; }
     .pv-meses .m span { width: 100%; max-width: 46px; background: linear-gradient(180deg, #d9653a, #b5451b); border-radius: 6px 6px 0 0; min-height: 3px; }
-    .pv-meses .m em { font-style: normal; font-size: .7rem; color: #8a8a9d; margin-top: .3rem; text-transform: capitalize; }
-    .pv-meses .m b { font-size: .68rem; color: #6c757d; margin-bottom: .2rem; white-space: nowrap; }
+    .pv-meses .m em { font-style: normal; font-size: .7rem; color: var(--m-muted); margin-top: .3rem; text-transform: capitalize; }
+    .pv-meses .m b { font-size: .68rem; color: var(--m-muted); margin-bottom: .2rem; white-space: nowrap; }
     .pv-dato-lista div { display: flex; justify-content: space-between; gap: .8rem; padding: .35rem 0; border-bottom: 1px solid #f6f3f0; font-size: .86rem; }
     .pv-dato-lista div:last-child { border-bottom: none; }
-    .pv-dato-lista span { color: #8a8a9d; }
+    .pv-dato-lista span { color: var(--m-muted); }
     body.dark-mode .pv-dato-lista div { border-color: #33334d; }
 </style>
 @endpush
@@ -95,7 +95,7 @@
     <div class="inv-box">
         <h5><i class="fas fa-wheat-awn"></i>Insumos que nos vende</h5>
         @if($insumos->count())
-            <table class="inv-tabla">
+            <table class="inv-tabla" data-tabla>
                 <thead><tr><th>Insumo</th><th class="text-right">Último precio</th><th class="text-right">Comprado</th></tr></thead>
                 <tbody>
                 @foreach($insumos as $i)
@@ -130,7 +130,7 @@
     <div class="inv-box">
         <h5><i class="fas fa-shopping-cart"></i>Últimas compras</h5>
         @if($compras->count())
-            <table class="inv-tabla">
+            <table class="inv-tabla" data-tabla>
                 <thead><tr><th>Compra</th><th>Insumos</th><th class="text-right">Total</th><th></th></tr></thead>
                 <tbody>
                 @foreach($compras as $c)

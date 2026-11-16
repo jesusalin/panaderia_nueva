@@ -10,6 +10,10 @@
 @php
     $permisosDef   = \App\Models\Usuario::PERMISOS;
     $seleccionados = \App\Models\Usuario::expandirPermisos(old('permisos', $seleccionados ?? []));
+    // Acciones que se le quitan dentro de sus pantallas (por defecto puede todo)
+    $quitadasSel = old('acciones_enviadas')
+        ? array_values(array_diff(array_keys(\App\Models\Usuario::clavesAccion()), old('acciones', [])))
+        : ($accionesQuitadas ?? []);
 
     // Mismo orden de secciones que el menú lateral
     $ordenMenu = \App\Models\Configuracion::obtener(\App\Http\Controllers\MenuController::CLAVE)['secciones'] ?? [];
@@ -26,10 +30,10 @@
         ]],
         'ventas' => ['icono' => 'fa-cash-register', 'label' => 'Ventas / Caja', 'claves' => [
             'catalogo.productos', 'ventas', 'clientes', 'reportes.ventas',
-        ]],
+        ], 'sin' => ['catalogo.productos.editar', 'ventas.anular']],
         'panadero' => ['icono' => 'fa-bread-slice', 'label' => 'Panadero / Producción', 'claves' => [
             'catalogo.productos', 'produccion.produccion', 'produccion.recetas', 'inventario.materia_prima', 'inventario.kardex',
-        ]],
+        ], 'sin' => ['catalogo.productos.editar', 'inventario.materia_prima.editar', 'produccion.produccion.anular']],
         'encargado' => ['icono' => 'fa-chart-pie', 'label' => 'Encargado (reportes)', 'claves' => [
             'reportes.resumen', 'reportes.stock', 'reportes.cierre', 'reportes.kardex', 'reportes.mermas', 'reportes.compras', 'reportes.ventas',
         ]],
@@ -41,11 +45,12 @@
         <i class="fas fa-key mr-1"></i> ¿Qué puede usar este usuario?
     </label>
 
+    <input type="hidden" name="acciones_enviadas" value="1">
     <div class="permisos-grid">
         <div class="perm-toolbar">
             <span class="perm-toolbar-txt">Plantillas rápidas:</span>
             @foreach($plantillas as $clave => $p)
-                <button type="button" class="perm-chip" data-plantilla='@json($p['claves'])'
+                <button type="button" class="perm-chip" data-plantilla='@json($p['claves'])' data-sin='@json($p['sin'] ?? [])'
                         title="Marca solo: {{ collect($p['claves'])->map(fn($c) => \App\Models\Usuario::etiquetaPermiso($c))->implode(', ') }}">
                     <i class="fas {{ $p['icono'] }} mr-1"></i>{{ $p['label'] }}
                 </button>
@@ -95,6 +100,7 @@
                                                 <span class="perm-desc">{{ $pestana['desc'] ?? '' }}</span>
                                             </span>
                                         </label>
+                                        @include('usuarios.partials._acciones', ['pantalla' => $cPestana])
                                     @endforeach
                                 </div>
                             </div>
@@ -108,6 +114,7 @@
                                     <span class="perm-desc">{{ $item['desc'] ?? '' }}</span>
                                 </span>
                             </label>
+                            @include('usuarios.partials._acciones', ['pantalla' => $clave])
                         @endif
                     @endforeach
                 </div>
@@ -131,38 +138,46 @@
         grid-column: 1 / -1; display: flex; flex-wrap: wrap; align-items: center; gap: .4rem;
         padding: .2rem 0 .3rem;
     }
-    .perm-toolbar-txt { font-size: .78rem; color: #8a8a9d; font-weight: 600; margin-right: .15rem; }
+    .perm-acciones { margin: -.15rem 0 .35rem 2.1rem; padding: .35rem .6rem; border-radius: 8px; background: #faf6f3; display: none; }
+    .perm-acciones.visible { display: block; }
+    .perm-acciones-lbl { display: block; font-size: .68rem; font-weight: 700; color: #9a8a80; text-transform: uppercase; letter-spacing: .03em; margin-bottom: .15rem; }
+    .perm-accion { display: flex; align-items: center; gap: .4rem; font-size: .78rem; color: var(--m-text-2); margin: .1rem 0; cursor: pointer; font-weight: 500; }
+    .perm-accion input { accent-color: var(--m-brand-text); }
+    .perm-accion input:not(:checked) + span { color: var(--m-danger-text); text-decoration: line-through; }
+    body.dark-mode .perm-acciones { background: rgba(255,255,255,.04); }
+    body.dark-mode .perm-accion { color: #b0b0cc; }
+    .perm-toolbar-txt { font-size: .78rem; color: var(--m-muted); font-weight: 600; margin-right: .15rem; }
     .perm-chip {
-        border: 1.5px solid #e3d6cc; background: #fff; color: #7a4a33; border-radius: 999px;
+        border: 1.5px solid var(--m-border-strong); background: var(--m-surface); color: #7a4a33; border-radius: 999px;
         font-size: .78rem; font-weight: 700; padding: .28rem .75rem; cursor: pointer; transition: all .12s;
     }
-    .perm-chip:hover { background: #fff5f0; border-color: #b5451b; color: #b5451b; }
+    .perm-chip:hover { background: #fff5f0; border-color: #b5451b; color: var(--m-brand-text); }
     .perm-chip:focus-visible { outline: 2px solid #b5451b; outline-offset: 2px; }
-    .perm-chip-quitar { color: #6c757d; border-color: #e3e3ea; }
-    .perm-resumen { margin-left: auto; font-size: .78rem; color: #6c757d; font-weight: 600; }
+    .perm-chip-quitar { color: var(--m-muted); border-color: #e3e3ea; }
+    .perm-resumen { margin-left: auto; font-size: .78rem; color: var(--m-muted); font-weight: 600; }
 
     .perm-modulo {
-        border: 1.5px solid #e9ecef; border-radius: 12px; background: #fff; overflow: hidden;
+        border: 1.5px solid var(--m-border); border-radius: 12px; background: var(--m-surface); overflow: hidden;
         transition: border-color .15s;
     }
     .perm-modulo.tiene-algo { border-color: #e2b49c; }
     .perm-modulo.completo  { border-color: #b5451b; }
     .perm-cabecera {
         display: flex; align-items: center; gap: .65rem; margin: 0; padding: .7rem .9rem;
-        cursor: pointer; background: #fbfaf9; border-bottom: 1px solid #f0ece6; user-select: none;
+        cursor: pointer; background: #fbfaf9; border-bottom: 1px solid var(--m-border); user-select: none;
     }
     .perm-cabecera input[type=checkbox].js-perm-modulo {
-        width: 17px; height: 17px; accent-color: #b5451b; cursor: pointer; flex-shrink: 0;
+        width: 17px; height: 17px; accent-color: var(--m-brand-text); cursor: pointer; flex-shrink: 0;
     }
     .perm-icono {
-        width: 32px; height: 32px; border-radius: 8px; background: #f1f1f4; color: #6c757d;
+        width: 32px; height: 32px; border-radius: 8px; background: var(--m-surface-3); color: var(--m-muted);
         display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all .15s;
     }
-    .perm-modulo.tiene-algo .perm-icono { background: #fbe3d6; color: #b5451b; }
+    .perm-modulo.tiene-algo .perm-icono { background: #fbe3d6; color: var(--m-brand-text); }
     .perm-modulo.completo .perm-icono  { background: #b5451b; color: #fff; }
     .perm-titulo { flex: 1; font-weight: 700; font-size: .9rem; color: #343a40; }
-    .perm-contador { font-size: .72rem; font-weight: 700; color: #8a8a9d; white-space: nowrap; }
-    .perm-modulo.tiene-algo .perm-contador { color: #b5451b; }
+    .perm-contador { font-size: .72rem; font-weight: 700; color: var(--m-muted); white-space: nowrap; }
+    .perm-modulo.tiene-algo .perm-contador { color: var(--m-brand-text); }
 
     .perm-pantallas { padding: .3rem .4rem .45rem; }
     .perm-pantalla {
@@ -173,18 +188,18 @@
     .perm-pantalla input { position: absolute; opacity: 0; pointer-events: none; }
     .perm-caja {
         width: 18px; height: 18px; border-radius: 5px; border: 1.5px solid #ced4da; flex-shrink: 0; margin-top: .1rem;
-        display: flex; align-items: center; justify-content: center; transition: all .12s; background: #fff;
+        display: flex; align-items: center; justify-content: center; transition: all .12s; background: var(--m-surface);
     }
     .perm-caja i { font-size: .6rem; color: transparent; }
     .perm-pantalla input:checked + .perm-caja { background: #b5451b; border-color: #b5451b; }
     .perm-pantalla input:checked + .perm-caja i { color: #fff; }
     .perm-pantalla input:focus-visible + .perm-caja { outline: 2px solid #b5451b; outline-offset: 2px; }
     .perm-textos { display: flex; flex-direction: column; line-height: 1.25; }
-    .perm-nombre { font-size: .86rem; font-weight: 600; color: #495057; }
-    .perm-pantalla input:checked ~ .perm-textos .perm-nombre { color: #1a1a2e; }
-    .perm-desc { font-size: .74rem; color: #8a8a9d; font-weight: 400; margin-top: .1rem; }
+    .perm-nombre { font-size: .86rem; font-weight: 600; color: var(--m-text-2); }
+    .perm-pantalla input:checked ~ .perm-textos .perm-nombre { color: var(--m-text); }
+    .perm-desc { font-size: .74rem; color: var(--m-muted); font-weight: 400; margin-top: .1rem; }
     /* Ítem con pestañas adentro (p. ej. Productos) */
-    .perm-grupo { margin: .15rem 0; border-radius: 9px; background: #faf8f6; padding-bottom: .2rem; }
+    .perm-grupo { margin: .15rem 0; border-radius: 9px; background: var(--m-surface-2); padding-bottom: .2rem; }
     .perm-grupo-cabecera { display: flex; align-items: flex-start; gap: .1rem; padding: .25rem .2rem 0 .5rem; }
     .perm-grupo-check { margin: 0; padding: .45rem .5rem .45rem 0; cursor: pointer; }
     .perm-grupo-cabecera input { position: absolute; opacity: 0; pointer-events: none; }
@@ -206,7 +221,7 @@
     .perm-grupo-cabecera input:indeterminate + .perm-caja .fa-minus { display: inline-block; }
     .perm-grupo-cabecera input:focus-visible + .perm-caja { outline: 2px solid #b5451b; outline-offset: 2px; }
     .perm-pestanas[hidden] { display: none; }
-    .perm-pestanas { margin: 0 0 .2rem 1.15rem; padding-left: .55rem; border-left: 2px solid #ecdcd1; }
+    .perm-pestanas { margin: 0 0 .2rem 1.15rem; padding-left: .55rem; border-left: 2px solid var(--m-border); }
     .perm-pestana-ico { font-size: .7rem; color: #c9a08a; margin-right: .35rem; }
     .perm-tag {
         display: inline-block; font-size: .65rem; font-weight: 700; color: #9a6a52; background: #f6e6dc;
@@ -268,8 +283,14 @@
                     mod.querySelector('.perm-contador').textContent = n + ' de ' + hijos.length;
                 }
             });
+            // Las acciones de una pantalla solo se ven si la pantalla está marcada
+            bloque.querySelectorAll('.perm-acciones').forEach(function (a) {
+                const c = bloque.querySelector('.js-perm-pantalla[value="' + a.dataset.pantalla + '"]');
+                a.classList.toggle('visible', !!(c && c.checked));
+            });
+            const quitadas = Array.prototype.filter.call(bloque.querySelectorAll('.perm-acciones.visible .js-perm-accion'), function (c) { return !c.checked; }).length;
             resumen.textContent = marcados === 0 ? 'Sin permisos: solo verá el Dashboard'
-                                                 : marcados + ' de ' + total + ' pantallas';
+                                                 : marcados + ' de ' + total + ' pantallas' + (quitadas ? ' · ' + quitadas + ' acción(es) quitada(s)' : '');
         }
 
         bloque.addEventListener('change', function (e) {
@@ -302,9 +323,11 @@
             btn.addEventListener('click', function () {
                 const valor = btn.getAttribute('data-plantilla');
                 const lista = valor === 'todo' ? null : JSON.parse(valor);
+                const sin = JSON.parse(btn.getAttribute('data-sin') || '[]');
                 bloque.querySelectorAll('.js-perm-pantalla').forEach(function (c) {
                     c.checked = lista === null ? true : lista.indexOf(c.value) !== -1;
                 });
+                bloque.querySelectorAll('.js-perm-accion').forEach(function (c) { c.checked = sin.indexOf(c.value) === -1; });
                 refrescar();
             });
         });

@@ -47,7 +47,7 @@ class MateriaPrimaController extends Controller
                 $todos->forPage((int) $request->input('page', 1), 12)->values(), $todos->count(), 12,
                 (int) $request->input('page', 1), ['path' => $request->url(), 'query' => $request->query()]);
         } else {
-            $materias = $query->orderBy('nombre')->paginate(12)->withQueryString();
+            $materias = $query->orderBy('nombre')->paginate(\App\Support\PorPagina::valor(12))->withQueryString();
             $consumo = MateriaPrima::consumoDiario($materias->pluck('id'));
         }
 

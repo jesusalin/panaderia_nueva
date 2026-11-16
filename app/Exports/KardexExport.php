@@ -26,12 +26,13 @@ class KardexExport implements FromArray, WithStyles, WithColumnWidths, WithTitle
         protected Collection $movimientos,
         protected string $unidad,
         protected float $saldoInicial = 0,
+        protected ?string $filtro = null,
     ) {}
 
     public function array(): array
     {
         $filas = [
-            ["Kardex: {$this->item->nombre}", '', '', '', '', '', '', ''],
+            ["Kardex: {$this->item->nombre}" . ($this->filtro ? "  —  {$this->filtro}" : ''), '', '', '', '', '', '', ''],
             ['Fecha', 'Tipo', 'Motivo', 'Entrada', 'Salida', 'Saldo', 'Usuario', 'Observación'],
             ['', 'Saldo inicial', '', '', '', round($this->saldoInicial, 3) . ' ' . $this->unidad, '', ''],
         ];
@@ -39,8 +40,8 @@ class KardexExport implements FromArray, WithStyles, WithColumnWidths, WithTitle
         foreach ($this->movimientos as $mov) {
             $filas[] = [
                 $mov->created_at->format('d/m/Y H:i'),
-                $mov->es_ajuste ? 'Ajuste' : ucfirst($mov->tipo),
-                ucfirst(str_replace('_', ' ', $mov->motivo)),
+                $mov->tipo_txt ?? ($mov->es_ajuste ? 'Ajuste' : ucfirst($mov->tipo)),
+                $mov->motivo_txt ?? ucfirst(str_replace('_', ' ', $mov->motivo)),
                 $mov->entrada > 0 ? round($mov->entrada, 3) : '',
                 $mov->salida  > 0 ? round($mov->salida, 3)  : '',
                 round($mov->stock_despues, 3) . ' ' . $this->unidad,

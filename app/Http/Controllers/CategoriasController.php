@@ -22,7 +22,7 @@ class CategoriasController extends Controller
                 ->orWhere('descripcion', 'like', '%' . $request->buscar . '%')))
             ->when($request->filled('estado'), fn ($q) => $q->where('estado', $request->estado))
             ->orderBy('nombre')
-            ->paginate(12)->withQueryString();
+            ->paginate(\App\Support\PorPagina::valor(12))->withQueryString();
 
         $stats = [
             'total'      => Categoria::count(),

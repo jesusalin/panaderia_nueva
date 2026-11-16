@@ -28,15 +28,15 @@
 @push('styles')
 <style>
     .mp-unidades { display: flex; flex-wrap: wrap; gap: 1rem; }
-    .mp-ugrupo small { display: block; font-size: .68rem; font-weight: 800; letter-spacing: .05em; text-transform: uppercase; color: #8a8a9d; margin-bottom: .3rem; }
+    .mp-ugrupo small { display: block; font-size: .68rem; font-weight: 800; letter-spacing: .05em; text-transform: uppercase; color: var(--m-muted); margin-bottom: .3rem; }
     .mp-ugrupo .chips { display: flex; gap: .35rem; flex-wrap: wrap; }
     .mp-uchip { margin: 0; cursor: pointer; }
     .mp-uchip input { position: absolute; opacity: 0; }
-    .mp-uchip span { display: inline-flex; flex-direction: column; align-items: center; min-width: 64px; border: 2px solid #e9ecef; border-radius: 10px; padding: .35rem .6rem; line-height: 1.15; }
-    .mp-uchip span b { font-size: 1rem; color: #1a1a2e; }
-    .mp-uchip span em { font-style: normal; font-size: .68rem; color: #8a8a9d; }
-    .mp-uchip input:checked + span { border-color: #b5451b; background: #fffaf7; }
-    .mp-uchip input:checked + span b { color: #b5451b; }
+    .mp-uchip span { display: inline-flex; flex-direction: column; align-items: center; min-width: 64px; border: 2px solid var(--m-border); border-radius: 10px; padding: .35rem .6rem; line-height: 1.15; }
+    .mp-uchip span b { font-size: 1rem; color: var(--m-text); }
+    .mp-uchip span em { font-style: normal; font-size: .68rem; color: var(--m-muted); }
+    .mp-uchip input:checked + span { border-color: #b5451b; background: var(--m-brand-soft); }
+    .mp-uchip input:checked + span b { color: var(--m-brand-text); }
     .mp-uchip input:focus-visible + span { box-shadow: 0 0 0 3px rgba(181,69,27,.2); }
     body.dark-mode .mp-uchip span { border-color: #33334d; }
     body.dark-mode .mp-uchip span b { color: #f0f0f7; }
@@ -51,12 +51,12 @@
     body.dark-mode .mp-aviso.ojo { background: rgba(212,136,15,.15); color: #f0c674; }
     .mp-aviso a { color: inherit; text-decoration: underline; cursor: pointer; }
 
-    .mp-conv { display: block; min-height: 1.1em; font-size: .78rem; font-weight: 700; color: #b5451b; margin-top: .2rem; }
-    .mp-sugerir { display: inline-flex; align-items: center; gap: .3rem; margin-top: .35rem; border: 1px dashed #d4a98f; background: #fffaf7; color: #a33d17; border-radius: 20px; padding: .2rem .7rem; font-size: .76rem; font-weight: 700; cursor: pointer; }
+    .mp-conv { display: block; min-height: 1.1em; font-size: .78rem; font-weight: 700; color: var(--m-brand-text); margin-top: .2rem; }
+    .mp-sugerir { display: inline-flex; align-items: center; gap: .3rem; margin-top: .35rem; border: 1px dashed #d4a98f; background: var(--m-brand-soft); color: #a33d17; border-radius: 20px; padding: .2rem .7rem; font-size: .76rem; font-weight: 700; cursor: pointer; }
     .mp-sugerir:hover { background: #fdeee5; }
     body.dark-mode .mp-sugerir { background: rgba(181,69,27,.1); color: #f0a07a; border-color: #6d3a22; }
-    .mp-nota { font-size: .8rem; color: #6c757d; background: #f7f5f3; border-radius: 10px; padding: .55rem .75rem; margin-top: .9rem; }
-    .mp-nota b { color: #1a1a2e; }
+    .mp-nota { font-size: .8rem; color: var(--m-muted); background: var(--m-surface-2); border-radius: 10px; padding: .55rem .75rem; margin-top: .9rem; }
+    .mp-nota b { color: var(--m-text); }
     body.dark-mode .mp-nota { background: #24243b; color: #b0b0cc; }
     body.dark-mode .mp-nota b { color: #f0f0f7; }
     .prev-badges { position: absolute; top: .5rem; left: .5rem; display: flex; gap: .3rem; }
@@ -241,7 +241,7 @@
         <div class="item-card">
             <div class="item-card-media" style="height:74px; position:relative;">
                 <div class="prev-badges"><span id="prevControl">Control</span><span id="prevInactivo">Inactivo</span></div>
-                <i class="fas fa-wheat-awn" style="color:#b5451b"></i>
+                <i class="fas fa-wheat-awn" style="color: var(--m-brand-text)"></i>
             </div>
             <div class="item-card-body">
                 <div class="item-card-cat" id="prevProveedor">{{ $m->proveedor->nombre ?? 'Sin proveedor asignado' }}</div>
@@ -251,7 +251,7 @@
                     <div class="sg-labels"><span>Hay: <strong id="prevStock">0</strong></span><span>Mín.: <span id="prevMin">0</span></span></div>
                 </div>
                 <div class="item-card-price" style="font-size:1.05rem;">S/ <span id="prevCosto">0.00</span> <span class="ic-cost">por <span class="lbl-unidad">unidad</span></span></div>
-                <div class="mp-valor" id="prevDias" style="font-size:.78rem;color:#8a8a9d;"></div>
+                <div class="mp-valor" id="prevDias" style="font-size:.78rem;color: var(--m-muted);"></div>
             </div>
         </div>
         <div class="pfm-card">

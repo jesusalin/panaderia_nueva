@@ -11,17 +11,17 @@
 <style>
     .cs-tabla td.num, .cs-tabla th.num { text-align: right; white-space: nowrap; }
     .cs-totales { margin-left: auto; max-width: 300px; font-size: .88rem; margin-top: .8rem; }
-    .cs-totales div { display: flex; justify-content: space-between; padding: .15rem 0; color: #6c757d; }
-    .cs-totales .tt { border-top: 1px solid #eee5dd; margin-top: .3rem; padding-top: .45rem; font-weight: 800; color: #1a1a2e; font-size: 1.05rem; }
+    .cs-totales div { display: flex; justify-content: space-between; padding: .15rem 0; color: var(--m-muted); }
+    .cs-totales .tt { border-top: 1px solid #eee5dd; margin-top: .3rem; padding-top: .45rem; font-weight: 800; color: var(--m-text); font-size: 1.05rem; }
     body.dark-mode .cs-totales .tt { color: #f0f0f7; border-color: #33334d; }
     .cs-grid { display: grid; grid-template-columns: minmax(0, 1.7fr) minmax(260px, 1fr); gap: 1.1rem; }
     @media (max-width: 991px) { .cs-grid { grid-template-columns: minmax(0, 1fr); } }
-    .cs-aviso { border-radius: 12px; padding: .75rem 1rem; margin-bottom: 1rem; font-size: .88rem; display: flex; gap: .6rem; align-items: flex-start; background: #f2f2f4; color: #555; }
+    .cs-aviso { border-radius: 12px; padding: .75rem 1rem; margin-bottom: 1rem; font-size: .88rem; display: flex; gap: .6rem; align-items: flex-start; background: #f2f2f4; color: var(--m-text-2); }
     body.dark-mode .cs-aviso { background: #24243b; color: #b0b0cc; }
     .vs-pago { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: .6rem; }
     .vs-pago div { background: #faf7f4; border-radius: 10px; padding: .55rem .75rem; }
-    .vs-pago small { display: block; font-size: .64rem; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; color: #8a8a9d; }
-    .vs-pago b { font-size: .98rem; color: #1a1a2e; }
+    .vs-pago small { display: block; font-size: .64rem; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; color: var(--m-muted); }
+    .vs-pago b { font-size: .98rem; color: var(--m-text); }
     body.dark-mode .vs-pago div { background: #24243b; }
     body.dark-mode .vs-pago b { color: #f0f0f7; }
 </style>

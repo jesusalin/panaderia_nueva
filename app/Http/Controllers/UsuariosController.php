@@ -98,6 +98,8 @@ class UsuariosController extends Controller
             'estado'=>'required|in:activo,inactivo',
             'permisos'=>'array',
             'permisos.*'=>'in:'.implode(',', Usuario::clavesPermiso()),
+            'acciones'=>'array',
+            'acciones.*'=>'in:'.implode(',', array_keys(Usuario::clavesAccion())),
         ], [
             'usuario.alpha_dash' => 'El usuario solo puede tener letras, números, guiones y guiones bajos (sin espacios).',
             'usuario.unique'     => 'Ese nombre de usuario ya está en uso.',
@@ -116,7 +118,7 @@ class UsuariosController extends Controller
             'estado'=>$request->estado,
         ]);
 
-        $this->sincronizarPermisos($usuario, $request->input('permisos', []));
+        $this->sincronizarPermisos($usuario, $request->input('permisos', []), $this->quitadas($request, $usuario));
 
         return redirect()->route('usuarios.show', $usuario)->with('success', 'Usuario "' . $usuario->usuario . '" creado. Ya puede ingresar con su usuario y contraseña.');
     }
@@ -158,9 +160,10 @@ class UsuariosController extends Controller
         $roles = Rol::orderBy('nombre')->get();
         $modulos = Usuario::MODULOS;
         $permisosActuales = $usuario->modulosAsignados();
+        $accionesQuitadas = $usuario->accionesQuitadas();
         $existentes = $this->existentes($usuario);
         $ultimoAdmin = $this->esUltimoAdmin($usuario);
-        return view('usuarios.edit', compact('usuario', 'roles', 'modulos', 'permisosActuales', 'existentes', 'ultimoAdmin'));
+        return view('usuarios.edit', compact('usuario', 'roles', 'modulos', 'permisosActuales', 'accionesQuitadas', 'existentes', 'ultimoAdmin'));
     }
 
     public function update(Request $request, Usuario $usuario) {
@@ -175,6 +178,8 @@ class UsuariosController extends Controller
             'password'=>'nullable|min:6|confirmed',
             'permisos'=>'array',
             'permisos.*'=>'in:'.implode(',', Usuario::clavesPermiso()),
+            'acciones'=>'array',
+            'acciones.*'=>'in:'.implode(',', array_keys(Usuario::clavesAccion())),
         ], [
             'usuario.alpha_dash' => 'El usuario solo puede tener letras, números, guiones y guiones bajos.',
             'usuario.unique'     => 'Ese nombre de usuario ya está en uso por otra persona.',
@@ -200,7 +205,7 @@ class UsuariosController extends Controller
         }
         $usuario->update($data);
 
-        $this->sincronizarPermisos($usuario, $request->input('permisos', []));
+        $this->sincronizarPermisos($usuario, $request->input('permisos', []), $this->quitadas($request, $usuario));
 
         return redirect()->to(\App\Support\Volver::url(route('usuarios.index')))->with('success','Usuario actualizado.');
     }
@@ -272,12 +277,30 @@ class UsuariosController extends Controller
     }
 
     /**
-     * Reemplaza los permisos del usuario por la lista recibida del formulario
-     * (una clave por pantalla: "inventario.conteo", "ventas", ...).
+     * Acciones quitadas según el formulario: las de las pantallas con casilla "puede..." que
+     * quedaron sin marcar. Si el formulario no trae la sección de acciones, se conservan las de antes.
      */
-    private function sincronizarPermisos(Usuario $usuario, array $modulos): void
+    private function quitadas(Request $request, ?Usuario $usuario = null): array
+    {
+        if (!$request->boolean('acciones_enviadas')) {
+            return $usuario ? $usuario->accionesQuitadas() : [];
+        }
+        $marcadas = (array) $request->input('acciones', []);
+        return array_values(array_diff(array_keys(Usuario::clavesAccion()), $marcadas));
+    }
+
+    /**
+     * Reemplaza los permisos del usuario por la lista recibida del formulario
+     * (una clave por pantalla: "inventario.conteo", "ventas", ...) y guarda las
+     * acciones que se le quitaron como "sin:pantalla.accion" (solo de pantallas que tiene).
+     */
+    private function sincronizarPermisos(Usuario $usuario, array $modulos, array $quitadas = []): void
     {
         $modulos = Usuario::expandirPermisos($modulos);
+        foreach ($quitadas as $accion) {
+            $pantalla = substr($accion, 0, strrpos($accion, '.'));
+            if (in_array($pantalla, $modulos, true)) $modulos[] = Usuario::SIN . $accion;
+        }
 
         PermisoUsuario::where('id_usuario', $usuario->id)->delete();
 
@@ -286,9 +309,10 @@ class UsuariosController extends Controller
                 'id_usuario' => $usuario->id,
                 'modulo'     => $modulo,
                 'created_at' => now(),
-            ], $modulos);
+            ], array_values(array_unique($modulos)));
 
             PermisoUsuario::insert($filas);
         }
+        $usuario->unsetRelation('permisos');
     }
 }

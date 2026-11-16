@@ -40,7 +40,7 @@ class KardexController extends Controller
         $porMotivo = (clone $query)->selectRaw('motivo, COUNT(*) as n')->groupBy('motivo')->pluck('n', 'motivo');
 
         $movimientos = $query->with(['producto.categoria', 'usuario'])
-            ->orderByDesc('created_at')->orderByDesc('id')->paginate(30)->withQueryString();
+            ->orderByDesc('created_at')->orderByDesc('id')->paginate(\App\Support\PorPagina::valor(30))->withQueryString();
         $producto = $request->filled('id_producto') ? Producto::find($request->id_producto) : null;
 
         return view('kardex.index', compact('movimientos', 'resumen', 'porMotivo', 'periodo', 'producto', 'desde', 'hasta'));

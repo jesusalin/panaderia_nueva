@@ -18,27 +18,27 @@
     .us-dias .d { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; height: 100%; }
     .us-dias .d span { width: 100%; max-width: 26px; background: linear-gradient(180deg, #d9653a, #b5451b); border-radius: 4px 4px 0 0; min-height: 2px; }
     .us-dias .d.hoy span { background: linear-gradient(180deg, #34c27d, #1e8e5a); }
-    .us-dias .d em { font-style: normal; font-size: .6rem; color: #8a8a9d; margin-top: .2rem; }
-    .us-dias .d b { font-size: .6rem; color: #6c757d; }
+    .us-dias .d em { font-style: normal; font-size: .6rem; color: var(--m-muted); margin-top: .2rem; }
+    .us-dias .d b { font-size: .6rem; color: var(--m-muted); }
     .us-trab { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: .6rem; }
     .us-trab div { background: #faf7f4; border-radius: 10px; padding: .6rem .75rem; }
-    .us-trab b { display: block; font-size: 1.15rem; color: #1a1a2e; line-height: 1.15; }
-    .us-trab span { font-size: .72rem; color: #8a8a9d; }
+    .us-trab b { display: block; font-size: 1.15rem; color: var(--m-text); line-height: 1.15; }
+    .us-trab span { font-size: .72rem; color: var(--m-muted); }
     body.dark-mode .us-trab div { background: #24243b; }
     body.dark-mode .us-trab b { color: #f0f0f7; }
     .us-perm { margin-bottom: .7rem; }
-    .us-perm h6 { font-size: .78rem; font-weight: 800; text-transform: uppercase; letter-spacing: .04em; color: #8a8a9d; margin: 0 0 .35rem; }
-    .us-perm .p { display: inline-flex; align-items: center; gap: .3rem; background: #fdf1ea; color: #b5451b; border-radius: 20px; padding: .18rem .6rem; font-size: .76rem; font-weight: 700; margin: 0 .25rem .3rem 0; }
-    .us-perm .p.no { background: #f3f3f5; color: #adb5bd; font-weight: 600; text-decoration: line-through; }
+    .us-perm h6 { font-size: .78rem; font-weight: 800; text-transform: uppercase; letter-spacing: .04em; color: var(--m-muted); margin: 0 0 .35rem; }
+    .us-perm .p { display: inline-flex; align-items: center; gap: .3rem; background: var(--m-brand-soft); color: var(--m-brand-text); border-radius: 20px; padding: .18rem .6rem; font-size: .76rem; font-weight: 700; margin: 0 .25rem .3rem 0; }
+    .us-perm .p.no { background: var(--m-surface-3); color: var(--m-muted-2); font-weight: 600; text-decoration: line-through; }
     body.dark-mode .us-perm .p { background: rgba(181,69,27,.2); color: #ffb38f; }
-    body.dark-mode .us-perm .p.no { background: #24243b; color: #5c5c78; }
+    body.dark-mode .us-perm .p.no { background: #24243b; color: var(--m-muted-2); }
     .us-act { list-style: none; margin: 0; padding: 0; }
     .us-act li { display: grid; grid-template-columns: 30px minmax(0, 1fr) auto; gap: .6rem; align-items: center; padding: .4rem 0; border-bottom: 1px dashed #eee5dd; font-size: .84rem; }
     .us-act li:last-child { border-bottom: 0; }
     .us-act .ic { width: 30px; height: 30px; border-radius: 9px; display: flex; align-items: center; justify-content: center; font-size: .78rem; }
-    .us-act .ic.info { background: #eef4fb; color: #2170a3; } .us-act .ic.secondary { background: #f3f3f5; color: #8a8a9d; } .us-act .ic.danger { background: #fdecea; color: #c0392b; }
-    .us-act .ic.success { background: #e9f8ef; color: #1e8e5a; } .us-act .ic.warning { background: #fff4e0; color: #b9770e; } .us-act .ic.primary { background: #fdf1ea; color: #b5451b; }
-    .us-act small { color: #8a8a9d; white-space: nowrap; }
+    .us-act .ic.info { background: #eef4fb; color: var(--m-info-text); } .us-act .ic.secondary { background: var(--m-surface-3); color: var(--m-muted); } .us-act .ic.danger { background: #fdecea; color: var(--m-danger-text); }
+    .us-act .ic.success { background: #e9f8ef; color: var(--m-success-text); } .us-act .ic.warning { background: #fff4e0; color: var(--m-warning-text); } .us-act .ic.primary { background: var(--m-brand-soft); color: var(--m-brand-text); }
+    .us-act small { color: var(--m-muted); white-space: nowrap; }
     body.dark-mode .us-act li { border-color: #33334d; }
 </style>
 @endpush
@@ -140,6 +140,13 @@
                 </div>
             @endforeach
             @if(!$mios)<p class="text-muted small mb-0">Sin permisos: al entrar solo ve el Dashboard.</p>@endif
+            @php $noPuede = collect($u->accionesQuitadas())->map(fn ($a) => \App\Models\Usuario::clavesAccion()[$a]); @endphp
+            @if($noPuede->isNotEmpty())
+                <div class="us-perm">
+                    <h6 class="text-danger"><i class="fas fa-ban mr-1"></i>No puede (aunque tenga la pantalla)</h6>
+                    @foreach($noPuede as $txt)<span class="p no"><i class="fas fa-times"></i>{{ $txt }}</span>@endforeach
+                </div>
+            @endif
         @endif
         <p class="small text-muted mt-2 mb-0"><i class="far fa-envelope mr-1"></i>{{ $u->email }} · cuenta creada el {{ $u->created_at?->format('d/m/Y') ?? '—' }}{{ $accesos['ultimo_ip'] ? ' · último ingreso desde ' . $accesos['ultimo_ip'] : '' }}</p>
     </div>

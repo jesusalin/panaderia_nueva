@@ -9,36 +9,36 @@
 
 @push('styles')
 <style>
-    .oa-grupo { background: #fff; border-radius: 14px; box-shadow: 0 2px 12px rgba(0,0,0,.05); margin-bottom: 1rem; overflow: hidden; }
+    .oa-grupo { background: var(--m-surface); border-radius: 14px; box-shadow: 0 2px 12px rgba(0,0,0,.05); margin-bottom: 1rem; overflow: hidden; }
     body.dark-mode .oa-grupo { background: #1f1f33; }
     .oa-cab { display: flex; align-items: center; gap: .75rem; padding: .8rem 1.1rem; background: #faf7f4; border-bottom: 1px solid #f1ebe5; flex-wrap: wrap; }
     body.dark-mode .oa-cab { background: #24243b; border-color: #33334d; }
-    .oa-cab .oc-nombre { font-weight: 800; color: #1a1a2e; }
+    .oa-cab .oc-nombre { font-weight: 800; color: var(--m-text); }
     body.dark-mode .oa-cab .oc-nombre { color: #f0f0f7; }
-    .oa-cab .oc-sub { font-size: .76rem; color: #8a8a9d; }
+    .oa-cab .oc-sub { font-size: .76rem; color: var(--m-muted); }
     .oa-cab .oc-der { margin-left: auto; display: flex; gap: .6rem; align-items: center; }
-    .oa-cab .oc-total { font-weight: 800; color: #b5451b; }
+    .oa-cab .oc-total { font-weight: 800; color: var(--m-brand-text); }
     .oa-cab.sinprov { background: #fdf0ee; }
     body.dark-mode .oa-cab.sinprov { background: rgba(231,76,60,.1); }
     .oa-fila { display: grid; grid-template-columns: 28px minmax(170px, 1.4fr) minmax(150px, 1fr) 190px 110px 40px; gap: .8rem; align-items: center; padding: .75rem 1.1rem; border-top: 1px solid #f5f1ed; }
     .oa-fila:first-of-type { border-top: none; }
     body.dark-mode .oa-fila { border-color: #2c2c44; }
     .oa-fila.desmarcada { opacity: .55; }
-    .oa-fila .of-nombre a, .oa-fila .of-nombre b { font-weight: 700; color: #1a1a2e; }
+    .oa-fila .of-nombre a, .oa-fila .of-nombre b { font-weight: 700; color: var(--m-text); }
     body.dark-mode .oa-fila .of-nombre a, body.dark-mode .oa-fila .of-nombre b { color: #f0f0f7; }
-    .oa-fila .of-nombre small { display: block; font-size: .74rem; color: #8a8a9d; }
-    .oa-fila .of-stock small { font-size: .74rem; color: #8a8a9d; display: block; }
+    .oa-fila .of-nombre small { display: block; font-size: .74rem; color: var(--m-muted); }
+    .oa-fila .of-stock small { font-size: .74rem; color: var(--m-muted); display: block; }
     .oa-fila .of-stock .urg { font-weight: 800; font-size: .74rem; }
-    .oa-fila .of-cant label { font-size: .64rem; font-weight: 800; letter-spacing: .03em; text-transform: uppercase; color: #adb5bd; margin: 0; }
+    .oa-fila .of-cant label { font-size: .64rem; font-weight: 800; letter-spacing: .03em; text-transform: uppercase; color: var(--m-muted-2); margin: 0; }
     .oa-fila .of-cant .input-group { flex-wrap: nowrap; }
-    .oa-fila .of-costo { text-align: right; font-weight: 800; color: #1a1a2e; }
+    .oa-fila .of-costo { text-align: right; font-weight: 800; color: var(--m-text); }
     body.dark-mode .oa-fila .of-costo { color: #f0f0f7; }
-    .oa-fila input[type=checkbox] { width: 18px; height: 18px; accent-color: #b5451b; }
+    .oa-fila input[type=checkbox] { width: 18px; height: 18px; accent-color: var(--m-brand-text); }
     .oa-prov { max-width: 330px; font-size: .78rem; }
     .oa-destino { display: inline-block; margin-top: .3rem; font-size: .74rem; font-weight: 600; color: #1c5d80; background: rgba(52,152,219,.12); border-radius: 10px; padding: .1rem .55rem; }
     body.dark-mode .oa-destino { color: #9fd0f5; }
     .oa-pie-det { font-size: .76rem; opacity: .8; flex: 1 1 200px; min-width: 0; }
-    .oa-ya { font-size: .7rem; font-weight: 800; background: rgba(46,204,113,.15); color: #1e8e5a; border-radius: 10px; padding: .05rem .45rem; }
+    .oa-ya { font-size: .7rem; font-weight: 800; background: rgba(46,204,113,.15); color: var(--m-success-text); border-radius: 10px; padding: .05rem .45rem; }
     @media (max-width: 991px) {
         .oa-fila { grid-template-columns: 28px 1fr auto; }
         .oa-fila .of-stock, .oa-fila .of-cant { grid-column: 2 / -1; }
@@ -93,7 +93,7 @@
 @if($estado === 'pendiente')
     @if($grupos->isEmpty())
         <div class="empty-state">
-            <i class="fas fa-check-circle" style="color:#1e8e5a;opacity:1"></i>
+            <i class="fas fa-check-circle" style="color: var(--m-success-text);opacity:1"></i>
             <p><b>Todo al día.</b> Ningún insumo está en su mínimo sin compra en camino.</p>
         </div>
     @else

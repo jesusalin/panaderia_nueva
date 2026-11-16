@@ -5,16 +5,16 @@
 @endphp
 <style>
     .vd-cab { display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; margin-bottom: .9rem; }
-    .vd-cab b { font-size: 1.5rem; color: #1a1a2e; }
+    .vd-cab b { font-size: 1.5rem; color: var(--m-text); }
     body.dark-mode .vd-cab b { color: #f0f0f7; }
-    .vd-cab small { display: block; color: #8a8a9d; font-size: .8rem; }
+    .vd-cab small { display: block; color: var(--m-muted); font-size: .8rem; }
     .vd-tabla { width: 100%; font-size: .88rem; }
     .vd-tabla td { padding: .35rem 0; border-bottom: 1px dashed #eee5dd; }
     .vd-tabla td.num { text-align: right; white-space: nowrap; }
-    .vd-tot { display: flex; justify-content: space-between; font-size: .82rem; color: #8a8a9d; margin-top: .25rem; }
-    .vd-tot.tt { font-size: 1rem; font-weight: 800; color: #1a1a2e; }
+    .vd-tot { display: flex; justify-content: space-between; font-size: .82rem; color: var(--m-muted); margin-top: .25rem; }
+    .vd-tot.tt { font-size: 1rem; font-weight: 800; color: var(--m-text); }
     body.dark-mode .vd-tot.tt { color: #f0f0f7; }
-    .vd-chip { display: inline-flex; align-items: center; gap: .3rem; border-radius: 20px; padding: .18rem .6rem; font-size: .74rem; font-weight: 700; background: #f3f0ec; color: #555; }
+    .vd-chip { display: inline-flex; align-items: center; gap: .3rem; border-radius: 20px; padding: .18rem .6rem; font-size: .74rem; font-weight: 700; background: var(--m-surface-3); color: var(--m-text-2); }
 </style>
 <div class="vd-cab">
     <div>

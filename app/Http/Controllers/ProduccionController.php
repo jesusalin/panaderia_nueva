@@ -41,7 +41,7 @@ class ProduccionController extends Controller
                             ->groupBy('id_producto')->orderByDesc('total')->with('producto')->first(),
         ];
 
-        $producciones = $query->paginate(15)->withQueryString();
+        $producciones = $query->paginate(\App\Support\PorPagina::valor(15))->withQueryString();
         $productos    = Producto::where('estado', 'activo')->orderBy('nombre')->get();
 
         $porProducir = PlanProduccion::sugerencias()->count();

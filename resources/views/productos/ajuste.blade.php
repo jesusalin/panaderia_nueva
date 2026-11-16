@@ -13,16 +13,16 @@
     .aj-tipos { display: grid; grid-template-columns: 1fr 1fr; gap: .8rem; margin-bottom: 1.2rem; }
     .aj-tipo { margin: 0; cursor: pointer; }
     .aj-tipo input { position: absolute; opacity: 0; }
-    .aj-tipo .caja { display: block; border: 2px solid #e9ecef; border-radius: 12px; padding: .9rem 1rem; height: 100%; transition: .12s; }
-    .aj-tipo .caja b { display: block; color: #1a1a2e; font-size: .95rem; }
-    .aj-tipo .caja small { color: #8a8a9d; }
-    .aj-tipo .caja i { font-size: 1.2rem; color: #b5451b; margin-bottom: .35rem; display: block; }
-    .aj-tipo input:checked + .caja { border-color: #b5451b; background: #fffaf7; }
+    .aj-tipo .caja { display: block; border: 2px solid var(--m-border); border-radius: 12px; padding: .9rem 1rem; height: 100%; transition: .12s; }
+    .aj-tipo .caja b { display: block; color: var(--m-text); font-size: .95rem; }
+    .aj-tipo .caja small { color: var(--m-muted); }
+    .aj-tipo .caja i { font-size: 1.2rem; color: var(--m-brand-text); margin-bottom: .35rem; display: block; }
+    .aj-tipo input:checked + .caja { border-color: #b5451b; background: var(--m-brand-soft); }
     .aj-tipo input:focus-visible + .caja { box-shadow: 0 0 0 3px rgba(181,69,27,.2); }
-    .aj-resultado { background: #f7f5f3; border-radius: 12px; padding: .9rem 1.1rem; display: flex; align-items: center; justify-content: center; gap: 1rem; font-size: 1.05rem; }
-    .aj-resultado b { font-size: 1.5rem; color: #1a1a2e; }
+    .aj-resultado { background: var(--m-surface-2); border-radius: 12px; padding: .9rem 1.1rem; display: flex; align-items: center; justify-content: center; gap: 1rem; font-size: 1.05rem; }
+    .aj-resultado b { font-size: 1.5rem; color: var(--m-text); }
     .aj-resultado .dif { font-weight: 800; }
-    .aj-resultado .dif.mas { color: #1e8e5a; } .aj-resultado .dif.menos { color: #c0392b; }
+    .aj-resultado .dif.mas { color: var(--m-success-text); } .aj-resultado .dif.menos { color: var(--m-danger-text); }
     body.dark-mode .aj-tipo .caja { border-color: #33334d; }
     body.dark-mode .aj-tipo .caja b, body.dark-mode .aj-resultado b { color: #f0f0f7; }
     body.dark-mode .aj-tipo input:checked + .caja { background: rgba(181,69,27,.12); }

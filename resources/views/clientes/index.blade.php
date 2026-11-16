@@ -14,30 +14,31 @@
     .cl-avatar { width: 46px; height: 46px; border-radius: 12px; color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 800; flex-shrink: 0;
         background: linear-gradient(135deg, color-mix(in srgb, var(--tc) 70%, #000), var(--tc)); font-size: 1rem; }
     .cl-card.is-inactive .cl-avatar { background: #adb5bd; }
-    .cl-nombre { font-weight: 800; color: #1a1a2e; line-height: 1.2; font-size: .98rem; }
+    .cl-nombre { font-weight: 800; color: var(--m-text); line-height: 1.2; font-size: .98rem; }
     body.dark-mode .cl-nombre { color: #f0f0f7; }
-    .cl-sub { font-size: .76rem; color: #8a8a9d; }
+    .cl-sub { font-size: .76rem; color: var(--m-muted); }
     .cl-tipo { display: inline-flex; align-items: center; gap: .3rem; font-size: .7rem; font-weight: 800; border-radius: 20px; padding: .12rem .55rem;
         background: color-mix(in srgb, var(--tc) 12%, transparent); color: var(--tc); }
+    body.dark-mode .cl-tipo { color: color-mix(in srgb, var(--tc) 55%, #fff); }
     .cl-numeros { display: grid; grid-template-columns: repeat(3, 1fr); gap: .4rem; margin-top: .7rem; }
     .cl-numeros div { background: #faf7f4; border-radius: 9px; padding: .4rem .3rem; text-align: center; }
-    .cl-numeros b { display: block; font-size: .92rem; color: #1a1a2e; line-height: 1.15; }
-    .cl-numeros span { font-size: .64rem; color: #8a8a9d; font-weight: 700; text-transform: uppercase; letter-spacing: .02em; }
+    .cl-numeros b { display: block; font-size: .92rem; color: var(--m-text); line-height: 1.15; }
+    .cl-numeros span { font-size: .64rem; color: var(--m-muted); font-weight: 700; text-transform: uppercase; letter-spacing: .02em; }
     body.dark-mode .cl-numeros div { background: #24243b; }
     body.dark-mode .cl-numeros b { color: #f0f0f7; }
-    .cl-ultima { font-size: .76rem; color: #8a8a9d; margin-top: .55rem; }
-    .cl-ultima.alerta { color: #c0392b; font-weight: 700; }
-    .cl-ultima.bien { color: #1e8e5a; font-weight: 700; }
+    .cl-ultima { font-size: .76rem; color: var(--m-muted); margin-top: .55rem; }
+    .cl-ultima.alerta { color: var(--m-danger-text); font-weight: 700; }
+    .cl-ultima.bien { color: var(--m-success-text); font-weight: 700; }
     .cl-nota { font-size: .76rem; color: #6c5a48; background: #fff8ec; border-radius: 8px; padding: .3rem .55rem; margin-top: .5rem; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
     body.dark-mode .cl-nota { background: rgba(212,136,15,.12); color: #f0d6a8; }
-    .cl-general { font-size: .72rem; font-weight: 700; color: #2170a3; background: #eef4fb; border-radius: 8px; padding: .3rem .55rem; margin-top: .5rem; }
+    .cl-general { font-size: .72rem; font-weight: 700; color: var(--m-info-text); background: #eef4fb; border-radius: 8px; padding: .3rem .55rem; margin-top: .5rem; }
     body.dark-mode .cl-general { background: rgba(52,152,219,.15); color: #9fd0f5; }
     .cl-tipos { display: flex; gap: .35rem; flex-wrap: wrap; margin-bottom: .8rem; }
-    .cl-tipos a { display: inline-flex; align-items: center; gap: .35rem; border: 1.5px solid #eee5dd; background: #fff; border-radius: 20px; padding: .22rem .7rem;
-        font-size: .76rem; font-weight: 700; color: #555; text-decoration: none !important; }
+    .cl-tipos a { display: inline-flex; align-items: center; gap: .35rem; border: 1.5px solid #eee5dd; background: var(--m-surface); border-radius: 20px; padding: .22rem .7rem;
+        font-size: .76rem; font-weight: 700; color: var(--m-text-2); text-decoration: none !important; }
     .cl-tipos a i { color: var(--tc); }
-    .cl-tipos a small { color: #adb5bd; font-weight: 700; }
-    .cl-tipos a.activo { border-color: var(--tc, #b5451b); background: color-mix(in srgb, var(--tc, #b5451b) 10%, #fff); color: #1a1a2e; }
+    .cl-tipos a small { color: var(--m-muted-2); font-weight: 700; }
+    .cl-tipos a.activo { border-color: var(--tc, #b5451b); background: color-mix(in srgb, var(--tc, #b5451b) 10%, #fff); color: var(--m-text); }
     body.dark-mode .cl-tipos a { background: #1f1f33; border-color: #33334d; color: #ccc; }
     body.dark-mode .cl-tipos a.activo { background: #2c2c44; color: #fff; }
     .pagination, .pg-list { flex-wrap: wrap; }
@@ -78,7 +79,7 @@
 @if($stats['recuperar'])
 <div class="inv-resumen">
     <a href="{{ route('clientes.index', ['vista' => 'recuperar']) }}" class="ir {{ $vista === 'recuperar' ? 'activo' : '' }}">
-        <i class="fas fa-user-clock" style="color:#c0392b"></i><b>{{ $stats['recuperar'] }}</b> cliente(s) dejaron de comprar hace más de {{ \App\Models\Cliente::DIAS_SIN_COMPRAR }} días · escríbeles
+        <i class="fas fa-user-clock" style="color: var(--m-danger-text)"></i><b>{{ $stats['recuperar'] }}</b> cliente(s) dejaron de comprar hace más de {{ \App\Models\Cliente::DIAS_SIN_COMPRAR }} días · escríbeles
     </a>
 </div>
 @endif
@@ -186,7 +187,7 @@
                     <a href="{{ route('clientes.edit', ['cliente' => $c, 'volver' => request()->fullUrl()]) }}" class="btn btn-icon btn-warning" title="Editar"><i class="fas fa-edit"></i></a>
                     @if(!$general)
                         @if($c->compras_count || $activo)
-                            <button type="button" class="btn btn-icon btn-secondary is-locked js-blocked"
+                            <button type="button" class="btn btn-icon btn-secondary is-locked js-blocked" data-accion="clientes.editar"
                                 data-blocked-title="{{ $c->compras_count ? 'No se puede eliminar' : 'Desactívalo primero' }}"
                                 data-blocked-message="{{ $c->compras_count ? '“' . $c->nombre . '” tiene ' . $c->compras_count . ' compra(s). Para conservar su historial, solo se puede desactivar con el interruptor.' : 'Por seguridad, un cliente activo no se elimina directamente. Usa el interruptor para desactivar a “' . $c->nombre . '” y luego elimínalo.' }}">
                                 <i class="fas fa-trash-alt"></i>
@@ -204,7 +205,7 @@
         </div>
     @endforeach
 </div>
-<div class="mt-3">{{ $clientes->links() }}</div>
+@include('partials.paginacion', ['p' => $clientes, 'defecto' => 18, 'nombre' => 'clientes'])
 @else
 <div class="empty-state">
     <i class="fas fa-users"></i>

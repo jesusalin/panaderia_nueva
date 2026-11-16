@@ -36,9 +36,9 @@
 <div class="inv-resumen">
     <span class="ir"><i class="fas fa-calculator" style="color:#2980b9"></i>PER = {{ $resumen['con_diferencia'] }} ÷ {{ $resumen['verificados'] }} × 100 = <b>{{ $per }} %</b></span>
     @if($resumen['con_diferencia'])
-        <span class="ir"><i class="fas fa-balance-scale" style="color:#a5680d"></i>El stock de los {{ $resumen['con_diferencia'] }} insumo(s) con diferencia ya se corrigió (quedó en el kardex)</span>
+        <span class="ir"><i class="fas fa-balance-scale" style="color: var(--m-warning-text)"></i>El stock de los {{ $resumen['con_diferencia'] }} insumo(s) con diferencia ya se corrigió (quedó en el kardex)</span>
     @else
-        <span class="ir"><i class="fas fa-check-circle" style="color:#1e8e5a"></i>Todo coincidió con el sistema</span>
+        <span class="ir"><i class="fas fa-check-circle" style="color: var(--m-success-text)"></i>Todo coincidió con el sistema</span>
     @endif
 </div>
 

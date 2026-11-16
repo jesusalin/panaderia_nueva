@@ -16,13 +16,13 @@
 
     .section-label {
         display: block; font-weight: 800; font-size: .78rem; letter-spacing: .04em;
-        text-transform: uppercase; color: #b5451b; margin: 1.75rem 0 .9rem;
+        text-transform: uppercase; color: var(--m-brand-text); margin: 1.75rem 0 .9rem;
         border-bottom: 2px solid #f4e9e3; padding-bottom: .5rem;
     }
     .section-label:first-child { margin-top: 0; }
     .section-label i { opacity: .8; }
 
-    .form-control { border-radius: 10px; border: 1.5px solid #e9ecef; }
+    .form-control { border-radius: 10px; border: 1.5px solid var(--m-border); }
     .form-control:focus { border-color: #b5451b; box-shadow: 0 0 0 3px rgba(181,69,27,.12); }
 
     .field-warning {
@@ -41,27 +41,27 @@
     .password-wrap { position: relative; }
     .password-wrap .toggle-pass {
         position: absolute; right: .9rem; top: 50%; transform: translateY(-50%);
-        cursor: pointer; color: #adb5bd;
+        cursor: pointer; color: var(--m-muted-2);
     }
-    .password-wrap .toggle-pass:hover { color: #495057; }
+    .password-wrap .toggle-pass:hover { color: var(--m-text-2); }
 
     .permisos-grid {
         display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: .75rem;
     }
     .permiso-card {
         position: relative; display: flex; align-items: center; gap: .75rem;
-        border: 1.5px solid #e9ecef; border-radius: 12px; padding: .85rem 1rem;
-        cursor: pointer; transition: all .15s; margin: 0; background: #fff;
+        border: 1.5px solid var(--m-border); border-radius: 12px; padding: .85rem 1rem;
+        cursor: pointer; transition: all .15s; margin: 0; background: var(--m-surface);
     }
-    .permiso-card:hover { border-color: #d4a98f; background: #fffaf7; }
+    .permiso-card:hover { border-color: #d4a98f; background: var(--m-brand-soft); }
     .permiso-card input { position: absolute; opacity: 0; pointer-events: none; }
     .permiso-icon {
-        width: 36px; height: 36px; border-radius: 9px; background: #f1f1f4; color: #6c757d;
+        width: 36px; height: 36px; border-radius: 9px; background: var(--m-surface-3); color: var(--m-muted);
         display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all .15s;
     }
-    .permiso-texto { font-size: .87rem; font-weight: 600; color: #495057; flex: 1; }
+    .permiso-texto { font-size: .87rem; font-weight: 600; color: var(--m-text-2); flex: 1; }
     .permiso-check {
-        width: 20px; height: 20px; border-radius: 50%; border: 1.5px solid #dee2e6;
+        width: 20px; height: 20px; border-radius: 50%; border: 1.5px solid var(--m-border-strong);
         display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all .15s;
     }
     .permiso-check i { font-size: .6rem; color: transparent; }

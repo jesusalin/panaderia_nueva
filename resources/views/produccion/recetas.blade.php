@@ -11,67 +11,67 @@
 <style>
     .rec-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-bottom: 1.25rem; }
     .rec-stat {
-        background: #fff; border-radius: 12px; padding: 1rem 1.1rem; box-shadow: 0 2px 12px rgba(0,0,0,.05);
-        border-left: 4px solid #dee2e6; display: flex; align-items: center; gap: .8rem;
+        background: var(--m-surface); border-radius: 12px; padding: 1rem 1.1rem; box-shadow: 0 2px 12px rgba(0,0,0,.05);
+        border-left: 4px solid var(--m-border-strong); display: flex; align-items: center; gap: .8rem;
     }
     body.dark-mode .rec-stat { background: #1f1f33; box-shadow: 0 2px 12px rgba(0,0,0,.3); }
     .rec-stat .rst-icon {
         width: 42px; height: 42px; border-radius: 10px; display: flex; align-items: center; justify-content: center;
         font-size: 1.05rem; flex-shrink: 0;
     }
-    .rec-stat .rst-value { font-size: 1.35rem; font-weight: 800; color: #1a1a2e; line-height: 1; }
+    .rec-stat .rst-value { font-size: 1.35rem; font-weight: 800; color: var(--m-text); line-height: 1; }
     body.dark-mode .rec-stat .rst-value { color: #f0f0f7; }
-    .rec-stat .rst-label { font-size: .74rem; color: #8a8a9d; font-weight: 700; text-transform: uppercase; letter-spacing: .03em; margin-top: .2rem; }
-    .rec-stat.total    { border-left-color: #b5451b; }
-    .rec-stat.total .rst-icon    { background: rgba(181,69,27,.12); color: #b5451b; }
+    .rec-stat .rst-label { font-size: .74rem; color: var(--m-muted); font-weight: 700; text-transform: uppercase; letter-spacing: .03em; margin-top: .2rem; }
+    .rec-stat.total    { border-left-color: var(--m-brand-text); }
+    .rec-stat.total .rst-icon    { background: rgba(181,69,27,.12); color: var(--m-brand-text); }
     .rec-stat.con      { border-left-color: #2ecc71; }
-    .rec-stat.con .rst-icon      { background: rgba(46,204,113,.14); color: #1e8e5a; }
+    .rec-stat.con .rst-icon      { background: rgba(46,204,113,.14); color: var(--m-success-text); }
     .rec-stat.sin      { border-left-color: #f39c12; }
-    .rec-stat.sin .rst-icon      { background: rgba(243,156,18,.14); color: #b9770e; }
+    .rec-stat.sin .rst-icon      { background: rgba(243,156,18,.14); color: var(--m-warning-text); }
     .rec-stat.aviso    { border-left-color: #e74c3c; }
-    .rec-stat.aviso .rst-icon    { background: rgba(231,76,60,.12); color: #c0392b; }
+    .rec-stat.aviso .rst-icon    { background: rgba(231,76,60,.12); color: var(--m-danger-text); }
     a.rec-stat { text-decoration: none; color: inherit; }
     a.rec-stat:hover { box-shadow: 0 4px 16px rgba(0,0,0,.08); }
 
     .rec-card-media > i { color: var(--cat-color, #b5451b) !important; }
-    .rec-costo { margin: 0 1.1rem .6rem; padding: .55rem .75rem; background: #f7f5f3; border-radius: 9px; font-size: .78rem; color: #6c757d;
+    .rec-costo { margin: 0 1.1rem .6rem; padding: .55rem .75rem; background: var(--m-surface-2); border-radius: 9px; font-size: .78rem; color: var(--m-muted);
         display: flex; flex-wrap: wrap; gap: .2rem .9rem; align-items: center; }
-    .rec-costo b { color: #1a1a2e; }
-    .rec-costo .rc-margen { margin-left: auto; font-weight: 800; padding: .1rem .5rem; border-radius: 20px; background: rgba(46,204,113,.14); color: #1e8e5a; }
-    .rec-costo .rc-margen.baja { background: rgba(243,156,18,.16); color: #a5680d; }
-    .rec-costo .rc-margen.perdida { background: rgba(231,76,60,.14); color: #c0392b; }
+    .rec-costo b { color: var(--m-text); }
+    .rec-costo .rc-margen { margin-left: auto; font-weight: 800; padding: .1rem .5rem; border-radius: 20px; background: rgba(46,204,113,.14); color: var(--m-success-text); }
+    .rec-costo .rc-margen.baja { background: rgba(243,156,18,.16); color: var(--m-warning-text); }
+    .rec-costo .rc-margen.perdida { background: rgba(231,76,60,.14); color: var(--m-danger-text); }
     body.dark-mode .rec-costo { background: #24243b; color: #b0b0cc; }
     body.dark-mode .rec-costo b { color: #f0f0f7; }
-    .rec-avisos { margin: 0 1.1rem .7rem; padding: .45rem .7rem; border-radius: 9px; background: rgba(231,76,60,.08); color: #b3261e; font-size: .76rem; }
+    .rec-avisos { margin: 0 1.1rem .7rem; padding: .45rem .7rem; border-radius: 9px; background: rgba(231,76,60,.08); color: var(--m-danger-text); font-size: .76rem; }
     .rec-avisos i { margin-right: .3rem; }
 
 
     /* Tarjeta de receta (reusa .item-card pero con el ícono de producto en vez de foto grande) */
     .rec-card-media {
-        height: 88px; background: #f7f5f3; display: flex; align-items: center; justify-content: center;
+        height: 88px; background: var(--m-surface-2); display: flex; align-items: center; justify-content: center;
         position: relative; overflow: hidden;
     }
     body.dark-mode .rec-card-media { background: #24243b; }
     .rec-card-media img { width: 100%; height: 100%; object-fit: cover; }
-    .rec-card-media > i { font-size: 1.8rem; color: #b5451b; }
+    .rec-card-media > i { font-size: 1.8rem; color: var(--m-brand-text); }
     body.dark-mode .rec-card-media > i { color: #ff9d6e; }
     .rec-card-media .ic-badge { position: absolute; top: .5rem; right: .5rem; }
 
     .rec-ing-list { padding: .3rem 1.1rem .8rem; }
-    .rec-ing-row { display: flex; justify-content: space-between; align-items: center; padding: .3rem 0; font-size: .82rem; border-bottom: 1px dashed #eee; }
+    .rec-ing-row { display: flex; justify-content: space-between; align-items: center; padding: .3rem 0; font-size: .82rem; border-bottom: 1px dashed var(--m-border); }
     .rec-ing-row:last-child { border-bottom: none; }
     body.dark-mode .rec-ing-row { border-bottom-color: #33334d; }
-    .rec-ing-row .ri-nombre { color: #495057; }
+    .rec-ing-row .ri-nombre { color: var(--m-text-2); }
     body.dark-mode .rec-ing-row .ri-nombre { color: #c8c8d4; }
-    .rec-ing-row .ri-cant { font-weight: 700; color: #1a1a2e; }
+    .rec-ing-row .ri-cant { font-weight: 700; color: var(--m-text); }
     body.dark-mode .rec-ing-row .ri-cant { color: #f0f0f7; }
 
-    .rec-rendimiento { padding: .6rem 1.1rem; border-top: 1px solid #f2f2f2; font-size: .78rem; color: #8a8a9d; }
+    .rec-rendimiento { padding: .6rem 1.1rem; border-top: 1px solid var(--m-border); font-size: .78rem; color: var(--m-muted); }
     body.dark-mode .rec-rendimiento { border-top-color: #33334d; color: #9a9ac0; }
-    .rec-rendimiento strong { color: #1a1a2e; }
+    .rec-rendimiento strong { color: var(--m-text); }
     body.dark-mode .rec-rendimiento strong { color: #f0f0f7; }
 
-    .rec-sin-receta { text-align: center; padding: 1.6rem 1rem; color: #adb5bd; font-size: .85rem; }
+    .rec-sin-receta { text-align: center; padding: 1.6rem 1rem; color: var(--m-muted-2); font-size: .85rem; }
     .rec-sin-receta i { font-size: 1.6rem; display: block; margin-bottom: .5rem; opacity: .5; }
 
 

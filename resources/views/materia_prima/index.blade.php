@@ -7,13 +7,13 @@
 @push('styles')
 <style>
     .mp-card .item-card-media { height: 74px; }
-    .mp-card .item-card-media > i { color: #b5451b; }
+    .mp-card .item-card-media > i { color: var(--m-brand-text); }
     .mp-card .item-card-title a { color: inherit; }
-    .mp-card .item-card-title a:hover { color: #b5451b; text-decoration: none; }
+    .mp-card .item-card-title a:hover { color: var(--m-brand-text); text-decoration: none; }
     .mp-valor { font-size: .78rem; color: #8a8a9d; margin-top: .15rem; } .mp-valor b { color: #1a1a2e; } body.dark-mode .mp-valor b { color: #f0f0f7; }
-    .mp-cob { display: flex; justify-content: space-between; align-items: center; font-size: .78rem; color: #8a8a9d; margin-top: .55rem; }
-    .mp-cob b { color: #1a1a2e; }
-    .mp-cob .corto b { color: #c0392b; }
+    .mp-cob { display: flex; justify-content: space-between; align-items: center; font-size: .78rem; color: var(--m-muted); margin-top: .55rem; }
+    .mp-cob b { color: var(--m-text); }
+    .mp-cob .corto b { color: var(--m-danger-text); }
     body.dark-mode .mp-cob b { color: #f0f0f7; }
     .mp-control { position: absolute; left: .55rem; top: .55rem; font-size: .66rem; font-weight: 800; padding: .15rem .5rem; border-radius: 20px; background: rgba(26,26,46,.75); color: #fff; }
 </style>
@@ -162,7 +162,7 @@
                         <i class="fas fa-edit"></i>
                     </a>
                     @if($bloqueadoMateria)
-                        <button type="button" class="btn btn-icon btn-secondary is-locked js-blocked"
+                        <button type="button" class="btn btn-icon btn-secondary is-locked js-blocked" data-accion="inventario.materia_prima.editar"
                             data-blocked-title="No se puede eliminar este insumo"
                             data-blocked-message="&quot;{{ $m->nombre }}&quot; {{ implode(' y ', $usosMateria) }}. Usa el interruptor para desactivarlo sin perder su historial.">
                             <i class="fas fa-trash-alt"></i>
@@ -180,7 +180,7 @@
         </div>
     @endforeach
 </div>
-<div class="mt-3">{{ $materias->links() }}</div>
+@include('partials.paginacion', ['p' => $materias, 'defecto' => 12, 'nombre' => 'insumos'])
 @else
 <div class="empty-state">
     <i class="fas fa-boxes"></i>

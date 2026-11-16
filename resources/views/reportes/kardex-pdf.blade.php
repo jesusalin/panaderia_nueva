@@ -50,6 +50,9 @@
         @if($stockBajo)
             &nbsp;·&nbsp;<strong style="color:#c0392b;">⚠ Stock bajo</strong>
         @endif
+        @if($filtroTabla)
+            <br><strong>Tabla: {{ $filtroTabla }}</strong> ({{ $movimientosVista->count() }} de {{ $movimientos->count() }} movimientos)
+        @endif
     </div>
 
     <table class="resumen" width="100%">
@@ -65,29 +68,30 @@
         <thead>
             <tr>
                 <th>Fecha</th><th>Tipo</th><th>Motivo</th>
-                <th class="num">Entrada</th><th class="num">Salida</th><th class="num">Saldo</th><th>Usuario</th>
+                <th class="num">Entrada</th><th class="num">Salida</th><th class="num">Saldo</th><th>Usuario</th><th>Detalle</th>
             </tr>
         </thead>
         <tbody>
-            @if($movimientos->isNotEmpty())
+            @if($movimientosVista->isNotEmpty())
             <tr style="background:#f4f1ee;font-style:italic;font-weight:bold;">
                 <td colspan="5">Saldo inicial</td>
                 <td class="num">{{ \App\Support\Cantidad::conUnidad($saldoInicial, $unidad) }}</td>
-                <td></td>
+                <td colspan="2"></td>
             </tr>
             @endif
-            @forelse($movimientos as $mov)
+            @forelse($movimientosVista as $mov)
             <tr>
                 <td>{{ $mov->created_at->format('d/m/Y H:i') }}</td>
-                <td>{{ $mov->es_ajuste ? 'Ajuste' : ucfirst($mov->tipo) }}</td>
-                <td>{{ ucfirst(str_replace('_', ' ', $mov->motivo)) }}</td>
+                <td>{{ $mov->tipo_txt }}</td>
+                <td>{{ $mov->motivo_txt }}</td>
                 <td class="num">{{ $mov->entrada > 0 ? \App\Support\Cantidad::conUnidad($mov->entrada, $unidad) : '' }}</td>
                 <td class="num">{{ $mov->salida > 0 ? \App\Support\Cantidad::conUnidad($mov->salida, $unidad) : '' }}</td>
                 <td class="num">{{ \App\Support\Cantidad::conUnidad($mov->stock_despues, $unidad) }}</td>
-                <td>{{ $mov->usuario->apodo ?? $mov->usuario->nombre ?? '—' }}</td>
+                <td>{{ $mov->usuario_txt }}</td>
+                <td style="font-size:9px;color:#555;">{{ $mov->observacion }}</td>
             </tr>
             @empty
-            <tr><td colspan="7" style="text-align:center;color:#999;">Sin movimientos en el periodo seleccionado</td></tr>
+            <tr><td colspan="8" style="text-align:center;color:#999;">{{ $filtroTabla ? 'Ningún movimiento coincide con el filtro' : 'Sin movimientos en el periodo seleccionado' }}</td></tr>
             @endforelse
         </tbody>
     </table>

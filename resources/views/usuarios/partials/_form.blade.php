@@ -24,18 +24,18 @@
     body.dark-mode .uf-aviso.mal { background: rgba(231,76,60,.15); color: #f1a097; }
     body.dark-mode .uf-aviso.ok { background: rgba(46,204,113,.12); color: #6ee7a5; }
     .uf-sugerir { font-size: .78rem; margin-top: .3rem; }
-    .uf-sugerir button { border: 0; background: #fdf1ea; color: #b5451b; border-radius: 20px; padding: .1rem .6rem; font-weight: 700; margin-left: .2rem; }
+    .uf-sugerir button { border: 0; background: var(--m-brand-soft); color: var(--m-brand-text); border-radius: 20px; padding: .1rem .6rem; font-weight: 700; margin-left: .2rem; }
     .uf-pass { position: relative; }
-    .uf-pass .toggle-pass { position: absolute; right: .9rem; top: 50%; transform: translateY(-50%); cursor: pointer; color: #adb5bd; }
-    .uf-fuerza { height: 6px; border-radius: 4px; background: #eee; overflow: hidden; margin-top: .4rem; }
+    .uf-pass .toggle-pass { position: absolute; right: .9rem; top: 50%; transform: translateY(-50%); cursor: pointer; color: var(--m-muted-2); }
+    .uf-fuerza { height: 6px; border-radius: 4px; background: var(--m-surface-3); overflow: hidden; margin-top: .4rem; }
     .uf-fuerza span { display: block; height: 100%; width: 0; transition: width .2s, background .2s; }
-    .uf-fuerza-txt { font-size: .74rem; margin-top: .2rem; color: #8a8a9d; }
+    .uf-fuerza-txt { font-size: .74rem; margin-top: .2rem; color: var(--m-muted); }
     .uf-roles { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: .6rem; }
     .uf-roles input { position: absolute; opacity: 0; pointer-events: none; }
-    .uf-roles label { display: flex; gap: .7rem; align-items: flex-start; margin: 0; border: 1.5px solid #eee5dd; border-radius: 12px; padding: .75rem .9rem; cursor: pointer; background: #fff; }
-    .uf-roles label i { width: 34px; height: 34px; border-radius: 10px; background: #f3f0ec; color: #8a8a9d; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-    .uf-roles label b { display: block; color: #1a1a2e; }
-    .uf-roles label small { color: #8a8a9d; font-weight: 400; }
+    .uf-roles label { display: flex; gap: .7rem; align-items: flex-start; margin: 0; border: 1.5px solid #eee5dd; border-radius: 12px; padding: .75rem .9rem; cursor: pointer; background: var(--m-surface); }
+    .uf-roles label i { width: 34px; height: 34px; border-radius: 10px; background: var(--m-surface-3); color: var(--m-muted); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .uf-roles label b { display: block; color: var(--m-text); }
+    .uf-roles label small { color: var(--m-muted); font-weight: 400; }
     .uf-roles input:checked + label { border-color: #b5451b; background: #fff8f4; box-shadow: 0 0 0 1px #b5451b inset; }
     .uf-roles input:checked + label i { background: #b5451b; color: #fff; }
     .uf-roles input:disabled + label { cursor: not-allowed; opacity: .6; }
@@ -43,13 +43,13 @@
     body.dark-mode .uf-roles label { background: #24243b; border-color: #33334d; }
     body.dark-mode .uf-roles label b { color: #f0f0f7; }
     body.dark-mode .uf-roles input:checked + label { background: #2c2c44; }
-    .uf-vista { background: #fff; border-radius: 14px; box-shadow: 0 2px 12px rgba(0,0,0,.06); padding: 1rem; text-align: center; }
+    .uf-vista { background: var(--m-surface); border-radius: 14px; box-shadow: 0 2px 12px rgba(0,0,0,.06); padding: 1rem; text-align: center; }
     body.dark-mode .uf-vista { background: #1f1f33; }
     .uf-vista .uv-av { width: 64px; height: 64px; border-radius: 50%; margin: 0 auto .5rem; display: flex; align-items: center; justify-content: center;
         font-weight: 800; font-size: 1.4rem; color: #fff; background: linear-gradient(135deg, #4a4a5e, #1a1a2e); overflow: hidden; }
     .uf-vista .uv-av.inactivo { background: #adb5bd; }
     .uf-vista .uv-av img { width: 100%; height: 100%; object-fit: cover; }
-    .uf-vista b.nm { display: block; color: #1a1a2e; font-size: 1.02rem; }
+    .uf-vista b.nm { display: block; color: var(--m-text); font-size: 1.02rem; }
     body.dark-mode .uf-vista b.nm { color: #f0f0f7; }
     .uf-vista .uv-chips { display: flex; justify-content: center; flex-wrap: wrap; gap: .3rem; margin-top: .5rem; }
     .clave-olvido { display: flex; gap: .8rem; align-items: center; background: #f1f7fd; border: 1px solid #d6e7f7; color: #2c4a66;

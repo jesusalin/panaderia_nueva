@@ -1,6 +1,7 @@
 <?php
 namespace App\Http\Controllers;
 
+use App\Support\TablaFiltro;
 use App\Models\MateriaPrima;
 use App\Models\Producto;
 use App\Models\MovimientoInventario;
@@ -77,6 +78,15 @@ class ReportesController extends Controller
      *              nivel seguro (configurada o el doble del mínimo).
      * Por defecto los ítems críticos salen primero.
      */
+    /** Órdenes del reporte de stock: su sentido natural y cómo se lee cada sentido. */
+    public const ORDENES_STOCK = [
+        ''       => ['texto' => 'Urgencia',          'dir' => 'asc',  'asc' => 'agotados primero',   'desc' => 'normales primero',   'icono' => 'fa-fire'],
+        'nombre' => ['texto' => 'Nombre',            'dir' => 'asc',  'asc' => 'A-Z',                'desc' => 'Z-A',                'icono' => 'fa-font'],
+        'dias'   => ['texto' => 'Días que alcanza',  'dir' => 'asc',  'asc' => 'menos días primero', 'desc' => 'más días primero',   'icono' => 'fa-hourglass-half'],
+        'stock'  => ['texto' => 'Cantidad en stock', 'dir' => 'asc',  'asc' => 'menor primero',      'desc' => 'mayor primero',      'icono' => 'fa-cubes'],
+        'valor'  => ['texto' => 'Valor',             'dir' => 'desc', 'asc' => 'menor primero',      'desc' => 'mayor primero',      'icono' => 'fa-coins'],
+    ];
+
     private function datosStock(Request $request)
     {
         $tipo = $request->get('tipo', 'todos'); // todos | materia | producto
@@ -138,22 +148,39 @@ class ReportesController extends Controller
             $m->dias = $m->diasCobertura($m->por_dia);
         });
 
-        // Orden elegido (por defecto: los críticos primero)
-        $orden = $request->get('orden');
-        if ($orden === 'dias') {
-            $materias = $materias->sortBy(fn ($m) => $m->dias === null ? PHP_INT_MAX : $m->dias)->values();
-        } elseif ($orden === 'valor') {
-            $materias = $materias->sortByDesc('valor')->values();
-            $productos = $productos->sortByDesc('valor')->values();
-        } elseif ($orden === 'nombre') {
-            $materias = $materias->sortBy(fn ($m) => mb_strtolower($m->nombre))->values();
-            $productos = $productos->sortBy(fn ($p) => mb_strtolower($p->nombre))->values();
+        // Orden elegido (por defecto: los más urgentes primero). Cada orden tiene su sentido
+        // natural (A-Z, menos días, mayor valor…) y con dir se puede invertir.
+        $orden = array_key_exists($request->get('orden'), self::ORDENES_STOCK) ? $request->get('orden') : '';
+        $dir = in_array($request->get('dir'), ['asc', 'desc'], true) ? $request->get('dir') : self::ORDENES_STOCK[$orden]['dir'];
+        $clave = match ($orden) {
+            'nombre' => fn ($i) => mb_strtolower($i->nombre),
+            'stock'  => fn ($i) => (float) $i->stock_actual,
+            'dias'   => fn ($i) => $i->dias ?? ($dir === 'desc' ? -1 : PHP_INT_MAX),   // sin consumo: siempre al final
+            'valor'  => fn ($i) => (float) $i->valor,
+            default  => null,
+        };
+        if ($clave) {
+            $ordenar = fn ($c) => ($dir === 'desc' ? $c->sortByDesc($clave) : $c->sortBy($clave))->values();
+            $materias = $ordenar($materias);
+            // los productos no tienen "días que alcanza": se dejan por urgencia
+            if ($orden !== 'dias') $productos = $ordenar($productos);
+        } elseif ($dir === 'desc') {
+            $materias = $materias->reverse()->values();
+            $productos = $productos->reverse()->values();
         }
+
+        // Cómo se está viendo la lista (sale igual en el PDF y en el Excel)
+        $vista = collect([
+            ['todos' => 'Todo el inventario', 'materia' => 'Solo materia prima', 'producto' => 'Solo productos'][$tipo] ?? 'Todo el inventario',
+            ['bajo' => 'Solo los que necesitan reposición', 'agotado' => 'Solo agotados'][$filtroStock] ?? 'Todos los niveles',
+            'Ordenado por ' . mb_strtolower(self::ORDENES_STOCK[$orden]['texto']) . ' (' . self::ORDENES_STOCK[$orden][$dir] . ')',
+            $request->filled('buscar') ? 'Búsqueda: «' . $request->buscar . '»' : null,
+        ])->filter()->implode(' · ');
 
         $valorMateria  = $materias->sum('valor');
         $valorProducto = $productos->sum('valor');
 
-        return compact('tipo', 'materias', 'productos', 'valorMateria', 'valorProducto');
+        return compact('tipo', 'materias', 'productos', 'valorMateria', 'valorProducto', 'orden', 'dir', 'vista');
     }
 
     public function stock(Request $request)
@@ -236,6 +263,27 @@ class ReportesController extends Controller
      * Así los AJUSTES y conteos físicos —que se guardan con tipo "ajuste"—
      * también aparecen como entrada o salida y entran en los totales.
      */
+    public const MOTIVOS_KARDEX = [
+        'compra' => 'Compra', 'produccion' => 'Producción', 'venta' => 'Venta', 'merma' => 'Merma',
+        'ajuste_manual' => 'Ajuste de inventario', 'devolucion' => 'Devolución', 'conteo_fisico' => 'Conteo físico',
+        'anulacion' => 'Anulación',
+    ];
+
+    /** Columnas de la tabla del kardex (claves iguales a las de data-clave en la vista). */
+    private static function columnasKardex(): array
+    {
+        return [
+            'fecha'   => ['titulo' => 'Fecha',   'valor' => fn ($m) => $m->created_at->timestamp * 1000000 + $m->id, 'texto' => fn ($m) => $m->created_at->format('d/m/Y H:i')],
+            'tipo'    => ['titulo' => 'Tipo',    'valor' => fn ($m) => $m->tipo_txt],
+            'motivo'  => ['titulo' => 'Motivo',  'valor' => fn ($m) => $m->motivo_txt],
+            'entrada' => ['titulo' => 'Entrada', 'valor' => fn ($m) => (float) $m->entrada, 'texto' => fn ($m) => ''],
+            'salida'  => ['titulo' => 'Salida',  'valor' => fn ($m) => (float) $m->salida, 'texto' => fn ($m) => ''],
+            'saldo'   => ['titulo' => 'Saldo',   'valor' => fn ($m) => (float) $m->stock_despues, 'texto' => fn ($m) => ''],
+            'usuario' => ['titulo' => 'Usuario', 'valor' => fn ($m) => $m->usuario_txt],
+            'detalle' => ['titulo' => 'Detalle', 'valor' => fn ($m) => (string) $m->observacion],
+        ];
+    }
+
     private function datosKardex(Request $request)
     {
         $materias  = MateriaPrima::with('unidad')->orderBy('nombre')->get();
@@ -303,10 +351,22 @@ class ReportesController extends Controller
         // Aviso de stock bajo: que el almacenero lo vea justo en la ficha del ítem.
         $stockBajo = $item ? ($item->stock_actual <= $item->stock_minimo) : false;
 
+        // Textos de cada fila (los mismos en pantalla, PDF y Excel) y el orden/filtros que eligió
+        // el usuario en la tabla, para que el PDF y el Excel salgan igual que la pantalla.
+        $movimientos->each(function ($m) {
+            $m->setAttribute('tipo_txt', $m->es_ajuste ? 'Ajuste' : ucfirst($m->tipo));
+            $m->setAttribute('motivo_txt', self::MOTIVOS_KARDEX[$m->motivo] ?? ucfirst(str_replace('_', ' ', (string) $m->motivo)));
+            $m->setAttribute('usuario_txt', $m->usuario->apodo ?? $m->usuario->nombre ?? '—');
+        });
+        $columnas = self::columnasKardex();
+        $movimientosVista = TablaFiltro::aplicar($movimientos, $request, $columnas);
+        $filtroTabla = TablaFiltro::descripcion($request, $columnas);
+
         return compact(
             'materias', 'productos', 'item', 'movimientos', 'tipoItem', 'idItem', 'unidad',
             'desde', 'hasta', 'periodo', 'costo', 'stockBajo',
-            'totalEntradas', 'totalSalidas', 'saldoInicial', 'saldoFinal', 'cuadra', 'porMotivo'
+            'totalEntradas', 'totalSalidas', 'saldoInicial', 'saldoFinal', 'cuadra', 'porMotivo',
+            'movimientosVista', 'filtroTabla'
         );
     }
 
@@ -330,7 +390,7 @@ class ReportesController extends Controller
         if (!$datos['item']) return back()->with('error', 'Selecciona un ítem para generar el reporte.');
 
         return Excel::download(
-            new KardexExport($datos['item'], $datos['movimientos'], $datos['unidad'], $datos['saldoInicial']),
+            new KardexExport($datos['item'], $datos['movimientosVista'], $datos['unidad'], $datos['saldoInicial'], $datos['filtroTabla']),
             'kardex-' . str($datos['item']->nombre)->slug() . '.xlsx'
         );
     }

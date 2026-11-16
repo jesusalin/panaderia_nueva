@@ -17,6 +17,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->web(append: [
             \App\Http\Middleware\ActualizarUltimoAcceso::class,
             \App\Http\Middleware\RegistrarActividad::class,   // historial de actividad
+            \App\Http\Middleware\RevisarAccion::class,        // acciones que el admin le quitó al usuario
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

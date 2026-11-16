@@ -42,7 +42,7 @@ class ProductosController extends Controller
             'margen'      => $productos->orderByRaw('CASE WHEN costo_produccion > 0 AND precio_venta > 0 THEN (precio_venta - costo_produccion) / precio_venta ELSE -1 END DESC'),
             default       => null,
         };
-        $productos = $productos->orderBy('nombre')->paginate(12)->withQueryString();
+        $productos = $productos->orderBy('nombre')->paginate(\App\Support\PorPagina::valor(12))->withQueryString();
 
         $stats = [
             'total'    => Producto::count(),

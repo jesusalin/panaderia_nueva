@@ -7,34 +7,34 @@
 @push('styles')
 <style>
     .vt-medios { display: flex; flex-wrap: wrap; gap: .5rem; margin-bottom: 1rem; }
-    .vt-medio { display: flex; align-items: center; gap: .55rem; background: #fff; border-radius: 12px; padding: .55rem .85rem; box-shadow: 0 1px 6px rgba(0,0,0,.05); text-decoration: none !important; color: inherit; border: 1.5px solid transparent; }
+    .vt-medio { display: flex; align-items: center; gap: .55rem; background: var(--m-surface); border-radius: 12px; padding: .55rem .85rem; box-shadow: 0 1px 6px rgba(0,0,0,.05); text-decoration: none !important; color: inherit; border: 1.5px solid transparent; }
     .vt-medio:hover { border-color: #eee5dd; color: inherit; }
     .vt-medio.activo { border-color: #b5451b; }
     .vt-medio .ic { width: 30px; height: 30px; border-radius: 9px; display: flex; align-items: center; justify-content: center; color: #fff; font-size: .8rem; }
-    .vt-medio b { display: block; font-size: .95rem; color: #1a1a2e; line-height: 1.1; }
-    .vt-medio small { color: #8a8a9d; font-size: .72rem; }
+    .vt-medio b { display: block; font-size: .95rem; color: var(--m-text); line-height: 1.1; }
+    .vt-medio small { color: var(--m-muted); font-size: .72rem; }
     body.dark-mode .vt-medio { background: #1f1f33; }
     body.dark-mode .vt-medio b { color: #f0f0f7; }
 
-    .vt-dia { display: flex; justify-content: space-between; align-items: center; margin: 1.1rem 0 .45rem; font-size: .76rem; font-weight: 800; text-transform: uppercase; letter-spacing: .05em; color: #8a8a9d; }
-    .vt-dia b { color: #1a1a2e; font-size: .85rem; letter-spacing: 0; }
+    .vt-dia { display: flex; justify-content: space-between; align-items: center; margin: 1.1rem 0 .45rem; font-size: .76rem; font-weight: 800; text-transform: uppercase; letter-spacing: .05em; color: var(--m-muted); }
+    .vt-dia b { color: var(--m-text); font-size: .85rem; letter-spacing: 0; }
     body.dark-mode .vt-dia b { color: #f0f0f7; }
     .vt-fila { display: grid; grid-template-columns: 56px minmax(160px, 1.1fr) minmax(170px, 1.5fr) 120px 100px 110px auto; gap: .8rem; align-items: center;
-        background: #fff; border-radius: 12px; padding: .65rem 1rem; box-shadow: 0 1px 6px rgba(0,0,0,.05); cursor: pointer; }
+        background: var(--m-surface); border-radius: 12px; padding: .65rem 1rem; box-shadow: 0 1px 6px rgba(0,0,0,.05); cursor: pointer; }
     .vt-fila + .vt-fila { margin-top: .45rem; }
     .vt-fila:hover { box-shadow: 0 4px 16px rgba(0,0,0,.09); }
     .vt-fila.anulada { opacity: .6; }
     .vt-fila.anulada .vt-total { text-decoration: line-through; }
     body.dark-mode .vt-fila { background: #1f1f33; }
-    .vt-hora { font-weight: 800; font-size: .95rem; color: #1a1a2e; }
+    .vt-hora { font-weight: 800; font-size: .95rem; color: var(--m-text); }
     body.dark-mode .vt-hora { color: #f0f0f7; }
-    .vt-num { font-family: ui-monospace, monospace; font-size: .74rem; color: #8a8a9d; }
-    .vt-cli b { display: block; font-size: .9rem; color: #1a1a2e; }
+    .vt-num { font-family: ui-monospace, monospace; font-size: .74rem; color: var(--m-muted); }
+    .vt-cli b { display: block; font-size: .9rem; color: var(--m-text); }
     body.dark-mode .vt-cli b { color: #f0f0f7; }
-    .vt-cli small, .vt-prod { font-size: .78rem; color: #8a8a9d; }
+    .vt-cli small, .vt-prod { font-size: .78rem; color: var(--m-muted); }
     .vt-prod { overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
-    .vt-pago { display: inline-flex; align-items: center; gap: .3rem; font-size: .74rem; font-weight: 700; border-radius: 20px; padding: .18rem .6rem; background: #f3f0ec; color: #555; white-space: nowrap; }
-    .vt-total { text-align: right; font-weight: 800; font-size: 1rem; color: #1a1a2e; white-space: nowrap; }
+    .vt-pago { display: inline-flex; align-items: center; gap: .3rem; font-size: .74rem; font-weight: 700; border-radius: 20px; padding: .18rem .6rem; background: var(--m-surface-3); color: var(--m-text-2); white-space: nowrap; }
+    .vt-total { text-align: right; font-weight: 800; font-size: 1rem; color: var(--m-text); white-space: nowrap; }
     body.dark-mode .vt-total { color: #f0f0f7; }
     .vt-acc { display: flex; gap: .3rem; justify-content: flex-end; }
     @media (max-width: 991px) {
@@ -141,7 +141,7 @@
     @if($hayFiltros)<a href="{{ route('ventas.index') }}" class="btn btn-light text-muted"><i class="fas fa-times mr-1"></i>Limpiar</a>@endif
 </form>
 
-<div class="d-flex justify-content-between align-items-center" style="font-size:.82rem;color:#8a8a9d">
+<div class="d-flex justify-content-between align-items-center" style="font-size:.82rem;color: var(--m-muted)">
     <span>{{ $filtrado['n'] }} venta{{ $filtrado['n'] == 1 ? '' : 's' }}{{ $filtrado['anuladas'] ? ' · ' . $filtrado['anuladas'] . ' anulada(s)' : '' }}{{ $hayFiltros ? ' con estos filtros' : '' }}</span>
     <span>Total: <b class="text-body">S/ {{ number_format($filtrado['total'], 2) }}</b> <small>(IGV incluido)</small></span>
 </div>
@@ -178,6 +178,6 @@
         <p>{{ $hayFiltros ? 'No hay ventas con estos filtros.' : 'Todavía no hay ventas. Se registran desde Productos, con la venta rápida.' }}</p>
     </div>
 @endforelse
-<div class="mt-3">{{ $ventas->links() }}</div>
+@include('partials.paginacion', ['p' => $ventas, 'defecto' => 30, 'nombre' => 'ventas'])
 @endsection
 

@@ -50,7 +50,7 @@ class ProveedoresController extends Controller
             'insumos_sin_proveedor' => MateriaPrima::where('estado', 'activo')->whereNull('id_proveedor')->count(),
         ];
 
-        $proveedores = $query->paginate(15)->withQueryString();
+        $proveedores = $query->paginate(\App\Support\PorPagina::valor(15))->withQueryString();
         return view('proveedores.index', compact('proveedores', 'stats'));
     }
 
